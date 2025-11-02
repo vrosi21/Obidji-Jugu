@@ -1,0 +1,34 @@
+<?xml version='1.0'?>
+<DevRes>
+	<Translations>
+		<!-- Menu items -->
+		<Res id="Quit" tr="Izlaz"/>
+		<Res id="start" tr="Početak"/>
+		<Res id="theApp" tr="Aplikacija"/>
+		<Res id="timer" tr="Tajmer"/>
+		
+		<!-- Toolbar -->
+		<Res id="Language" tr="Jezik"/>
+		<Res id="English" tr="Engleski"/>
+		<Res id="Bosanski" tr="Bosanski"/>
+		
+		<!-- Side panel buttons and labels -->
+		<!-- Side panel buttons and labels (Travelling Salesman placeholders) -->
+		<Res id="btnStartTour" tr="Pokreni turu"/>
+		<Res id="btnStopTour" tr="Zaustavi"/>
+		<Res id="btnLoadPoints" tr="Učitaj tačke"/>
+		<Res id="btnGenerate" tr="Generiši nasumične tačke"/>
+		<Res id="lblPoints0" tr="Broj tačaka: 0"/>
+		<Res id="lblTourLen0" tr="Dužina ture: 0"/>
+		
+		<!-- Dynamic status labels (templates) -->
+		<Res id="lblPoints" tr="Broj tačaka: "/>
+		<Res id="lblTourLen" tr="Dužina ture: "/>
+		
+		<!-- Error messages (generic for Travelling Salesman) -->
+		<Res id="errInvalidInput" tr="Neispravan format ulaza"/>
+		<Res id="errNoPoints" tr="Nema dostupnih tačaka"/>
+		<Res id="errSolveFail" tr="Računanje neuspješno: "/>
+		<Res id="errUnknownAlgo" tr="Nepoznat algoritam"/>
+	</Translations>
+</DevRes>

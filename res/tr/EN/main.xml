@@ -1,0 +1,34 @@
+<?xml version='1.0'?>
+<DevRes>
+	<Translations>
+		<!-- Menu items -->
+		<Res id="Quit" tr="Quit"/>
+		<Res id="start" tr="Start"/>
+		<Res id="theApp" tr="The App"/>
+		<Res id="timer" tr="Timer"/>
+		
+		<!-- Toolbar -->
+		<Res id="Language" tr="Language"/>
+		<Res id="English" tr="English"/>
+		<Res id="Bosanski" tr="Bosnian"/>
+		
+		<!-- Side panel buttons and labels -->
+		<!-- Side panel buttons and labels (Travelling Salesman placeholders) -->
+		<Res id="btnStartTour" tr="Start Tour"/>
+		<Res id="btnStopTour" tr="Stop"/>
+		<Res id="btnLoadPoints" tr="Load Points"/>
+		<Res id="btnGenerate" tr="Generate Random Points"/>
+		<Res id="lblPoints0" tr="Number of points: 0"/>
+		<Res id="lblTourLen0" tr="Length of current tour: 0"/>
+		
+		<!-- Dynamic status labels (templates) -->
+		<Res id="lblPoints" tr="Number of points: "/>
+		<Res id="lblTourLen" tr="Length of current tour: "/>
+		
+		<!-- Error messages (generic for Travelling Salesman) -->
+		<Res id="errInvalidInput" tr="Invalid input format"/>
+		<Res id="errNoPoints" tr="No points provided"/>
+		<Res id="errSolveFail" tr="Computation failed: "/>
+		<Res id="errUnknownAlgo" tr="Unknown algorithm"/>
+	</Translations>
+</DevRes>
