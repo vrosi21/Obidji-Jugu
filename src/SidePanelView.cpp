@@ -1,7 +1,19 @@
 #include "SidePanelView.h"
 
 
-SidePanelView::SidePanelView() :hlCoordsX(2), lblXCoord("X:"), txtEditXCoord(td::DataType::decimal4), hlCoordsY(2), lblYCoord("Y:"), txtEditYCoord(td::DataType::decimal4), hlAddBtn(1), btnAddPt(tr("Add point")), vl(8), hlName(2), lnEditName(), lblName(tr("Name:"))
+SidePanelView::SidePanelView() 
+    :hlCoordsX(2), 
+    lblXCoord("X:"), 
+    txtEditXCoord(td::DataType::decimal4), 
+    hlCoordsY(2), 
+    lblYCoord("Y:"), 
+    txtEditYCoord(td::DataType::decimal4), 
+    hlAddBtn(1), 
+    btnAddPt(tr("Add point")), 
+    vl(8), 
+    hlName(2), 
+    lnEditName(), 
+    lblName(tr("Name:"))
 {
     // Intentionally empty for now; will host controls later.
         txtEditXCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
