@@ -20,11 +20,7 @@ void MapView::loadCities()
     namespace fs = std::filesystem;
 
     static const char* candidates[] = {
-        "res/exYu.json",
-        "../res/exYu.json",
-        "../../res/exYu.json",
-        "DSAI_AI_Project_The_Travelling_Salesman/res/exYu.json",
-        "exYu.json"
+        "../res/exYu.json"
     };
 
     auto readFile = [](const fs::path& p)->std::string {
