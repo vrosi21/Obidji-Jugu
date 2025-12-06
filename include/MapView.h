@@ -18,6 +18,9 @@ public:
     MapView();
     ~MapView() = default;
 
+    // Returns the loaded city names (empty if not loaded or none)
+    std::vector<std::string> getCityNames() const;
+
 protected:
     void onDraw(const gui::Rect& rect) override;
 

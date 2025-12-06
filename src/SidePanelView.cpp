@@ -10,7 +10,14 @@ SidePanelView::SidePanelView()
     btnAddPt(tr("Add point")), 
     lnEditName(), 
     lblName(tr("Name:")),
-    gl(4, 2)
+    lblChoosePoint(tr("Select point:")),
+    lblCurrentCityName(tr("Current name:")),
+    lblCurrentX(tr("Current X:")),
+    neCurrentX(td::DataType::decimal4),
+    lblCurrentY(tr("Current Y:")),
+    neCurrentY(td::DataType::decimal4),
+    btnUpdatePoint(tr("Update point")),
+    gl(11, 2)
 {
         txtEditXCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
         txtEditYCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
@@ -32,6 +39,75 @@ SidePanelView::SidePanelView()
         // Row 3: Button spanning all columns (span to end)
         gl.insert(3, 0, btnAddPt, -1);
 
+        // Row 4: Dropdown label spanning all columns
+        gl.insert(4, 0, lblChoosePoint, -1);
+        // Row 5: Dropdown spanning all columns
+        gl.insert(5, 0, cmbPoints, -1);
+
+        // Row 6: Current city name label
+        gl.insert(6, 0, lblCurrentCityName, -1);
+        // Row 7: Current city name input spanning all columns
+        gl.insert(7, 0, lnEditCurrentCityName, -1);
+
+        // Row 8: Current X and Y labels
+        gl.insert(8, 0, lblCurrentX, td::HAlignment::Left);
+        gl.insert(8, 1, lblCurrentY, td::HAlignment::Left);
+        // Row 9: Current X and Y inputs
+        neCurrentX.setText("0");
+        neCurrentY.setText("0");
+        gl.insert(9, 0, neCurrentX, td::HAlignment::Left);
+        gl.insert(9, 1, neCurrentY, td::HAlignment::Left);
+
+        // Row 10: Update point button spanning all columns
+        btnUpdatePoint.setType(gui::Button::Type::Default);
+        btnUpdatePoint.setSizeLimitForNChars(12, gui::Control::Limit::None);
+        gl.insert(10, 0, btnUpdatePoint, -1);
+
         setLayout(&gl);
+}
+
+void SidePanelView::populatePointNames(const std::vector<std::string>& names)
+{
+    _pointNames = names;
+    for (const auto& n : names)
+    {
+        cmbPoints.addItem(n.c_str());
+    }
+    if (!names.empty())
+    {
+        cmbPoints.selectIndex(0);
+        lnEditCurrentCityName.setText(names[0].c_str());
+    }
+}
+
+bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
+{
+    if (pCB == &cmbPoints)
+    {
+        int idx = pCB->getSelectedIndex();
+        (void)idx; // placeholder for future reaction to selection
+        updateCurrentNameFromSelection();
+        updateCurrentCoordsFromSelection();
+        return true;
+    }
+    return false;
+}
+
+void SidePanelView::updateCurrentNameFromSelection()
+{
+    int idx = cmbPoints.getSelectedIndex();
+    if (idx >= 0 && idx < (int)_pointNames.size())
+    {
+        lnEditCurrentCityName.setText(_pointNames[idx].c_str());
+        reDraw();
+    }
+}
+
+void SidePanelView::updateCurrentCoordsFromSelection()
+{
+    // Placeholder: set both X and Y to 0 for now
+    neCurrentX.setText("0");
+    neCurrentY.setText("0");
+    reDraw();
 }
 

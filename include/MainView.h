@@ -30,5 +30,8 @@ public:
 
         // Left: MapView (canvas), Right: SidePanelView (controls)
         // Wiring for interactions will be added as views evolve.
+
+        // Populate side panel dropdown with city names loaded by MapView
+        _sidePanel.populatePointNames(_mapView.getCityNames());
     }
 };

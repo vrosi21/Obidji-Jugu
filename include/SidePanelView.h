@@ -6,6 +6,10 @@
 #include <gui/GridLayout.h>
 #include <gui/LineEdit.h>
 #include <gui/NumericEdit.h>
+#include <gui/ComboBox.h>
+
+#include <vector>
+#include <string>
 
 
 // Minimal side panel view for the Travelling Salesman project.
@@ -19,9 +23,29 @@ public:
     gui::Button btnAddPt;
     gui::Label lblName;
     gui::LineEdit lnEditName;
+    gui::Label lblChoosePoint;
+    gui::ComboBox cmbPoints;
+    gui::Label lblCurrentCityName;
+    gui::LineEdit lnEditCurrentCityName;
+    gui::Label lblCurrentX;
+    gui::NumericEdit neCurrentX;
+    gui::Label lblCurrentY;
+    gui::NumericEdit neCurrentY;
+    gui::Button btnUpdatePoint;
     gui::GridLayout gl;
 
     SidePanelView();
 
     ~SidePanelView() = default;
+
+    // Populate dropdown with provided point names
+    void populatePointNames(const std::vector<std::string>& names);
+
+protected:
+    bool onChangedSelection(gui::ComboBox* pCB) override;
+
+private:
+    std::vector<std::string> _pointNames;
+    void updateCurrentNameFromSelection();
+    void updateCurrentCoordsFromSelection();
 };

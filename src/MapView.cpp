@@ -132,6 +132,14 @@ void MapView::loadCities()
     _loaded = true;
 }
 
+std::vector<std::string> MapView::getCityNames() const
+{
+    std::vector<std::string> names;
+    names.reserve(_cities.size());
+    for (const auto& c : _cities) names.push_back(c.name);
+    return names;
+}
+
 td::ColorID MapView::mapHexToColor(const std::string& hex) const
 {
     if (hex == "#d62728") return td::ColorID::Red;
