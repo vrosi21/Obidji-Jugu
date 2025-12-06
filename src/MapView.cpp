@@ -128,9 +128,8 @@ void MapView::onDraw(const gui::Rect& rect)
     // Draw each city as a 10x10 square at (x,y)
     const int size = 10;
     for (const auto& c : _cities) {
-        gui::Rect r(c.x, c.y, c.x+size, c.y+size); // Assuming coordinates already suitable
+        gui::Rect r(c.x, c.y, c.x+size, c.y+size); // Using x1,y1,x2,y2 semantics
         gui::Shape s; s.createRect(r);
         s.drawFillAndWire(mapHexToColor(c.colorHex), td::ColorID::Black, 1.0f);
     }
-    // (Optional future) draw city labels near squares
 }
