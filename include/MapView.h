@@ -25,5 +25,10 @@ private:
     void loadCities();
     td::ColorID mapHexToColor(const std::string& hex) const;
     std::vector<CityPoint> _cities;
+    struct RoadEdge { int fromId; int toId; };
+    std::vector<RoadEdge> _roads;
     bool _loaded = false;
+
+    // Returns the center of a city (10x10 rectangle): (x+5, y+5)
+    std::pair<gui::CoordType, gui::CoordType> getPointCenter(const CityPoint& p) const;
 };

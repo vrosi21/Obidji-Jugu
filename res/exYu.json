@@ -1,212 +1,117 @@
-[
-  {
-    "x": 789.05,
-    "y": 244.3,
-    "name": "Belgrade",
-    "weight": 116.6,
-    "color": "#d62728"
-  },
-  {
-    "x": 288.51,
-    "y": 132.74,
-    "name": "Zagreb",
-    "weight": 68.8,
-    "color": "#1f77b4"
-  },
-  {
-    "x": 897.38,
-    "y": 559.67,
-    "name": "Skopje",
-    "weight": 50.3,
-    "color": "#ff7f0e"
-  },
-  {
-    "x": 560.45,
-    "y": 351.83,
-    "name": "Sarajevo",
-    "weight": 37.0,
-    "color": "#2ca02c"
-  },
-  {
-    "x": 123.4,
-    "y": 105.68,
-    "name": "Ljubljana",
-    "weight": 27.8,
-    "color": "#9467bd"
-  },
-  {
-    "x": 950.0,
-    "y": 411.71,
-    "name": "Niš",
-    "weight": 23.2,
-    "color": "#d62728"
-  },
-  {
-    "x": 719.32,
-    "y": 194.02,
-    "name": "Novi Sad",
-    "weight": 18.3,
-    "color": "#d62728"
-  },
-  {
-    "x": 339.77,
-    "y": 390.77,
-    "name": "Split",
-    "weight": 16.7,
-    "color": "#1f77b4"
-  },
-  {
-    "x": 423.75,
-    "y": 249.38,
-    "name": "Banja Luka",
-    "weight": 15.1,
-    "color": "#2ca02c"
-  },
-  {
-    "x": 655.48,
-    "y": 510.13,
-    "name": "Podgorica",
-    "weight": 15.1,
-    "color": "#8c564b"
-  },
-  {
-    "x": 839.85,
-    "y": 334.32,
-    "name": "Kragujevac",
-    "weight": 15.1,
-    "color": "#d62728"
-  },
-  {
-    "x": 868.31,
-    "y": 485.31,
-    "name": "Pristina",
-    "weight": 14.5,
-    "color": "#e377c2"
-  },
-  {
-    "x": 116.28,
-    "y": 187.31,
-    "name": "Rijeka",
-    "weight": 12.8,
-    "color": "#1f77b4"
-  },
-  {
-    "x": 700.67,
-    "y": 100.86,
-    "name": "Subotica",
-    "weight": 9.8,
-    "color": "#d62728"
-  },
-  {
-    "x": 250.92,
-    "y": 50.0,
-    "name": "Maribor",
-    "weight": 9.6,
-    "color": "#9467bd"
-  },
-  {
-    "x": 770.19,
-    "y": 485.75,
-    "name": "Peja",
-    "weight": 8.5,
-    "color": "#e377c2"
-  },
-  {
-    "x": 591.85,
-    "y": 162.26,
-    "name": "Osijek",
-    "weight": 8.4,
-    "color": "#1f77b4"
-  },
-  {
-    "x": 589.25,
-    "y": 276.16,
-    "name": "Tuzla",
-    "weight": 8.1,
-    "color": "#2ca02c"
-  },
-  {
-    "x": 809.53,
-    "y": 238.33,
-    "name": "Pančevo",
-    "weight": 7.7,
-    "color": "#d62728"
-  },
-  {
-    "x": 780.56,
-    "y": 180.99,
-    "name": "Zrenjanin",
-    "weight": 7.6,
-    "color": "#d62728"
-  },
-  {
-    "x": 503.39,
-    "y": 313.17,
-    "name": "Zenica",
-    "weight": 7.4,
-    "color": "#2ca02c"
-  },
-  {
-    "x": 776.98,
-    "y": 347.95,
-    "name": "Čačak",
-    "weight": 7.3,
-    "color": "#d62728"
-  },
-  {
-    "x": 887.83,
-    "y": 667.8,
-    "name": "Bitola",
-    "weight": 7.3,
-    "color": "#ff7f0e"
-  },
-  {
-    "x": 846.62,
-    "y": 558.39,
-    "name": "Tetovo",
-    "weight": 7.2,
-    "color": "#ff7f0e"
-  },
-  {
-    "x": 50.0,
-    "y": 238.82,
-    "name": "Pula",
-    "weight": 7.1,
-    "color": "#1f77b4"
-  },
-  {
-    "x": 842.34,
-    "y": 261.56,
-    "name": "Smederevo",
-    "weight": 6.7,
-    "color": "#d62728"
-  },
-  {
-    "x": 929.71,
-    "y": 544.67,
-    "name": "Kumanovo",
-    "weight": 6.5,
-    "color": "#ff7f0e"
-  },
-  {
-    "x": 492.74,
-    "y": 409.15,
-    "name": "Mostar",
-    "weight": 6.5,
-    "color": "#2ca02c"
-  },
-  {
-    "x": 726.54,
-    "y": 304.99,
-    "name": "Valjevo",
-    "weight": 6.4,
-    "color": "#d62728"
-  },
-  {
-    "x": 703.62,
-    "y": 251.18,
-    "name": "Šabac",
-    "weight": 6.4,
-    "color": "#d62728"
-  }
-]
+{
+  "cities": [
+    {"id":0,"x":789.05,"y":244.3,"name":"Belgrade","weight":116.6,"color":"#d62728"},
+    {"id":1,"x":288.51,"y":132.74,"name":"Zagreb","weight":68.8,"color":"#1f77b4"},
+    {"id":2,"x":897.38,"y":559.67,"name":"Skopje","weight":50.3,"color":"#ff7f0e"},
+    {"id":3,"x":560.45,"y":351.83,"name":"Sarajevo","weight":37.0,"color":"#2ca02c"},
+    {"id":4,"x":123.4,"y":105.68,"name":"Ljubljana","weight":27.8,"color":"#9467bd"},
+    {"id":5,"x":950.0,"y":411.71,"name":"Niš","weight":23.2,"color":"#d62728"},
+    {"id":6,"x":719.32,"y":194.02,"name":"Novi Sad","weight":18.3,"color":"#d62728"},
+    {"id":7,"x":339.77,"y":390.77,"name":"Split","weight":16.7,"color":"#1f77b4"},
+    {"id":8,"x":423.75,"y":249.38,"name":"Banja Luka","weight":15.1,"color":"#2ca02c"},
+    {"id":9,"x":655.48,"y":510.13,"name":"Podgorica","weight":15.1,"color":"#8c564b"},
+    {"id":10,"x":839.85,"y":334.32,"name":"Kragujevac","weight":15.1,"color":"#d62728"},
+    {"id":11,"x":868.31,"y":485.31,"name":"Pristina","weight":14.5,"color":"#e377c2"},
+    {"id":12,"x":116.28,"y":187.31,"name":"Rijeka","weight":12.8,"color":"#1f77b4"},
+    {"id":13,"x":700.67,"y":100.86,"name":"Subotica","weight":9.8,"color":"#d62728"},
+    {"id":14,"x":250.92,"y":50.0,"name":"Maribor","weight":9.6,"color":"#9467bd"},
+    {"id":15,"x":770.19,"y":485.75,"name":"Peja","weight":8.5,"color":"#e377c2"},
+    {"id":16,"x":591.85,"y":162.26,"name":"Osijek","weight":8.4,"color":"#1f77b4"},
+    {"id":17,"x":589.25,"y":276.16,"name":"Tuzla","weight":8.1,"color":"#2ca02c"},
+    {"id":18,"x":809.53,"y":238.33,"name":"Pančevo","weight":7.7,"color":"#d62728"},
+    {"id":19,"x":780.56,"y":180.99,"name":"Zrenjanin","weight":7.6,"color":"#d62728"},
+    {"id":20,"x":503.39,"y":313.17,"name":"Zenica","weight":7.4,"color":"#2ca02c"},
+    {"id":21,"x":776.98,"y":347.95,"name":"Čačak","weight":7.3,"color":"#d62728"},
+    {"id":22,"x":887.83,"y":667.8,"name":"Bitola","weight":7.3,"color":"#ff7f0e"},
+    {"id":23,"x":846.62,"y":558.39,"name":"Tetovo","weight":7.2,"color":"#ff7f0e"},
+    {"id":24,"x":50.0,"y":238.82,"name":"Pula","weight":7.1,"color":"#1f77b4"},
+    {"id":25,"x":842.34,"y":261.56,"name":"Smederevo","weight":6.7,"color":"#d62728"},
+    {"id":26,"x":929.71,"y":544.67,"name":"Kumanovo","weight":6.5,"color":"#ff7f0e"},
+    {"id":27,"x":492.74,"y":409.15,"name":"Mostar","weight":6.5,"color":"#2ca02c"},
+    {"id":28,"x":726.54,"y":304.99,"name":"Valjevo","weight":6.4,"color":"#d62728"},
+    {"id":29,"x":703.62,"y":251.18,"name":"Šabac","weight":6.4,"color":"#d62728"}
+  ],
+  "roads": [
+    {"from":0,"to":18,"length":21.33,"travel_time_h":0.356,"type":"local","bidirectional":true},
+    {"from":0,"to":25,"length":56.02,"travel_time_h":0.934,"type":"local","bidirectional":true},
+    {"from":0,"to":6,"length":71.56,"travel_time_h":1.193,"type":"local","bidirectional":true},
+    {"from":1,"to":14,"length":91.13,"travel_time_h":1.519,"type":"local","bidirectional":true},
+    {"from":1,"to":4,"length":170.09,"travel_time_h":2.835,"type":"regional","bidirectional":true},
+    {"from":1,"to":12,"length":76.91,"travel_time_h":1.282,"type":"local","bidirectional":true},
+    {"from":2,"to":23,"length":20.83,"travel_time_h":0.347,"type":"local","bidirectional":true},
+    {"from":2,"to":11,"length":79.84,"travel_time_h":1.331,"type":"local","bidirectional":true},
+    {"from":2,"to":22,"length":110.28,"travel_time_h":1.838,"type":"local","bidirectional":true},
+    {"from":3,"to":20,"length":68.92,"travel_time_h":1.149,"type":"local","bidirectional":true},
+    {"from":3,"to":17,"length":82.73,"travel_time_h":1.379,"type":"local","bidirectional":true},
+    {"from":3,"to":27,"length":82.58,"travel_time_h":1.376,"type":"local","bidirectional":true},
+    {"from":4,"to":14,"length":82.87,"travel_time_h":1.381,"type":"local","bidirectional":true},
+    {"from":4,"to":12,"length":83.66,"travel_time_h":1.394,"type":"local","bidirectional":true},
+    {"from":5,"to":26,"length":160.23,"travel_time_h":2.670,"type":"regional","bidirectional":true},
+    {"from":5,"to":11,"length":124.82,"travel_time_h":2.080,"type":"regional","bidirectional":true},
+    {"from":5,"to":9,"length":195.88,"travel_time_h":3.264,"type":"regional","bidirectional":true},
+    {"from":6,"to":13,"length":103.24,"travel_time_h":1.721,"type":"regional","bidirectional":true},
+    {"from":6,"to":19,"length":29.80,"travel_time_h":0.497,"type":"local","bidirectional":true},
+    {"from":6,"to":0,"length":71.56,"travel_time_h":1.193,"type":"local","bidirectional":true},
+    {"from":7,"to":12,"length":204.02,"travel_time_h":3.400,"type":"regional","bidirectional":true},
+    {"from":7,"to":27,"length":137.86,"travel_time_h":2.298,"type":"regional","bidirectional":true},
+    {"from":7,"to":1,"length":272.29,"travel_time_h":4.538,"type":"intercity","bidirectional":true},
+    {"from":8,"to":20,"length":106.32,"travel_time_h":1.772,"type":"regional","bidirectional":true},
+    {"from":8,"to":29,"length":106.24,"travel_time_h":1.771,"type":"regional","bidirectional":true},
+    {"from":8,"to":3,"length":143.18,"travel_time_h":2.386,"type":"regional","bidirectional":true},
+    {"from":9,"to":22,"length":205.95,"travel_time_h":3.433,"type":"regional","bidirectional":true},
+    {"from":9,"to":11,"length":170.53,"travel_time_h":2.842,"type":"regional","bidirectional":true},
+    {"from":9,"to":27,"length":175.02,"travel_time_h":2.917,"type":"regional","bidirectional":true},
+    {"from":10,"to":25,"length":69.64,"travel_time_h":1.161,"type":"local","bidirectional":true},
+    {"from":10,"to":21,"length":44.27,"travel_time_h":0.738,"type":"local","bidirectional":true},
+    {"from":10,"to":0,"length":99.41,"travel_time_h":1.657,"type":"local","bidirectional":true},
+    {"from":11,"to":23,"length":82.61,"travel_time_h":1.377,"type":"local","bidirectional":true},
+    {"from":11,"to":2,"length":79.84,"travel_time_h":1.331,"type":"local","bidirectional":true},
+    {"from":11,"to":9,"length":170.53,"travel_time_h":2.842,"type":"regional","bidirectional":true},
+    {"from":12,"to":24,"length":190.37,"travel_time_h":3.173,"type":"regional","bidirectional":true},
+    {"from":12,"to":1,"length":76.91,"travel_time_h":1.282,"type":"local","bidirectional":true},
+    {"from":12,"to":4,"length":83.66,"travel_time_h":1.394,"type":"local","bidirectional":true},
+    {"from":13,"to":6,"length":103.24,"travel_time_h":1.721,"type":"regional","bidirectional":true},
+    {"from":13,"to":14,"length":454.07,"travel_time_h":7.568,"type":"intercity","bidirectional":true},
+    {"from":13,"to":16,"length":112.56,"travel_time_h":1.876,"type":"regional","bidirectional":true},
+    {"from":14,"to":1,"length":91.13,"travel_time_h":1.519,"type":"local","bidirectional":true},
+    {"from":14,"to":4,"length":82.87,"travel_time_h":1.381,"type":"local","bidirectional":true},
+    {"from":14,"to":13,"length":454.07,"travel_time_h":7.568,"type":"intercity","bidirectional":true},
+    {"from":15,"to":11,"length":46.72,"travel_time_h":0.779,"type":"local","bidirectional":true},
+    {"from":15,"to":23,"length":72.37,"travel_time_h":1.206,"type":"local","bidirectional":true},
+    {"from":15,"to":22,"length":193.88,"travel_time_h":3.231,"type":"regional","bidirectional":true},
+    {"from":16,"to":29,"length":102.15,"travel_time_h":1.703,"type":"regional","bidirectional":true},
+    {"from":16,"to":13,"length":112.56,"travel_time_h":1.876,"type":"regional","bidirectional":true},
+    {"from":16,"to":1,"length":312.02,"travel_time_h":5.200,"type":"intercity","bidirectional":true},
+    {"from":17,"to":20,"length":63.64,"travel_time_h":1.061,"type":"local","bidirectional":true},
+    {"from":17,"to":3,"length":82.73,"travel_time_h":1.379,"type":"local","bidirectional":true},
+    {"from":17,"to":29,"length":115.75,"travel_time_h":1.929,"type":"regional","bidirectional":true},
+    {"from":18,"to":0,"length":21.33,"travel_time_h":0.356,"type":"local","bidirectional":true},
+    {"from":18,"to":29,"length":35.28,"travel_time_h":0.588,"type":"local","bidirectional":true},
+    {"from":19,"to":6,"length":29.80,"travel_time_h":0.497,"type":"local","bidirectional":true},
+    {"from":19,"to":28,"length":131.64,"travel_time_h":2.194,"type":"regional","bidirectional":true},
+    {"from":20,"to":3,"length":68.92,"travel_time_h":1.149,"type":"local","bidirectional":true},
+    {"from":20,"to":8,"length":106.32,"travel_time_h":1.772,"type":"regional","bidirectional":true},
+    {"from":20,"to":27,"length":97.73,"travel_time_h":1.629,"type":"local","bidirectional":true},
+    {"from":21,"to":10,"length":44.27,"travel_time_h":0.738,"type":"local","bidirectional":true},
+    {"from":21,"to":28,"length":56.59,"travel_time_h":0.943,"type":"local","bidirectional":true},
+    {"from":22,"to":2,"length":110.28,"travel_time_h":1.838,"type":"local","bidirectional":true},
+    {"from":22,"to":23,"length":120.05,"travel_time_h":2.001,"type":"regional","bidirectional":true},
+    {"from":22,"to":26,"length":99.69,"travel_time_h":1.661,"type":"local","bidirectional":true},
+    {"from":23,"to":2,"length":20.83,"travel_time_h":0.347,"type":"local","bidirectional":true},
+    {"from":23,"to":11,"length":82.61,"travel_time_h":1.377,"type":"local","bidirectional":true},
+    {"from":23,"to":22,"length":120.05,"travel_time_h":2.001,"type":"regional","bidirectional":true},
+    {"from":24,"to":12,"length":190.37,"travel_time_h":3.173,"type":"regional","bidirectional":true},
+    {"from":25,"to":0,"length":56.02,"travel_time_h":0.934,"type":"local","bidirectional":true},
+    {"from":25,"to":10,"length":69.64,"travel_time_h":1.161,"type":"local","bidirectional":true},
+    {"from":26,"to":5,"length":160.23,"travel_time_h":2.670,"type":"regional","bidirectional":true},
+    {"from":26,"to":22,"length":99.69,"travel_time_h":1.661,"type":"local","bidirectional":true},
+    {"from":27,"to":3,"length":82.58,"travel_time_h":1.376,"type":"local","bidirectional":true},
+    {"from":27,"to":9,"length":175.02,"travel_time_h":2.917,"type":"regional","bidirectional":true},
+    {"from":27,"to":7,"length":137.86,"travel_time_h":2.298,"type":"regional","bidirectional":true},
+    {"from":28,"to":21,"length":56.59,"travel_time_h":0.943,"type":"local","bidirectional":true},
+    {"from":28,"to":19,"length":131.64,"travel_time_h":2.194,"type":"regional","bidirectional":true},
+    {"from":29,"to":8,"length":106.24,"travel_time_h":1.771,"type":"regional","bidirectional":true},
+    {"from":29,"to":16,"length":102.15,"travel_time_h":1.703,"type":"regional","bidirectional":true},
+    {"from":29,"to":17,"length":115.75,"travel_time_h":1.929,"type":"regional","bidirectional":true}
+  ]
+}

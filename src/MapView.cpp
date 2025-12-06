@@ -98,8 +98,38 @@ void MapView::loadCities()
         pos = objEnd + 1;
     }
     char msg[128]; sprintf_s(msg, "[MapView] Loaded %zu cities from exYu.json\n", _cities.size()); dbg(msg);
+    // Parse roads array for diagnostics (no drawing)
+    size_t roadsKey = content.find("\"roads\"");
+    if (roadsKey != std::string::npos) {
+        size_t rStart = content.find('[', roadsKey);
+        size_t rEnd = content.find(']', rStart == std::string::npos ? 0 : rStart);
+        if (rStart != std::string::npos && rEnd != std::string::npos) {
+            size_t rpos = rStart + 1;
+            while (rpos < rEnd) {
+                size_t oStart = content.find('{', rpos);
+                if (oStart == std::string::npos || oStart > rEnd) break;
+                size_t oEnd = content.find('}', oStart);
+                if (oEnd == std::string::npos || oEnd > rEnd) break;
+                std::string obj = content.substr(oStart, oEnd - oStart + 1);
+                auto extractInt = [&](const char* key)->int {
+                    size_t k = obj.find(key);
+                    if (k == std::string::npos) return -1;
+                    size_t colon = obj.find(':', k);
+                    size_t n1 = obj.find_first_of("0123456789-", colon);
+                    if (n1 == std::string::npos) return -1;
+                    size_t n2 = obj.find_first_not_of("0123456789-", n1);
+                    return std::atoi(obj.substr(n1, n2 - n1).c_str());
+                };
+                int from = extractInt("\"from\"");
+                int to = extractInt("\"to\"");
+                if (from >= 0 && to >= 0) {
+                    _roads.push_back({from, to});
+                }
+                rpos = oEnd + 1;
+            }
+        }
+    }
     _loaded = true;
-    // If framework provides an invalidation method, call it; otherwise rely on next paint.
 }
 
 td::ColorID MapView::mapHexToColor(const std::string& hex) const
@@ -128,4 +158,28 @@ void MapView::onDraw(const gui::Rect& rect)
         gui::Shape s; s.createRect(r);
         s.drawFillAndWire(mapHexToColor(c.colorHex), td::ColorID::Black, 1.0f);
     }
+
+    // Draw connection lines from center to center
+    gui::Shape bezierShape;
+    auto bezier = bezierShape.createBezier(1, td::LinePattern::Solid);
+    std::set<std::pair<int,int>> drawn;
+    for (const auto& e : _roads) {
+        int a = std::min(e.fromId, e.toId);
+        int b = std::max(e.fromId, e.toId);
+        if (drawn.insert({a,b}).second) {
+            // find city points by id (id equals index in current data)
+            if (a >= 0 && b >= 0 && a < (int)_cities.size() && b < (int)_cities.size()) {
+                auto c1 = getPointCenter(_cities[a]);
+                auto c2 = getPointCenter(_cities[b]);
+                bezier.moveTo({c1.first, c1.second});
+                bezier.lineTo({c2.first, c2.second});
+            }
+        }
+    }
+    bezierShape.drawWire(td::ColorID::Black);
+}
+
+std::pair<gui::CoordType, gui::CoordType> MapView::getPointCenter(const CityPoint& p) const
+{
+    return { static_cast<gui::CoordType>(p.x + 5), static_cast<gui::CoordType>(p.y + 5) };
 }

@@ -1,28 +1,34 @@
 #pragma once
 #include <gui/View.h>
-#include <gui/SplitterLayout.h>
+#include <gui/HorizontalLayout.h>
 #include "MapView.h"
 #include "SidePanelView.h"
 
 class MainView : public gui::View
 {
 private:
-    gui::SplitterLayout _splitter;
+    gui::HorizontalLayout _hlayout;
     MapView _mapView;
     SidePanelView _sidePanel;
 
 public:
     MainView()
-        : _splitter(gui::SplitterLayout::Orientation::Horizontal,
-                    gui::SplitterLayout::AuxiliaryCell::Second)
+        : _hlayout(2)
     {
         setMargins(0, 0, 0, 0);
-        _splitter.setContent(_mapView, _sidePanel);
-        setLayout(&_splitter);
+        // Size allocation: side panel fixed/min width, both views min height 1000
+        // Adjust 300 to desired side panel width
+        _sidePanel.setSizeLimits(300, gui::Control::Limit::UseAsMin,
+                     1000, gui::Control::Limit::UseAsMin);
+        // Map canvas should take the remaining space; set min width 0, min height 1000
+        _mapView.setSizeLimits(1000, gui::Control::Limit::UseAsMin,
+                       1000, gui::Control::Limit::UseAsMin);
 
-        // For the Travelling Salesman project the left canvas (MapView)
-        // and the right side panel (SidePanelView) are intentionally
-        // empty for now. Wiring of algorithm buttons and solver
-        // callbacks is deferred until MapView/SidePanelView are fleshed out.
+        _hlayout.append(_mapView, td::HAlignment::Left, td::VAlignment::Top);
+        _hlayout.append(_sidePanel, td::HAlignment::Left, td::VAlignment::Top);
+        setLayout(&_hlayout);
+
+        // Left: MapView (canvas), Right: SidePanelView (controls)
+        // Wiring for interactions will be added as views evolve.
     }
 };
