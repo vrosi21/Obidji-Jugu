@@ -15,6 +15,7 @@ namespace {
 MapView::MapView()
 {
     loadCities();
+    loadBackground();
 }
 
 void MapView::loadCities()
@@ -224,10 +225,22 @@ td::ColorID MapView::mapHexToColor(const std::string& hex) const
 
 void MapView::onDraw(const gui::Rect& rect)
 {
-    // Background
-    gui::Shape bg;
-    bg.createRect(rect);
-    bg.drawFillAndWire(td::ColorID::White, td::ColorID::Black, 0.0f);
+    // Background: draw image with desired scaling (1000 x 866.3) if available, else white fill
+    if (_bgLoaded && _bgImage.isOK()) {
+        const float targetW = 1000.0f;
+        const float srcW = 860.0f;
+        const float srcH = 745.0f;
+        const float targetH = targetW * (srcH / srcW); // 1000 * 745/860 ≈ 866.279
+        gui::Rect imgRect(rect.left,
+                          rect.top,
+                          rect.left + targetW,
+                          rect.top + targetH);
+        _bgImage.draw(imgRect, gui::Image::AspectRatio::No);
+    } else {
+        gui::Shape bg;
+        bg.createRect(rect);
+        bg.drawFillAndWire(td::ColorID::White, td::ColorID::Black, 0.0f);
+    }
 
     // Draw each city as a 10x10 square at (x,y)
     const int size = 10;
@@ -261,6 +274,54 @@ void MapView::onDraw(const gui::Rect& rect)
 std::pair<gui::CoordType, gui::CoordType> MapView::getPointCenter(const CityPoint& p) const
 {
     return { static_cast<gui::CoordType>(p.x + 5), static_cast<gui::CoordType>(p.y + 5) };
+}
+
+void MapView::loadBackground()
+{
+    if (_bgLoaded) return;
+    namespace fs = std::filesystem;
+
+    static const char* candidates[] = {
+        "res/assets/yugoslavia.png",
+        "./res/assets/yugoslavia.png",
+        "../res/assets/yugoslavia.png"
+    };
+
+    auto exists = [](const fs::path& p){ try { return fs::exists(p); } catch(...) { return false; } };
+
+    fs::path cwd;
+    try { cwd = fs::current_path(); } catch(...) { cwd = fs::path("."); }
+
+    // Also try exe directory
+    char exeBuf[MAX_PATH] = {0};
+    GetModuleFileNameA(nullptr, exeBuf, MAX_PATH);
+    fs::path exeDir(exeBuf);
+    exeDir = exeDir.parent_path();
+
+    std::string toLoad;
+    for (auto c : candidates) {
+        fs::path p = cwd / c;
+        if (exists(p)) { toLoad = p.string(); break; }
+    }
+    if (toLoad.empty()) {
+        for (auto c : candidates) {
+            fs::path p = exeDir / c;
+            if (exists(p)) { toLoad = p.string(); break; }
+        }
+    }
+
+    if (!toLoad.empty()) {
+        _bgImage.load(toLoad.c_str());
+        if (_bgImage.isOK()) {
+            _bgLoaded = true;
+            OutputDebugStringA((std::string("[MapView] Loaded background image: ") + toLoad + "\n").c_str());
+        } else {
+            OutputDebugStringA((std::string("[MapView] Failed to load background: ") + toLoad + "\n").c_str());
+        }
+    } else {
+        OutputDebugStringA("[MapView] Background image not found in search paths\n");
+        _bgLoaded = false;
+    }
 }
 
 bool MapView::getCity(int index, CityPoint& out) const

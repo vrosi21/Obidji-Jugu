@@ -1,6 +1,7 @@
 #pragma once
 #include <gui/Canvas.h>
 #include <gui/Shape.h>
+#include <gui/Image.h>
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -11,7 +12,7 @@ struct CityPoint {
     double x = 0.0;
     double y = 0.0;
     double weight = 0.0;
-    std::string name;      // Not drawn yet (could be used for labels later)
+    std::string name;      // Optional label
     std::string colorHex;  // Original hex; mapped to td::ColorID when drawing
 };
 
@@ -38,12 +39,14 @@ protected:
 
 private:
     void loadCities();
+    void loadBackground();
     td::ColorID mapHexToColor(const std::string& hex) const;
     bool saveJson() const;
     int nextCityId() const;
     std::filesystem::path resolveDefaultJsonPath() const;
-
+    std::vector<CityPoint> _cities;
     struct RoadEdge { int fromId; int toId; };
+    std::vector<RoadEdge> _roads;
     struct RoadInfo {
         int fromId = -1;
         int toId = -1;
@@ -52,12 +55,11 @@ private:
         std::string type;
         bool bidirectional = true;
     };
-
-    std::vector<CityPoint> _cities;
-    std::vector<RoadEdge> _roads;
     std::vector<RoadInfo> _roadsFull;
     std::filesystem::path _jsonPath;
     bool _loaded = false;
+    gui::Image _bgImage;
+    bool _bgLoaded = false;
 
     // Returns the center of a city (10x10 rectangle): (x+5, y+5)
     std::pair<gui::CoordType, gui::CoordType> getPointCenter(const CityPoint& p) const;
