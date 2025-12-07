@@ -32,6 +32,8 @@ public:
         // Wiring for interactions will be added as views evolve.
 
         // Populate side panel dropdown with city names loaded by MapView
+        _sidePanel.setMapView(&_mapView);
         _sidePanel.populatePointNames(_mapView.getCityNames());
+        _sidePanel.syncSelectionDetails();
     }
 };

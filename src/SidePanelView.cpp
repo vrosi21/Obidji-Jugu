@@ -1,6 +1,9 @@
 #include "SidePanelView.h"
+#include "MapView.h"
 #include <gui/GridLayout.h>
-
+#include <cstdlib>
+#include <sstream>
+#include <iomanip>
 
 SidePanelView::SidePanelView() 
     : lblXCoord("X:"), 
@@ -69,14 +72,20 @@ SidePanelView::SidePanelView()
 void SidePanelView::populatePointNames(const std::vector<std::string>& names)
 {
     _pointNames = names;
+    cmbPoints.clean();
     for (const auto& n : names)
     {
         cmbPoints.addItem(n.c_str());
     }
     if (!names.empty())
     {
-        cmbPoints.selectIndex(0);
-        lnEditCurrentCityName.setText(names[0].c_str());
+        selectIndexAndUpdate(0);
+    }
+    else
+    {
+        lnEditCurrentCityName.setText("");
+        neCurrentX.setText("0");
+        neCurrentY.setText("0");
     }
 }
 
@@ -85,12 +94,44 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
     if (pCB == &cmbPoints)
     {
         int idx = pCB->getSelectedIndex();
-        (void)idx; // placeholder for future reaction to selection
-        updateCurrentNameFromSelection();
-        updateCurrentCoordsFromSelection();
+        selectIndexAndUpdate(idx);
         return true;
     }
     return false;
+}
+
+bool SidePanelView::onClick(gui::Button* pBtn)
+{
+    if (pBtn == &btnAddPt)
+    {
+        handleAddPoint();
+        return true;
+    }
+    if (pBtn == &btnUpdatePoint)
+    {
+        handleUpdatePoint();
+        return true;
+    }
+    return false;
+}
+
+void SidePanelView::setMapView(MapView* mapView)
+{
+    _mapView = mapView;
+    syncSelectionDetails();
+}
+
+void SidePanelView::syncSelectionDetails()
+{
+    int idx = cmbPoints.getSelectedIndex();
+    if (idx < 0 && !_pointNames.empty())
+    {
+        idx = 0;
+    }
+    if (idx >= 0)
+    {
+        selectIndexAndUpdate(idx);
+    }
 }
 
 void SidePanelView::updateCurrentNameFromSelection()
@@ -105,9 +146,73 @@ void SidePanelView::updateCurrentNameFromSelection()
 
 void SidePanelView::updateCurrentCoordsFromSelection()
 {
-    // Placeholder: set both X and Y to 0 for now
-    neCurrentX.setText("0");
-    neCurrentY.setText("0");
+    int idx = cmbPoints.getSelectedIndex();
+    std::string xStr = "0";
+    std::string yStr = "0";
+    if (_mapView && idx >= 0)
+    {
+        CityPoint cp;
+        if (_mapView->getCity(idx, cp))
+        {
+            std::ostringstream sx;
+            std::ostringstream sy;
+            sx << std::fixed << std::setprecision(2) << cp.x;
+            sy << std::fixed << std::setprecision(2) << cp.y;
+            xStr = sx.str();
+            yStr = sy.str();
+        }
+    }
+    neCurrentX.setText(xStr.c_str());
+    neCurrentY.setText(yStr.c_str());
     reDraw();
 }
 
+void SidePanelView::handleAddPoint()
+{
+    if (!_mapView) return;
+    std::string name = lnEditName.getText().c_str();
+    double x = std::atof(txtEditXCoord.getText().c_str());
+    double y = std::atof(txtEditYCoord.getText().c_str());
+
+    if (_mapView->addCity(name, x, y))
+    {
+        _pointNames = _mapView->getCityNames();
+        populatePointNames(_pointNames);
+        cmbPoints.selectIndex(static_cast<int>(_pointNames.size()) - 1);
+        updateCurrentNameFromSelection();
+        updateCurrentCoordsFromSelection();
+        lnEditName.setText("");
+        txtEditXCoord.setText("0");
+        txtEditYCoord.setText("0");
+    }
+}
+
+void SidePanelView::handleUpdatePoint()
+{
+    if (!_mapView) return;
+    int idx = cmbPoints.getSelectedIndex();
+    if (idx < 0) return;
+
+    std::string name = lnEditCurrentCityName.getText().c_str();
+    double x = std::atof(neCurrentX.getText().c_str());
+    double y = std::atof(neCurrentY.getText().c_str());
+
+    if (_mapView->updateCity(idx, name, x, y))
+    {
+        _pointNames = _mapView->getCityNames();
+        populatePointNames(_pointNames);
+        if (idx >= (int)_pointNames.size())
+        {
+            idx = static_cast<int>(_pointNames.size()) - 1;
+        }
+        selectIndexAndUpdate(idx);
+    }
+}
+
+void SidePanelView::selectIndexAndUpdate(int idx)
+{
+    if (idx < 0 || idx >= (int)_pointNames.size()) return;
+    cmbPoints.selectIndex(idx);
+    updateCurrentNameFromSelection();
+    updateCurrentCoordsFromSelection();
+}
