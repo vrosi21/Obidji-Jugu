@@ -11,6 +11,8 @@
 #include <vector>
 #include <string>
 
+class MapView;
+
 
 // Minimal side panel view for the Travelling Salesman project.
 class SidePanelView : public gui::View
@@ -41,11 +43,23 @@ public:
     // Populate dropdown with provided point names
     void populatePointNames(const std::vector<std::string>& names);
 
+    // Connects to the map view so we can query/update points
+    void setMapView(MapView* mapView);
+
+    // Sync current selection fields (name + coords) with selected dropdown item
+    void syncSelectionDetails();
+
 protected:
     bool onChangedSelection(gui::ComboBox* pCB) override;
+    bool onClick(gui::Button* pBtn) override;
 
 private:
     std::vector<std::string> _pointNames;
+    MapView* _mapView = nullptr;
+
+    void handleAddPoint();
+    void handleUpdatePoint();
+    void selectIndexAndUpdate(int idx);
     void updateCurrentNameFromSelection();
     void updateCurrentCoordsFromSelection();
 };
