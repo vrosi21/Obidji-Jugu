@@ -34,6 +34,13 @@ public:
     gui::Label lblCurrentY;
     gui::NumericEdit neCurrentY;
     gui::Button btnUpdatePoint;
+    gui::Button btnDeletePoint;
+    gui::Label lblConnections;
+    gui::Label lblConnectionsValue;
+    gui::Label lblConnectTo;
+    gui::ComboBox cmbConnectTo;
+    gui::Button btnAddConnection;
+    gui::Button btnRemoveConnection;
     gui::GridLayout gl;
 
     SidePanelView();
@@ -59,7 +66,12 @@ private:
 
     void handleAddPoint();
     void handleUpdatePoint();
+    void handleDeletePoint();
+    void handleAddConnection();
+    void handleRemoveConnection();
     void selectIndexAndUpdate(int idx);
     void updateCurrentNameFromSelection();
     void updateCurrentCoordsFromSelection();
+    void updateConnectionsLabel();
+    void populateConnectToCombo();
 };

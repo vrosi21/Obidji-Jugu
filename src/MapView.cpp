@@ -1,6 +1,7 @@
 #include "MapView.h"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -364,6 +365,143 @@ bool MapView::updateCity(int index, const std::string& name, double x, double y)
     bool saved = saveJson();
     if (!saved) {
         _cities[static_cast<size_t>(index)] = backup;
+        return false;
+    }
+    reDraw();
+    return true;
+}
+
+bool MapView::deleteCity(int index)
+{
+    if (index < 0 || index >= static_cast<int>(_cities.size())) return false;
+    auto backupCities = _cities;
+    auto backupRoads = _roads;
+    auto backupRoadsFull = _roadsFull;
+
+    _cities.erase(_cities.begin() + index);
+    for (size_t i = 0; i < _cities.size(); ++i) {
+        _cities[i].id = static_cast<int>(i);
+    }
+
+    auto adjustId = [index](int id) {
+        if (id > index) return id - 1;
+        return id;
+    };
+
+    std::vector<RoadEdge> newRoads;
+    std::vector<RoadInfo> newRoadsFull;
+    for (const auto& r : _roads) {
+        if (r.fromId == index || r.toId == index) continue;
+        RoadEdge nr{adjustId(r.fromId), adjustId(r.toId)};
+        newRoads.push_back(nr);
+    }
+    for (const auto& r : _roadsFull) {
+        if (r.fromId == index || r.toId == index) continue;
+        RoadInfo nr = r;
+        nr.fromId = adjustId(r.fromId);
+        nr.toId = adjustId(r.toId);
+        newRoadsFull.push_back(nr);
+    }
+    _roads.swap(newRoads);
+    _roadsFull.swap(newRoadsFull);
+
+    bool saved = saveJson();
+    if (!saved) {
+        _cities.swap(backupCities);
+        _roads.swap(backupRoads);
+        _roadsFull.swap(backupRoadsFull);
+        return false;
+    }
+    reDraw();
+    return true;
+}
+
+std::vector<int> MapView::getConnections(int index) const
+{
+    std::set<int> ids;
+    if (index < 0 || index >= static_cast<int>(_cities.size())) return {};
+    for (const auto& r : _roads) {
+        if (r.fromId == index && r.toId >=0 && r.toId < static_cast<int>(_cities.size())) ids.insert(r.toId);
+        if (r.toId == index && r.fromId >=0 && r.fromId < static_cast<int>(_cities.size())) ids.insert(r.fromId);
+    }
+    return std::vector<int>(ids.begin(), ids.end());
+}
+
+std::vector<std::string> MapView::getConnectionNames(int index) const
+{
+    std::vector<std::string> names;
+    for (int i : getConnections(index)) {
+        if (i >=0 && i < static_cast<int>(_cities.size())) {
+            names.push_back(_cities[static_cast<size_t>(i)].name);
+        }
+    }
+    return names;
+}
+
+bool MapView::addConnection(int fromIndex, int toIndex)
+{
+    if (fromIndex < 0 || toIndex < 0) return false;
+    if (fromIndex >= static_cast<int>(_cities.size()) || toIndex >= static_cast<int>(_cities.size())) return false;
+    if (fromIndex == toIndex) return false;
+
+    auto exists = [&](int a, int b)->bool {
+        for (const auto& r : _roads) {
+            if ((r.fromId == a && r.toId == b) || (r.fromId == b && r.toId == a)) return true;
+        }
+        return false;
+    };
+    if (exists(fromIndex, toIndex)) return true;
+
+    double dx = _cities[static_cast<size_t>(fromIndex)].x - _cities[static_cast<size_t>(toIndex)].x;
+    double dy = _cities[static_cast<size_t>(fromIndex)].y - _cities[static_cast<size_t>(toIndex)].y;
+    double length = std::sqrt(dx*dx + dy*dy);
+    double travel = length / 60.0; // arbitrary scaling for demo
+
+    _roads.push_back({fromIndex, toIndex});
+    RoadInfo ri;
+    ri.fromId = fromIndex;
+    ri.toId = toIndex;
+    ri.length = length;
+    ri.travelTimeH = travel;
+    ri.type = "local";
+    ri.bidirectional = true;
+    _roadsFull.push_back(ri);
+
+    bool saved = saveJson();
+    if (!saved) {
+        _roads.pop_back();
+        _roadsFull.pop_back();
+        return false;
+    }
+    reDraw();
+    return true;
+}
+
+bool MapView::removeConnection(int fromIndex, int toIndex)
+{
+    if (fromIndex < 0 || toIndex < 0) return false;
+    if (fromIndex >= static_cast<int>(_cities.size()) || toIndex >= static_cast<int>(_cities.size())) return false;
+    if (fromIndex == toIndex) return false;
+
+    auto backupRoads = _roads;
+    auto backupRoadsFull = _roadsFull;
+
+    auto isPair = [&](int a, int b, int x, int y)->bool {
+        return (a == x && b == y) || (a == y && b == x);
+    };
+
+    _roads.erase(std::remove_if(_roads.begin(), _roads.end(), [&](const RoadEdge& r){
+        return isPair(r.fromId, r.toId, fromIndex, toIndex);
+    }), _roads.end());
+
+    _roadsFull.erase(std::remove_if(_roadsFull.begin(), _roadsFull.end(), [&](const RoadInfo& r){
+        return isPair(r.fromId, r.toId, fromIndex, toIndex);
+    }), _roadsFull.end());
+
+    bool saved = saveJson();
+    if (!saved) {
+        _roads.swap(backupRoads);
+        _roadsFull.swap(backupRoadsFull);
         return false;
     }
     reDraw();
