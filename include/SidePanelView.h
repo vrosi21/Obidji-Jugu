@@ -26,6 +26,7 @@ public:
     gui::NumericEdit txtEditYCoord;
     gui::HorizontalLayout hlYCoord;
     gui::Button btnAddPt;
+    gui::HorizontalLayout hlBtnAddPt;
     gui::Label lblName;
     gui::LineEdit lnEditName;
     gui::Label lblChoosePoint;

@@ -1,9 +1,10 @@
-#include "SidePanelView.h"
+﻿#include "SidePanelView.h"
 #include "MapView.h"
 #include <gui/GridLayout.h>
 #include <cstdlib>
 #include <sstream>
 #include <iomanip>
+#include <gui/GridComposer.h>
 
 SidePanelView::SidePanelView() 
     : lblXCoord("X:"), 
@@ -12,7 +13,8 @@ SidePanelView::SidePanelView()
     lblYCoord("Y:"), 
     txtEditYCoord(td::DataType::decimal1), 
     hlYCoord(2),
-    btnAddPt(tr("Add point")), 
+    btnAddPt(tr("Add point")),
+    hlBtnAddPt(3),
     lnEditName(), 
     lblName(tr("Name:")),
     lblChoosePoint(tr("Select point:")),
@@ -30,29 +32,24 @@ SidePanelView::SidePanelView()
         lblName.setSizeLimitForNChars(1, gui::Control::Limit::UseAsMin);
 
         btnAddPt.setType(gui::Button::Type::Default);
-        btnAddPt.setSizeLimitForNChars(7, gui::Control::Limit::None);
+        btnAddPt.setSizeLimit("WWWWWWWWWWWWWWWWWWW", gui::Control::Limit::UseAsMin);
 
-        // Grid layout: 2 columns
-        // Row 0: Name label + name input
-        gl.insert(0, 0, lblName, td::HAlignment::Left);
-        gl.insert(0, 1, lnEditName, td::HAlignment::Left);
-        // Row 1
-        // Row 1, Col 1
+        gui::GridComposer gc(gl);
+
         hlXCoord.append(lblXCoord, td::HAlignment::Left);
         hlXCoord.append(txtEditXCoord, td::HAlignment::Left);
-        gl.insert(1, 0, hlXCoord, td::HAlignment::Left);
-        // Row 1, Col 2
         hlYCoord.append(lblYCoord, td::HAlignment::Left);
         hlYCoord.append(txtEditYCoord, td::HAlignment::Left);
-        gl.insert(1, 1, hlYCoord, td::HAlignment::Left);
 
-        // Row 3: Button spanning all columns (span to end)
-        gl.insert(3, 0, btnAddPt, -1);
+        gc.appendRow(lblName); gc.appendCol(lnEditName);
+        gc.appendRow(hlXCoord, td::HAlignment::Left); gc.appendCol(hlYCoord, td::HAlignment::Left);
+        gc.appendRow(btnAddPt, 2, td::HAlignment::Left);
+        gc.appendRow(lblChoosePoint, 2); 
+        gc.appendRow(cmbPoints, 2);
 
-        // Row 4: Dropdown label spanning all columns
-        gl.insert(4, 0, lblChoosePoint, -1);
-        // Row 5: Dropdown spanning all columns
-        gl.insert(5, 0, cmbPoints, -1);
+
+     
+
 
         // Row 6: Current city name label
         gl.insert(6, 0, lblCurrentCityName, -1);
