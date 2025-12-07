@@ -7,6 +7,7 @@
 #include <gui/LineEdit.h>
 #include <gui/NumericEdit.h>
 #include <gui/ComboBox.h>
+#include <gui/HorizontalLayout.h>
 
 #include <vector>
 #include <string>
@@ -20,8 +21,10 @@ class SidePanelView : public gui::View
 public:
     gui::Label lblXCoord;
     gui::NumericEdit txtEditXCoord;
+    gui::HorizontalLayout hlXCoord;
     gui::Label lblYCoord;
     gui::NumericEdit txtEditYCoord;
+    gui::HorizontalLayout hlYCoord;
     gui::Button btnAddPt;
     gui::Label lblName;
     gui::LineEdit lnEditName;

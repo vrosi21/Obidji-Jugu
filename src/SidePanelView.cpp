@@ -7,9 +7,11 @@
 
 SidePanelView::SidePanelView() 
     : lblXCoord("X:"), 
-    txtEditXCoord(td::DataType::decimal4), 
+    txtEditXCoord(td::DataType::decimal1),
+    hlXCoord(2),
     lblYCoord("Y:"), 
-    txtEditYCoord(td::DataType::decimal4), 
+    txtEditYCoord(td::DataType::decimal1), 
+    hlYCoord(2),
     btnAddPt(tr("Add point")), 
     lnEditName(), 
     lblName(tr("Name:")),
@@ -21,6 +23,7 @@ SidePanelView::SidePanelView()
     neCurrentY(td::DataType::decimal4),
     btnUpdatePoint(tr("Update point")),
     gl(11, 2)
+    
 {
         txtEditXCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
         txtEditYCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
@@ -33,12 +36,16 @@ SidePanelView::SidePanelView()
         // Row 0: Name label + name input
         gl.insert(0, 0, lblName, td::HAlignment::Left);
         gl.insert(0, 1, lnEditName, td::HAlignment::Left);
-        // Row 1: X and Y labels
-        gl.insert(1, 0, lblXCoord, td::HAlignment::Left);
-        gl.insert(1, 1, lblYCoord, td::HAlignment::Left);
-        // Row 2: X and Y inputs
-        gl.insert(2, 0, txtEditXCoord, td::HAlignment::Left);
-        gl.insert(2, 1, txtEditYCoord, td::HAlignment::Left);
+        // Row 1
+        // Row 1, Col 1
+        hlXCoord.append(lblXCoord, td::HAlignment::Left);
+        hlXCoord.append(txtEditXCoord, td::HAlignment::Left);
+        gl.insert(1, 0, hlXCoord, td::HAlignment::Left);
+        // Row 1, Col 2
+        hlYCoord.append(lblYCoord, td::HAlignment::Left);
+        hlYCoord.append(txtEditYCoord, td::HAlignment::Left);
+        gl.insert(1, 1, hlYCoord, td::HAlignment::Left);
+
         // Row 3: Button spanning all columns (span to end)
         gl.insert(3, 0, btnAddPt, -1);
 
