@@ -6,19 +6,20 @@
 #include <iomanip>
 
 SidePanelView::SidePanelView() 
-    : lblXCoord("X:"), 
-    txtEditXCoord(td::DataType::decimal4), 
-    lblYCoord("Y:"), 
-    txtEditYCoord(td::DataType::decimal4), 
+    : lblXCoord("x:"), 
+    txtEditXCoord(td::DataType::decimal1), 
+    lblYCoord("y:"), 
+    txtEditYCoord(td::DataType::decimal1), 
     btnAddPt(tr("Add point")), 
     lnEditName(), 
     lblName(tr("Name:")),
+    lblSeparator("_______________________"),
     lblChoosePoint(tr("Select point:")),
     lblCurrentCityName(tr("Current name:")),
-    lblCurrentX(tr("Current X:")),
-    neCurrentX(td::DataType::decimal4),
-    lblCurrentY(tr("Current Y:")),
-    neCurrentY(td::DataType::decimal4),
+    lblCurrentX(tr("x:")),
+    neCurrentX(td::DataType::decimal1),
+    lblCurrentY(tr("y:")),
+    neCurrentY(td::DataType::decimal1),
     btnUpdatePoint(tr("Update point")),
     btnDeletePoint(tr("Delete point")),
     lblConnections(tr("Connections:")),
@@ -26,7 +27,7 @@ SidePanelView::SidePanelView()
     lblConnectTo(tr("Connect to:")),
     btnAddConnection(tr("Add connection")),
     btnRemoveConnection(tr("Remove connection")),
-    gl(14, 2)
+    gl(13, 4)
 {
         txtEditXCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
         txtEditYCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
@@ -35,18 +36,20 @@ SidePanelView::SidePanelView()
         btnAddPt.setType(gui::Button::Type::Default);
         btnAddPt.setSizeLimitForNChars(7, gui::Control::Limit::None);
 
-        // Grid layout: 2 columns
-        // Row 0: Name label + name input
+        // Grid layout: 4 columns
+        // Row 0: Name label + name input (spanning 3 cols)
         gl.insert(0, 0, lblName, td::HAlignment::Left);
-        gl.insert(0, 1, lnEditName, td::HAlignment::Left);
-        // Row 1: X and Y labels
+        gl.insert(0, 1, lnEditName, -1);
+        // Row 1: X and Y on one row: x-label, x-input, y-label, y-input
         gl.insert(1, 0, lblXCoord, td::HAlignment::Left);
-        gl.insert(1, 1, lblYCoord, td::HAlignment::Left);
-        // Row 2: X and Y inputs
-        gl.insert(2, 0, txtEditXCoord, td::HAlignment::Left);
-        gl.insert(2, 1, txtEditYCoord, td::HAlignment::Left);
-        // Row 3: Button spanning all columns (span to end)
-        gl.insert(3, 0, btnAddPt, -1);
+        gl.insert(1, 1, txtEditXCoord, td::HAlignment::Left);
+        gl.insert(1, 2, lblYCoord, td::HAlignment::Left);
+        gl.insert(1, 3, txtEditYCoord, td::HAlignment::Left);
+        // Row 2: Button spanning all columns (span to end)
+        gl.insert(2, 0, btnAddPt, -1);
+
+        // Row 3: Separator line
+        gl.insert(3, 0, lblSeparator, -1);
 
         // Row 4: Dropdown label spanning all columns
         gl.insert(4, 0, lblChoosePoint, -1);
@@ -58,35 +61,34 @@ SidePanelView::SidePanelView()
         // Row 7: Current city name input spanning all columns
         gl.insert(7, 0, lnEditCurrentCityName, -1);
 
-        // Row 8: Current X and Y labels
+        // Row 8: Current X and Y on one row
         gl.insert(8, 0, lblCurrentX, td::HAlignment::Left);
-        gl.insert(8, 1, lblCurrentY, td::HAlignment::Left);
-        // Row 9: Current X and Y inputs
         neCurrentX.setText("0");
+        gl.insert(8, 1, neCurrentX, td::HAlignment::Left);
+        gl.insert(8, 2, lblCurrentY, td::HAlignment::Left);
         neCurrentY.setText("0");
-        gl.insert(9, 0, neCurrentX, td::HAlignment::Left);
-        gl.insert(9, 1, neCurrentY, td::HAlignment::Left);
+        gl.insert(8, 3, neCurrentY, td::HAlignment::Left);
 
-        // Row 10: Update + Delete buttons
+        // Row 9: Update + Delete buttons centered
         btnUpdatePoint.setType(gui::Button::Type::Default);
         btnUpdatePoint.setSizeLimitForNChars(12, gui::Control::Limit::None);
-        gl.insert(10, 0, btnUpdatePoint, td::HAlignment::Left);
+        gl.insert(9, 0, btnUpdatePoint, 2);
         btnDeletePoint.setType(gui::Button::Type::Default);
         btnDeletePoint.setSizeLimitForNChars(12, gui::Control::Limit::None);
-        gl.insert(10, 1, btnDeletePoint, td::HAlignment::Left);
+        gl.insert(9, 2, btnDeletePoint, 2);
 
-        // Row 11: connections label/value
-        gl.insert(11, 0, lblConnections, td::HAlignment::Left);
-        gl.insert(11, 1, lblConnectionsValue, td::HAlignment::Left);
+        // Row 10: connections label/value
+        gl.insert(10, 0, lblConnections, td::HAlignment::Left);
+        gl.insert(10, 1, lblConnectionsValue, -1);
 
-        // Row 12: connect-to dropdown
-        gl.insert(12, 0, lblConnectTo, td::HAlignment::Left);
-        gl.insert(12, 1, cmbConnectTo, td::HAlignment::Left);
+        // Row 11: connect-to label and dropdown
+        gl.insert(11, 0, lblConnectTo, td::HAlignment::Left);
+        gl.insert(11, 1, cmbConnectTo, -1);
 
-        // Row 13: add/remove connection buttons
+        // Row 12: add/remove connection buttons
         btnAddConnection.setType(gui::Button::Type::Default);
-        gl.insert(13, 0, btnAddConnection, td::HAlignment::Left);
-        gl.insert(13, 1, btnRemoveConnection, td::HAlignment::Left);
+        gl.insert(12, 0, btnAddConnection, 2);
+        gl.insert(12, 2, btnRemoveConnection, 2);
 
         setLayout(&gl);
 }
@@ -193,8 +195,8 @@ void SidePanelView::updateCurrentCoordsFromSelection()
         {
             std::ostringstream sx;
             std::ostringstream sy;
-            sx << std::fixed << std::setprecision(2) << cp.x;
-            sy << std::fixed << std::setprecision(2) << cp.y;
+            sx << std::fixed << std::setprecision(1) << cp.x;
+            sy << std::fixed << std::setprecision(1) << cp.y;
             xStr = sx.str();
             yStr = sy.str();
         }

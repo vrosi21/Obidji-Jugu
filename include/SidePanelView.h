@@ -25,6 +25,7 @@ public:
     gui::Button btnAddPt;
     gui::Label lblName;
     gui::LineEdit lnEditName;
+    gui::Label lblSeparator;
     gui::Label lblChoosePoint;
     gui::ComboBox cmbPoints;
     gui::Label lblCurrentCityName;
