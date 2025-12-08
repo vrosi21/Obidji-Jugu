@@ -41,10 +41,8 @@ SidePanelView::SidePanelView()
         gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
         // Row 2: Add point button
         gc.appendRow(btnAddPt, -1, td::HAlignment::Left);
-        // Row 3: Dropdown label spanning all columns
-        gc.appendRow(lblChoosePoint, 4); 
-        // Row 4: Dropdown spanning all columns
-        gc.appendRow(cmbPoints, 4);
+        // Row 3: Select point label and dropdown on the same row
+        gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 3);
         // Row 5: Current city name label and currenc city name input
         gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 3);
         // Row 6: Current X and Y labels and current X and Y inputs
