@@ -21,25 +21,23 @@ SidePanelView::SidePanelView()
     lblCurrentY(tr("Current Y:")),
     neCurrentY(td::DataType::decimal1),
     btnUpdatePoint(tr("Update point")),
-    gl(8, 6)
-    
+    btnDeletePoint(tr("Delete point")),
+    lblConnections(tr("Connections:")),
+    lblConnectionsValue(""),
+    lblConnectTo(tr("Connect to:")),
+    btnAddConnection(tr("Add connection")),
+    btnRemoveConnection(tr("Remove connection")),
+    gl(11, 6)
 {
-        
-
-        btnAddPt.setType(gui::Button::Type::Default);
-        btnAddPt.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
-
         gui::GridComposer gc(gl);
 
-        btnUpdatePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
-        btnUpdatePoint.setType(gui::Button::Type::Default);
-
-
         // Row 0: Name label and Name input
-        gc.appendRow(lblName); gc.appendCol(lnEditName,3);
+        gc.appendRow(lblName); gc.appendCol(lnEditName, 3);
         // Row 1: X and Y labels and X and Y inputs
         gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
         // Row 2: Add point button
+        btnAddPt.setType(gui::Button::Type::Default);
+        btnAddPt.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
         gc.appendRow(btnAddPt, -1, td::HAlignment::Left);
         // Row 3: Select point label and dropdown on the same row
         gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 3);
@@ -47,8 +45,24 @@ SidePanelView::SidePanelView()
         gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 3);
         // Row 6: Current X and Y labels and current X and Y inputs
         gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY);
-        // Row 7: Update point button spanning all columns
-        gc.appendRow(btnUpdatePoint, -1, td::HAlignment::Left);
+        // Row 7: Update and Delete buttons
+        btnUpdatePoint.setType(gui::Button::Type::Default);
+        btnUpdatePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
+        btnDeletePoint.setType(gui::Button::Type::Default);
+        btnDeletePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
+        gc.appendRow(btnUpdatePoint); gc.appendCol(btnDeletePoint, -1, td::HAlignment::Right);
+        // Row 8: Connections label
+        gc.appendRow(lblConnections, -1, td::HAlignment::Left);
+        // Row 9: Connections value label
+        gc.appendRow(lblConnectionsValue, -1, td::HAlignment::Left);
+        // Row 10: Connect to label and dropdown
+        gc.appendRow(lblConnectTo); gc.appendCol(cmbConnectTo, 3);
+        // Row 11: Add and Remove connection buttons
+        btnAddConnection.setType(gui::Button::Type::Default);
+        btnAddConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
+        btnRemoveConnection.setType(gui::Button::Type::Default);
+        btnRemoveConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
+        gc.appendRow(btnAddConnection); gc.appendCol(btnRemoveConnection, -1, td::HAlignment::Right);
 
 
         
@@ -96,6 +110,21 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &btnUpdatePoint)
     {
         handleUpdatePoint();
+        return true;
+    }
+    if (pBtn == &btnDeletePoint)
+    {
+        handleDeletePoint();
+        return true;
+    }
+    if (pBtn == &btnAddConnection)
+    {
+        handleAddConnection();
+        return true;
+    }
+    if (pBtn == &btnRemoveConnection)
+    {
+        handleRemoveConnection();
         return true;
     }
     return false;
@@ -153,6 +182,38 @@ void SidePanelView::updateCurrentCoordsFromSelection()
     reDraw();
 }
 
+void SidePanelView::updateConnectionsLabel()
+{
+    std::string text;
+    int idx = cmbPoints.getSelectedIndex();
+    if (_mapView && idx >= 0)
+    {
+        auto names = _mapView->getConnectionNames(idx);
+        for (size_t i = 0; i < names.size(); ++i)
+        {
+            text += names[i];
+            if (i + 1 < names.size()) text += ", ";
+        }
+    }
+    if (text.empty()) text = tr("None").c_str();
+    lblConnectionsValue.setTitle(text.c_str());
+}
+
+void SidePanelView::populateConnectToCombo()
+{
+    cmbConnectTo.clean();
+    int idx = cmbPoints.getSelectedIndex();
+    for (size_t i = 0; i < _pointNames.size(); ++i)
+    {
+        if (static_cast<int>(i) == idx) continue;
+        cmbConnectTo.addItem(_pointNames[i].c_str());
+    }
+    if (cmbConnectTo.getNoOfItems() > 0)
+    {
+        cmbConnectTo.selectIndex(0);
+    }
+}
+
 void SidePanelView::handleAddPoint()
 {
     if (!_mapView) return;
@@ -167,6 +228,8 @@ void SidePanelView::handleAddPoint()
         cmbPoints.selectIndex(static_cast<int>(_pointNames.size()) - 1);
         updateCurrentNameFromSelection();
         updateCurrentCoordsFromSelection();
+        updateConnectionsLabel();
+        populateConnectToCombo();
         lnEditName.setText("");
         txtEditXCoord.setText("0");
         txtEditYCoord.setText("0");
@@ -192,6 +255,80 @@ void SidePanelView::handleUpdatePoint()
             idx = static_cast<int>(_pointNames.size()) - 1;
         }
         selectIndexAndUpdate(idx);
+        updateConnectionsLabel();
+        populateConnectToCombo();
+    }
+}
+
+void SidePanelView::handleDeletePoint()
+{
+    if (!_mapView) return;
+    int idx = cmbPoints.getSelectedIndex();
+    if (idx < 0) return;
+    if (_mapView->deleteCity(idx))
+    {
+        _pointNames = _mapView->getCityNames();
+        populatePointNames(_pointNames);
+        int newIdx = idx;
+        if (newIdx >= (int)_pointNames.size()) newIdx = static_cast<int>(_pointNames.size()) - 1;
+        selectIndexAndUpdate(newIdx);
+        updateConnectionsLabel();
+        populateConnectToCombo();
+    }
+}
+
+void SidePanelView::handleAddConnection()
+{
+    if (!_mapView) return;
+    int fromIdx = cmbPoints.getSelectedIndex();
+    int toIdxLocal = cmbConnectTo.getSelectedIndex();
+    if (fromIdx < 0 || toIdxLocal < 0) return;
+
+    // map combo index back to actual point index skipping selected
+    int actualTo = -1;
+    int counter = 0;
+    for (size_t i = 0; i < _pointNames.size(); ++i)
+    {
+        if (static_cast<int>(i) == fromIdx) continue;
+        if (counter == toIdxLocal)
+        {
+            actualTo = static_cast<int>(i);
+            break;
+        }
+        ++counter;
+    }
+    if (actualTo < 0) return;
+
+    if (_mapView->addConnection(fromIdx, actualTo))
+    {
+        updateConnectionsLabel();
+    }
+}
+
+void SidePanelView::handleRemoveConnection()
+{
+    if (!_mapView) return;
+    int fromIdx = cmbPoints.getSelectedIndex();
+    int toIdxLocal = cmbConnectTo.getSelectedIndex();
+    if (fromIdx < 0 || toIdxLocal < 0) return;
+
+    int actualTo = -1;
+    int counter = 0;
+    for (size_t i = 0; i < _pointNames.size(); ++i)
+    {
+        if (static_cast<int>(i) == fromIdx) continue;
+        if (counter == toIdxLocal)
+        {
+            actualTo = static_cast<int>(i);
+            break;
+        }
+        ++counter;
+    }
+    if (actualTo < 0) return;
+
+    if (_mapView->removeConnection(fromIdx, actualTo))
+    {
+        updateConnectionsLabel();
     }
 }
 
@@ -201,4 +338,6 @@ void SidePanelView::selectIndexAndUpdate(int idx)
     cmbPoints.selectIndex(idx);
     updateCurrentNameFromSelection();
     updateCurrentCoordsFromSelection();
+    updateConnectionsLabel();
+    populateConnectToCombo();
 }
