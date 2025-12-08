@@ -64,8 +64,6 @@ SidePanelView::SidePanelView()
         btnRemoveConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
         gc.appendRow(btnAddConnection); gc.appendCol(btnRemoveConnection, -1, td::HAlignment::Right);
 
-
-        
         setLayout(&gl);
 }
 
