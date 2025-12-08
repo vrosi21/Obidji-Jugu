@@ -34,6 +34,17 @@ public:
     // Updates an existing city and persists to JSON on success
     bool updateCity(int index, const std::string& name, double x, double y);
 
+    // Deletes a city (and connected roads) and persists on success
+    bool deleteCity(int index);
+
+    // Returns connected city indices for a given city
+    std::vector<int> getConnections(int index) const;
+    std::vector<std::string> getConnectionNames(int index) const;
+
+    // Adds/removes a bidirectional connection and persists on success
+    bool addConnection(int fromIndex, int toIndex);
+    bool removeConnection(int fromIndex, int toIndex);
+
 protected:
     void onDraw(const gui::Rect& rect) override;
 

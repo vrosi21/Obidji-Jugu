@@ -1,70 +1,68 @@
-#include "SidePanelView.h"
+﻿#include "SidePanelView.h"
 #include "MapView.h"
 #include <gui/GridLayout.h>
 #include <cstdlib>
 #include <sstream>
 #include <iomanip>
+#include <gui/GridComposer.h>
 
-SidePanelView::SidePanelView() 
-    : lblXCoord("X:"), 
-    txtEditXCoord(td::DataType::decimal4), 
-    lblYCoord("Y:"), 
-    txtEditYCoord(td::DataType::decimal4), 
-    btnAddPt(tr("Add point")), 
-    lnEditName(), 
-    lblName(tr("Name:")),
+SidePanelView::SidePanelView()
+    : lblXCoord("X:"),
+    txtEditXCoord(td::DataType::decimal1),
+    lblYCoord("Y:"),
+    txtEditYCoord(td::DataType::decimal1),
+    btnAddPt(tr("Add point")),
+    lnEditName(),
+    lblName(tr("City name:")),
     lblChoosePoint(tr("Select point:")),
-    lblCurrentCityName(tr("Current name:")),
+    lblCurrentCityName(tr("Current city name:")),
     lblCurrentX(tr("Current X:")),
-    neCurrentX(td::DataType::decimal4),
+    neCurrentX(td::DataType::decimal1),
     lblCurrentY(tr("Current Y:")),
-    neCurrentY(td::DataType::decimal4),
+    neCurrentY(td::DataType::decimal1),
     btnUpdatePoint(tr("Update point")),
-    gl(11, 2)
+    btnDeletePoint(tr("Delete point")),
+    lblConnections(tr("Connections:")),
+    lblConnectionsValue(""),
+    lblConnectTo(tr("Connect to:")),
+    btnAddConnection(tr("Add connection")),
+    btnRemoveConnection(tr("Remove connection")),
+    gl(11, 6)
 {
-        txtEditXCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
-        txtEditYCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
-        lblName.setSizeLimitForNChars(1, gui::Control::Limit::UseAsMin);
+        gui::GridComposer gc(gl);
 
+        // Row 0: Name label and Name input
+        gc.appendRow(lblName); gc.appendCol(lnEditName, 3);
+        // Row 1: X and Y labels and X and Y inputs
+        gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
+        // Row 2: Add point button
         btnAddPt.setType(gui::Button::Type::Default);
-        btnAddPt.setSizeLimitForNChars(7, gui::Control::Limit::None);
-
-        // Grid layout: 2 columns
-        // Row 0: Name label + name input
-        gl.insert(0, 0, lblName, td::HAlignment::Left);
-        gl.insert(0, 1, lnEditName, td::HAlignment::Left);
-        // Row 1: X and Y labels
-        gl.insert(1, 0, lblXCoord, td::HAlignment::Left);
-        gl.insert(1, 1, lblYCoord, td::HAlignment::Left);
-        // Row 2: X and Y inputs
-        gl.insert(2, 0, txtEditXCoord, td::HAlignment::Left);
-        gl.insert(2, 1, txtEditYCoord, td::HAlignment::Left);
-        // Row 3: Button spanning all columns (span to end)
-        gl.insert(3, 0, btnAddPt, -1);
-
-        // Row 4: Dropdown label spanning all columns
-        gl.insert(4, 0, lblChoosePoint, -1);
-        // Row 5: Dropdown spanning all columns
-        gl.insert(5, 0, cmbPoints, -1);
-
-        // Row 6: Current city name label
-        gl.insert(6, 0, lblCurrentCityName, -1);
-        // Row 7: Current city name input spanning all columns
-        gl.insert(7, 0, lnEditCurrentCityName, -1);
-
-        // Row 8: Current X and Y labels
-        gl.insert(8, 0, lblCurrentX, td::HAlignment::Left);
-        gl.insert(8, 1, lblCurrentY, td::HAlignment::Left);
-        // Row 9: Current X and Y inputs
-        neCurrentX.setText("0");
-        neCurrentY.setText("0");
-        gl.insert(9, 0, neCurrentX, td::HAlignment::Left);
-        gl.insert(9, 1, neCurrentY, td::HAlignment::Left);
-
-        // Row 10: Update point button spanning all columns
+        btnAddPt.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
+        gc.appendRow(btnAddPt, -1, td::HAlignment::Left);
+        // Row 3: Select point label and dropdown on the same row
+        gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 3);
+        // Row 5: Current city name label and currenc city name input
+        gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 3);
+        // Row 6: Current X and Y labels and current X and Y inputs
+        gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY);
+        // Row 7: Update and Delete buttons
         btnUpdatePoint.setType(gui::Button::Type::Default);
-        btnUpdatePoint.setSizeLimitForNChars(12, gui::Control::Limit::None);
-        gl.insert(10, 0, btnUpdatePoint, -1);
+        btnUpdatePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
+        btnDeletePoint.setType(gui::Button::Type::Default);
+        btnDeletePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
+        gc.appendRow(btnUpdatePoint); gc.appendCol(btnDeletePoint, -1, td::HAlignment::Right);
+        // Row 8: Connections label
+        gc.appendRow(lblConnections, -1, td::HAlignment::Left);
+        // Row 9: Connections value label
+        gc.appendRow(lblConnectionsValue, -1, td::HAlignment::Left);
+        // Row 10: Connect to label and dropdown
+        gc.appendRow(lblConnectTo); gc.appendCol(cmbConnectTo, 3);
+        // Row 11: Add and Remove connection buttons
+        btnAddConnection.setType(gui::Button::Type::Default);
+        btnAddConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
+        btnRemoveConnection.setType(gui::Button::Type::Default);
+        btnRemoveConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
+        gc.appendRow(btnAddConnection); gc.appendCol(btnRemoveConnection, -1, td::HAlignment::Right);
 
         setLayout(&gl);
 }
@@ -84,8 +82,8 @@ void SidePanelView::populatePointNames(const std::vector<std::string>& names)
     else
     {
         lnEditCurrentCityName.setText("");
-        neCurrentX.setText("0");
-        neCurrentY.setText("0");
+        neCurrentX.setText("0.0");
+        neCurrentY.setText("0.0");
     }
 }
 
@@ -110,6 +108,21 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &btnUpdatePoint)
     {
         handleUpdatePoint();
+        return true;
+    }
+    if (pBtn == &btnDeletePoint)
+    {
+        handleDeletePoint();
+        return true;
+    }
+    if (pBtn == &btnAddConnection)
+    {
+        handleAddConnection();
+        return true;
+    }
+    if (pBtn == &btnRemoveConnection)
+    {
+        handleRemoveConnection();
         return true;
     }
     return false;
@@ -167,6 +180,38 @@ void SidePanelView::updateCurrentCoordsFromSelection()
     reDraw();
 }
 
+void SidePanelView::updateConnectionsLabel()
+{
+    std::string text;
+    int idx = cmbPoints.getSelectedIndex();
+    if (_mapView && idx >= 0)
+    {
+        auto names = _mapView->getConnectionNames(idx);
+        for (size_t i = 0; i < names.size(); ++i)
+        {
+            text += names[i];
+            if (i + 1 < names.size()) text += ", ";
+        }
+    }
+    if (text.empty()) text = tr("None").c_str();
+    lblConnectionsValue.setTitle(text.c_str());
+}
+
+void SidePanelView::populateConnectToCombo()
+{
+    cmbConnectTo.clean();
+    int idx = cmbPoints.getSelectedIndex();
+    for (size_t i = 0; i < _pointNames.size(); ++i)
+    {
+        if (static_cast<int>(i) == idx) continue;
+        cmbConnectTo.addItem(_pointNames[i].c_str());
+    }
+    if (cmbConnectTo.getNoOfItems() > 0)
+    {
+        cmbConnectTo.selectIndex(0);
+    }
+}
+
 void SidePanelView::handleAddPoint()
 {
     if (!_mapView) return;
@@ -181,6 +226,8 @@ void SidePanelView::handleAddPoint()
         cmbPoints.selectIndex(static_cast<int>(_pointNames.size()) - 1);
         updateCurrentNameFromSelection();
         updateCurrentCoordsFromSelection();
+        updateConnectionsLabel();
+        populateConnectToCombo();
         lnEditName.setText("");
         txtEditXCoord.setText("0");
         txtEditYCoord.setText("0");
@@ -206,6 +253,80 @@ void SidePanelView::handleUpdatePoint()
             idx = static_cast<int>(_pointNames.size()) - 1;
         }
         selectIndexAndUpdate(idx);
+        updateConnectionsLabel();
+        populateConnectToCombo();
+    }
+}
+
+void SidePanelView::handleDeletePoint()
+{
+    if (!_mapView) return;
+    int idx = cmbPoints.getSelectedIndex();
+    if (idx < 0) return;
+    if (_mapView->deleteCity(idx))
+    {
+        _pointNames = _mapView->getCityNames();
+        populatePointNames(_pointNames);
+        int newIdx = idx;
+        if (newIdx >= (int)_pointNames.size()) newIdx = static_cast<int>(_pointNames.size()) - 1;
+        selectIndexAndUpdate(newIdx);
+        updateConnectionsLabel();
+        populateConnectToCombo();
+    }
+}
+
+void SidePanelView::handleAddConnection()
+{
+    if (!_mapView) return;
+    int fromIdx = cmbPoints.getSelectedIndex();
+    int toIdxLocal = cmbConnectTo.getSelectedIndex();
+    if (fromIdx < 0 || toIdxLocal < 0) return;
+
+    // map combo index back to actual point index skipping selected
+    int actualTo = -1;
+    int counter = 0;
+    for (size_t i = 0; i < _pointNames.size(); ++i)
+    {
+        if (static_cast<int>(i) == fromIdx) continue;
+        if (counter == toIdxLocal)
+        {
+            actualTo = static_cast<int>(i);
+            break;
+        }
+        ++counter;
+    }
+    if (actualTo < 0) return;
+
+    if (_mapView->addConnection(fromIdx, actualTo))
+    {
+        updateConnectionsLabel();
+    }
+}
+
+void SidePanelView::handleRemoveConnection()
+{
+    if (!_mapView) return;
+    int fromIdx = cmbPoints.getSelectedIndex();
+    int toIdxLocal = cmbConnectTo.getSelectedIndex();
+    if (fromIdx < 0 || toIdxLocal < 0) return;
+
+    int actualTo = -1;
+    int counter = 0;
+    for (size_t i = 0; i < _pointNames.size(); ++i)
+    {
+        if (static_cast<int>(i) == fromIdx) continue;
+        if (counter == toIdxLocal)
+        {
+            actualTo = static_cast<int>(i);
+            break;
+        }
+        ++counter;
+    }
+    if (actualTo < 0) return;
+
+    if (_mapView->removeConnection(fromIdx, actualTo))
+    {
+        updateConnectionsLabel();
     }
 }
 
@@ -215,4 +336,6 @@ void SidePanelView::selectIndexAndUpdate(int idx)
     cmbPoints.selectIndex(idx);
     updateCurrentNameFromSelection();
     updateCurrentCoordsFromSelection();
+    updateConnectionsLabel();
+    populateConnectToCombo();
 }
