@@ -6,70 +6,58 @@
 #include <iomanip>
 #include <gui/GridComposer.h>
 
-SidePanelView::SidePanelView() 
-    : lblXCoord("X:"), 
+SidePanelView::SidePanelView()
+    : lblXCoord("X:"),
     txtEditXCoord(td::DataType::decimal1),
-    hlXCoord(2),
-    lblYCoord("Y:"), 
-    txtEditYCoord(td::DataType::decimal1), 
-    hlYCoord(2),
+    lblYCoord("Y:"),
+    txtEditYCoord(td::DataType::decimal1),
     btnAddPt(tr("Add point")),
-    hlBtnAddPt(3),
-    lnEditName(), 
-    lblName(tr("Name:")),
+    lnEditName(),
+    lblName(tr("City name:")),
     lblChoosePoint(tr("Select point:")),
-    lblCurrentCityName(tr("Current name:")),
+    lblCurrentCityName(tr("Current city name:")),
     lblCurrentX(tr("Current X:")),
-    neCurrentX(td::DataType::decimal4),
+    neCurrentX(td::DataType::decimal1),
     lblCurrentY(tr("Current Y:")),
-    neCurrentY(td::DataType::decimal4),
+    neCurrentY(td::DataType::decimal1),
     btnUpdatePoint(tr("Update point")),
-    gl(11, 2)
+    gl(11, 6)
     
 {
-        txtEditXCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
-        txtEditYCoord.setSizeLimits(0, gui::Control::Limit::None, 20, gui::Control::Limit::None);
-        lblName.setSizeLimitForNChars(1, gui::Control::Limit::UseAsMin);
+        
 
         btnAddPt.setType(gui::Button::Type::Default);
-        btnAddPt.setSizeLimit("WWWWWWWWWWWWWWWWWWW", gui::Control::Limit::UseAsMin);
+        btnAddPt.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
 
         gui::GridComposer gc(gl);
 
-        hlXCoord.append(lblXCoord, td::HAlignment::Left);
-        hlXCoord.append(txtEditXCoord, td::HAlignment::Left);
-        hlYCoord.append(lblYCoord, td::HAlignment::Left);
-        hlYCoord.append(txtEditYCoord, td::HAlignment::Left);
-
-        gc.appendRow(lblName); gc.appendCol(lnEditName);
-        gc.appendRow(hlXCoord, td::HAlignment::Left); gc.appendCol(hlYCoord, td::HAlignment::Left);
-        gc.appendRow(btnAddPt, 2, td::HAlignment::Left);
-        gc.appendRow(lblChoosePoint, 2); 
-        gc.appendRow(cmbPoints, 2);
-
-
-     
-
-
-        // Row 6: Current city name label
-        gl.insert(6, 0, lblCurrentCityName, -1);
-        // Row 7: Current city name input spanning all columns
-        gl.insert(7, 0, lnEditCurrentCityName, -1);
-
-        // Row 8: Current X and Y labels
-        gl.insert(8, 0, lblCurrentX, td::HAlignment::Left);
-        gl.insert(8, 1, lblCurrentY, td::HAlignment::Left);
-        // Row 9: Current X and Y inputs
-        neCurrentX.setText("0");
-        neCurrentY.setText("0");
-        gl.insert(9, 0, neCurrentX, td::HAlignment::Left);
-        gl.insert(9, 1, neCurrentY, td::HAlignment::Left);
-
-        // Row 10: Update point button spanning all columns
+        btnUpdatePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
         btnUpdatePoint.setType(gui::Button::Type::Default);
-        btnUpdatePoint.setSizeLimitForNChars(12, gui::Control::Limit::None);
-        gl.insert(10, 0, btnUpdatePoint, -1);
 
+
+        // Row 0: Name label
+        gc.appendRow(lblName); gc.appendSpacer(4,0);
+        // Row 1: Name input
+        gc.appendRow(lnEditName, 5);
+        // Row 2: X and Y labels and X and Y inputs
+        gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
+        // Row 3: Add point button
+        gc.appendRow(btnAddPt, 4, td::HAlignment::Left);
+        // Row 4: Dropdown label spanning all columns
+        gc.appendRow(lblChoosePoint, 4); 
+        // Row 5: Dropdown spanning all columns
+        gc.appendRow(cmbPoints, 4);
+        // Row 6: Current city name label
+        gc.appendRow(lblCurrentCityName, 4);
+        // Row 7: Current city name input spanning all columns
+        gc.appendRow(lnEditCurrentCityName, 4);
+        // Row 8: Current X and Y labels and current X and Y inputs
+        gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY);
+        // Row 9: Update point button spanning all columns
+        gc.appendRow(btnUpdatePoint);
+
+
+        
         setLayout(&gl);
 }
 
@@ -88,8 +76,8 @@ void SidePanelView::populatePointNames(const std::vector<std::string>& names)
     else
     {
         lnEditCurrentCityName.setText("");
-        neCurrentX.setText("0");
-        neCurrentY.setText("0");
+        neCurrentX.setText("0.0");
+        neCurrentY.setText("0.0");
     }
 }
 

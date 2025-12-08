@@ -21,12 +21,9 @@ class SidePanelView : public gui::View
 public:
     gui::Label lblXCoord;
     gui::NumericEdit txtEditXCoord;
-    gui::HorizontalLayout hlXCoord;
     gui::Label lblYCoord;
     gui::NumericEdit txtEditYCoord;
-    gui::HorizontalLayout hlYCoord;
     gui::Button btnAddPt;
-    gui::HorizontalLayout hlBtnAddPt;
     gui::Label lblName;
     gui::LineEdit lnEditName;
     gui::Label lblChoosePoint;
