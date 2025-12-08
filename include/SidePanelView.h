@@ -7,6 +7,7 @@
 #include <gui/LineEdit.h>
 #include <gui/NumericEdit.h>
 #include <gui/ComboBox.h>
+#include <gui/HorizontalLayout.h>
 
 #include <vector>
 #include <string>
