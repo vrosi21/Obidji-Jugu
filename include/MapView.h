@@ -44,6 +44,7 @@ public:
     // Adds/removes a bidirectional connection and persists on success
     bool addConnection(int fromIndex, int toIndex);
     bool removeConnection(int fromIndex, int toIndex);
+    bool hasConnection(int fromIndex, int toIndex) const;
 
 protected:
     void onDraw(const gui::Rect& rect) override;

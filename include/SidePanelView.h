@@ -40,8 +40,7 @@ public:
     gui::Label lblConnectionsValue;
     gui::Label lblConnectTo;
     gui::ComboBox cmbConnectTo;
-    gui::Button btnAddConnection;
-    gui::Button btnRemoveConnection;
+    gui::Button btnToggleConnection;
     gui::GridLayout gl;
 
     SidePanelView();
@@ -68,8 +67,7 @@ private:
     void handleAddPoint();
     void handleUpdatePoint();
     void handleDeletePoint();
-    void handleAddConnection();
-    void handleRemoveConnection();
+    void handleToggleConnection();
     void selectIndexAndUpdate(int idx);
     void updateCurrentNameFromSelection();
     void updateCurrentCoordsFromSelection();

@@ -25,8 +25,7 @@ SidePanelView::SidePanelView()
     lblConnections(tr("Connections:")),
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
-    btnAddConnection(tr("Add connection")),
-    btnRemoveConnection(tr("Remove connection")),
+    btnToggleConnection(tr("Toggle connection")),
     gl(11, 6)
 {
         gui::GridComposer gc(gl);
@@ -56,13 +55,11 @@ SidePanelView::SidePanelView()
         // Row 9: Connections value label
         gc.appendRow(lblConnectionsValue, -1, td::HAlignment::Left);
         // Row 10: Connect to label and dropdown
-        gc.appendRow(lblConnectTo); gc.appendCol(cmbConnectTo, 3);
-        // Row 11: Add and Remove connection buttons
-        btnAddConnection.setType(gui::Button::Type::Default);
-        btnAddConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
-        btnRemoveConnection.setType(gui::Button::Type::Default);
-        btnRemoveConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
-        gc.appendRow(btnAddConnection); gc.appendCol(btnRemoveConnection, -1, td::HAlignment::Right);
+        gc.appendRow(lblConnectTo); 
+        // Row 11: Toggle connection button
+        btnToggleConnection.setType(gui::Button::Type::Default);
+        btnToggleConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
+        gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
 
         setLayout(&gl);
 }
@@ -115,14 +112,9 @@ bool SidePanelView::onClick(gui::Button* pBtn)
         handleDeletePoint();
         return true;
     }
-    if (pBtn == &btnAddConnection)
+    if (pBtn == &btnToggleConnection)
     {
-        handleAddConnection();
-        return true;
-    }
-    if (pBtn == &btnRemoveConnection)
-    {
-        handleRemoveConnection();
+        handleToggleConnection();
         return true;
     }
     return false;
@@ -275,7 +267,7 @@ void SidePanelView::handleDeletePoint()
     }
 }
 
-void SidePanelView::handleAddConnection()
+void SidePanelView::handleToggleConnection()
 {
     if (!_mapView) return;
     int fromIdx = cmbPoints.getSelectedIndex();
@@ -297,37 +289,16 @@ void SidePanelView::handleAddConnection()
     }
     if (actualTo < 0) return;
 
-    if (_mapView->addConnection(fromIdx, actualTo))
+    // Check if connection exists and toggle it
+    if (_mapView->hasConnection(fromIdx, actualTo))
     {
-        updateConnectionsLabel();
+        _mapView->removeConnection(fromIdx, actualTo);
     }
-}
-
-void SidePanelView::handleRemoveConnection()
-{
-    if (!_mapView) return;
-    int fromIdx = cmbPoints.getSelectedIndex();
-    int toIdxLocal = cmbConnectTo.getSelectedIndex();
-    if (fromIdx < 0 || toIdxLocal < 0) return;
-
-    int actualTo = -1;
-    int counter = 0;
-    for (size_t i = 0; i < _pointNames.size(); ++i)
+    else
     {
-        if (static_cast<int>(i) == fromIdx) continue;
-        if (counter == toIdxLocal)
-        {
-            actualTo = static_cast<int>(i);
-            break;
-        }
-        ++counter;
+        _mapView->addConnection(fromIdx, actualTo);
     }
-    if (actualTo < 0) return;
-
-    if (_mapView->removeConnection(fromIdx, actualTo))
-    {
-        updateConnectionsLabel();
-    }
+    updateConnectionsLabel();
 }
 
 void SidePanelView::selectIndexAndUpdate(int idx)

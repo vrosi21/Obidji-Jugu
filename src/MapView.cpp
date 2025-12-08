@@ -568,3 +568,17 @@ bool MapView::removeConnection(int fromIndex, int toIndex)
     reDraw();
     return true;
 }
+
+bool MapView::hasConnection(int fromIndex, int toIndex) const
+{
+    if (fromIndex < 0 || toIndex < 0) return false;
+    if (fromIndex >= static_cast<int>(_cities.size()) || toIndex >= static_cast<int>(_cities.size())) return false;
+    if (fromIndex == toIndex) return false;
+
+    for (const auto& r : _roads) {
+        if ((r.fromId == fromIndex && r.toId == toIndex) || (r.fromId == toIndex && r.toId == fromIndex)) {
+            return true;
+        }
+    }
+    return false;
+}
