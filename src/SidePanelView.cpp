@@ -21,7 +21,7 @@ SidePanelView::SidePanelView()
     lblCurrentY(tr("Current Y:")),
     neCurrentY(td::DataType::decimal1),
     btnUpdatePoint(tr("Update point")),
-    gl(11, 6)
+    gl(8, 6)
     
 {
         
@@ -35,25 +35,21 @@ SidePanelView::SidePanelView()
         btnUpdatePoint.setType(gui::Button::Type::Default);
 
 
-        // Row 0: Name label
-        gc.appendRow(lblName); gc.appendSpacer(4,0);
-        // Row 1: Name input
-        gc.appendRow(lnEditName, 5);
-        // Row 2: X and Y labels and X and Y inputs
+        // Row 0: Name label and Name input
+        gc.appendRow(lblName); gc.appendCol(lnEditName,5);
+        // Row 1: X and Y labels and X and Y inputs
         gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
-        // Row 3: Add point button
+        // Row 2: Add point button
         gc.appendRow(btnAddPt, 4, td::HAlignment::Left);
-        // Row 4: Dropdown label spanning all columns
+        // Row 3: Dropdown label spanning all columns
         gc.appendRow(lblChoosePoint, 4); 
-        // Row 5: Dropdown spanning all columns
+        // Row 4: Dropdown spanning all columns
         gc.appendRow(cmbPoints, 4);
-        // Row 6: Current city name label
-        gc.appendRow(lblCurrentCityName, 4);
-        // Row 7: Current city name input spanning all columns
-        gc.appendRow(lnEditCurrentCityName, 4);
-        // Row 8: Current X and Y labels and current X and Y inputs
+        // Row 5: Current city name label and currenc city name input
+        gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 5);
+        // Row 6: Current X and Y labels and current X and Y inputs
         gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY);
-        // Row 9: Update point button spanning all columns
+        // Row 7: Update point button spanning all columns
         gc.appendRow(btnUpdatePoint);
 
 
