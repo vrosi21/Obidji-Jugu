@@ -24,7 +24,7 @@ protected:
     
 public:
     MainWindow()
-    : gui::Window(gui::Size(1500, 1000))
+    : gui::Window(gui::Size(1500, 866))
     {
         setTitle("The Travelling Salesman");
             setToolBar(_toolBar);

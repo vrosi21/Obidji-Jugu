@@ -17,12 +17,12 @@ public:
     {
         setMargins(0, 0, 0, 0);
         // Size allocation: side panel fixed/min width, both views min height 1000
-        // Adjust 300 to desired side panel width
-        _sidePanel.setSizeLimits(300, gui::Control::Limit::UseAsMin,
-                     1000, gui::Control::Limit::UseAsMin);
+        // Adjust 500 to desired side panel width
+        _sidePanel.setSizeLimits(500, gui::Control::Limit::UseAsMin,
+                     866, gui::Control::Limit::UseAsMin);
         // Map canvas should take the remaining space; set min width 0, min height 1000
         _mapView.setSizeLimits(1000, gui::Control::Limit::UseAsMin,
-                       1000, gui::Control::Limit::UseAsMin);
+                       866, gui::Control::Limit::UseAsMin);
 
         _hlayout.append(_mapView, td::HAlignment::Left, td::VAlignment::Top);
         _hlayout.append(_sidePanel, td::HAlignment::Left, td::VAlignment::Top);
