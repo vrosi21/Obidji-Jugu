@@ -1,0 +1,894 @@
+{
+  "cities": [
+    {
+      "id": 0,
+      "x": 708.5999999999999,
+      "y": 301.47,
+      "name": "Belgrade",
+      "weight": 116.6,
+      "color": "#d62728"
+    },
+    {
+      "id": 1,
+      "x": 242.05999999999995,
+      "y": 185.91000000000003,
+      "name": "Zagreb",
+      "weight": 68.8,
+      "color": "#1f77b4"
+    },
+    {
+      "id": 2,
+      "x": 813.93,
+      "y": 685.8399999999999,
+      "name": "Skopje",
+      "weight": 50.3,
+      "color": "#ff7f0e"
+    },
+    {
+      "id": 3,
+      "x": 510.0,
+      "y": 424.0,
+      "name": "Sarajevo",
+      "weight": 37.0,
+      "color": "#2ca02c"
+    },
+    {
+      "id": 4,
+      "x": 132.94999999999996,
+      "y": 122.85000000000002,
+      "name": "Ljubljana",
+      "weight": 27.8,
+      "color": "#9467bd"
+    },
+    {
+      "id": 5,
+      "x": 869.55,
+      "y": 503.88,
+      "name": "Ni\u0161",
+      "weight": 23.2,
+      "color": "#d62728"
+    },
+    {
+      "id": 6,
+      "x": 668.87,
+      "y": 232.19000000000005,
+      "name": "Novi Sad",
+      "weight": 18.3,
+      "color": "#d62728"
+    },
+    {
+      "id": 7,
+      "x": 315.31999999999994,
+      "y": 475.94,
+      "name": "Split",
+      "weight": 16.7,
+      "color": "#1f77b4"
+    },
+    {
+      "id": 8,
+      "x": 373.29999999999995,
+      "y": 321.55,
+      "name": "Banja Luka",
+      "weight": 15.1,
+      "color": "#2ca02c"
+    },
+    {
+      "id": 9,
+      "x": 596.03,
+      "y": 616.3,
+      "name": "Podgorica",
+      "weight": 15.1,
+      "color": "#8c564b"
+    },
+    {
+      "id": 10,
+      "x": 789.4,
+      "y": 406.49,
+      "name": "Kragujevac",
+      "weight": 15.1,
+      "color": "#d62728"
+    },
+    {
+      "id": 11,
+      "x": 787.8599999999999,
+      "y": 577.48,
+      "name": "Pristina",
+      "weight": 14.5,
+      "color": "#e377c2"
+    },
+    {
+      "id": 12,
+      "x": 110.82999999999996,
+      "y": 225.48,
+      "name": "Rijeka",
+      "weight": 12.8,
+      "color": "#1f77b4"
+    },
+    {
+      "id": 13,
+      "x": 642.2199999999999,
+      "y": 137.03000000000003,
+      "name": "Subotica",
+      "weight": 9.8,
+      "color": "#d62728"
+    },
+    {
+      "id": 14,
+      "x": 250.46999999999994,
+      "y": 72.17000000000002,
+      "name": "Maribor",
+      "weight": 9.6,
+      "color": "#9467bd"
+    },
+    {
+      "id": 15,
+      "x": 689.74,
+      "y": 587.9200000000001,
+      "name": "Peja",
+      "weight": 8.5,
+      "color": "#e377c2"
+    },
+    {
+      "id": 16,
+      "x": 541.4,
+      "y": 205.43,
+      "name": "Osijek",
+      "weight": 8.4,
+      "color": "#1f77b4"
+    },
+    {
+      "id": 17,
+      "x": 538.8,
+      "y": 348.33000000000004,
+      "name": "Tuzla",
+      "weight": 8.1,
+      "color": "#2ca02c"
+    },
+    {
+      "id": 18,
+      "x": 739.0799999999999,
+      "y": 287.5,
+      "name": "Pan\u010devo",
+      "weight": 7.7,
+      "color": "#d62728"
+    },
+    {
+      "id": 19,
+      "x": 723.1099999999999,
+      "y": 222.16000000000003,
+      "name": "Zrenjanin",
+      "weight": 7.6,
+      "color": "#d62728"
+    },
+    {
+      "id": 20,
+      "x": 452.93999999999994,
+      "y": 385.34000000000003,
+      "name": "Zenica",
+      "weight": 7.4,
+      "color": "#2ca02c"
+    },
+    {
+      "id": 21,
+      "x": 726.53,
+      "y": 420.12,
+      "name": "\u010ca\u010dak",
+      "weight": 7.3,
+      "color": "#d62728"
+    },
+    {
+      "id": 22,
+      "x": 817.38,
+      "y": 819.97,
+      "name": "Bitola",
+      "weight": 7.3,
+      "color": "#ff7f0e"
+    },
+    {
+      "id": 23,
+      "x": 756.17,
+      "y": 680.56,
+      "name": "Tetovo",
+      "weight": 7.2,
+      "color": "#ff7f0e"
+    },
+    {
+      "id": 24,
+      "x": 60.4500000000000455,
+      "y": 287.99,
+      "name": "Pula",
+      "weight": 7.1,
+      "color": "#1f77b4"
+    },
+    {
+      "id": 25,
+      "x": 761.89,
+      "y": 313.73,
+      "name": "Smederevo",
+      "weight": 6.7,
+      "color": "#d62728"
+    },
+    {
+      "id": 26,
+      "x": 842.26,
+      "y": 667.8399999999999,
+      "name": "Kumanovo",
+      "weight": 6.5,
+      "color": "#ff7f0e"
+    },
+    {
+      "id": 27,
+      "x": 442.28999999999996,
+      "y": 481.32,
+      "name": "Mostar",
+      "weight": 6.5,
+      "color": "#2ca02c"
+    },
+    {
+      "id": 28,
+      "x": 676.0899999999999,
+      "y": 377.16,
+      "name": "Valjevo",
+      "weight": 6.4,
+      "color": "#d62728"
+    },
+    {
+      "id": 29,
+      "x": 640.17,
+      "y": 313.35,
+      "name": "\u0160abac",
+      "weight": 6.4,
+      "color": "#d62728"
+    }
+  ],
+  "roads": [
+    {
+      "from": 0,
+      "to": 18,
+      "length": 21.33,
+      "travel_time_h": 0.356,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 0,
+      "to": 25,
+      "length": 56.02,
+      "travel_time_h": 0.934,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 0,
+      "to": 6,
+      "length": 71.56,
+      "travel_time_h": 1.193,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 1,
+      "to": 14,
+      "length": 91.13,
+      "travel_time_h": 1.519,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 1,
+      "to": 4,
+      "length": 170.09,
+      "travel_time_h": 2.835,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 1,
+      "to": 12,
+      "length": 76.91,
+      "travel_time_h": 1.282,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 2,
+      "to": 23,
+      "length": 20.83,
+      "travel_time_h": 0.347,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 2,
+      "to": 11,
+      "length": 79.84,
+      "travel_time_h": 1.331,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 2,
+      "to": 22,
+      "length": 110.28,
+      "travel_time_h": 1.838,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 3,
+      "to": 20,
+      "length": 68.92,
+      "travel_time_h": 1.149,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 3,
+      "to": 17,
+      "length": 82.73,
+      "travel_time_h": 1.379,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 3,
+      "to": 27,
+      "length": 82.58,
+      "travel_time_h": 1.376,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 4,
+      "to": 14,
+      "length": 82.87,
+      "travel_time_h": 1.381,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 4,
+      "to": 12,
+      "length": 83.66,
+      "travel_time_h": 1.394,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 5,
+      "to": 26,
+      "length": 160.23,
+      "travel_time_h": 2.67,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 5,
+      "to": 11,
+      "length": 124.82,
+      "travel_time_h": 2.08,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 5,
+      "to": 9,
+      "length": 195.88,
+      "travel_time_h": 3.264,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 6,
+      "to": 13,
+      "length": 103.24,
+      "travel_time_h": 1.721,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 6,
+      "to": 19,
+      "length": 29.8,
+      "travel_time_h": 0.497,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 6,
+      "to": 0,
+      "length": 71.56,
+      "travel_time_h": 1.193,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 7,
+      "to": 12,
+      "length": 204.02,
+      "travel_time_h": 3.4,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 7,
+      "to": 27,
+      "length": 137.86,
+      "travel_time_h": 2.298,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 7,
+      "to": 1,
+      "length": 272.29,
+      "travel_time_h": 4.538,
+      "type": "intercity",
+      "bidirectional": true
+    },
+    {
+      "from": 8,
+      "to": 20,
+      "length": 106.32,
+      "travel_time_h": 1.772,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 8,
+      "to": 29,
+      "length": 106.24,
+      "travel_time_h": 1.771,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 8,
+      "to": 3,
+      "length": 143.18,
+      "travel_time_h": 2.386,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 9,
+      "to": 22,
+      "length": 205.95,
+      "travel_time_h": 3.433,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 9,
+      "to": 11,
+      "length": 170.53,
+      "travel_time_h": 2.842,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 9,
+      "to": 27,
+      "length": 175.02,
+      "travel_time_h": 2.917,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 10,
+      "to": 25,
+      "length": 69.64,
+      "travel_time_h": 1.161,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 10,
+      "to": 21,
+      "length": 44.27,
+      "travel_time_h": 0.738,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 10,
+      "to": 0,
+      "length": 99.41,
+      "travel_time_h": 1.657,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 11,
+      "to": 23,
+      "length": 82.61,
+      "travel_time_h": 1.377,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 11,
+      "to": 2,
+      "length": 79.84,
+      "travel_time_h": 1.331,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 11,
+      "to": 9,
+      "length": 170.53,
+      "travel_time_h": 2.842,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 12,
+      "to": 24,
+      "length": 190.37,
+      "travel_time_h": 3.173,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 12,
+      "to": 1,
+      "length": 76.91,
+      "travel_time_h": 1.282,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 12,
+      "to": 4,
+      "length": 83.66,
+      "travel_time_h": 1.394,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 13,
+      "to": 6,
+      "length": 103.24,
+      "travel_time_h": 1.721,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 13,
+      "to": 14,
+      "length": 454.07,
+      "travel_time_h": 7.568,
+      "type": "intercity",
+      "bidirectional": true
+    },
+    {
+      "from": 13,
+      "to": 16,
+      "length": 112.56,
+      "travel_time_h": 1.876,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 14,
+      "to": 1,
+      "length": 91.13,
+      "travel_time_h": 1.519,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 14,
+      "to": 4,
+      "length": 82.87,
+      "travel_time_h": 1.381,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 14,
+      "to": 13,
+      "length": 454.07,
+      "travel_time_h": 7.568,
+      "type": "intercity",
+      "bidirectional": true
+    },
+    {
+      "from": 15,
+      "to": 11,
+      "length": 46.72,
+      "travel_time_h": 0.779,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 15,
+      "to": 23,
+      "length": 72.37,
+      "travel_time_h": 1.206,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 15,
+      "to": 22,
+      "length": 193.88,
+      "travel_time_h": 3.231,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 16,
+      "to": 29,
+      "length": 102.15,
+      "travel_time_h": 1.703,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 16,
+      "to": 13,
+      "length": 112.56,
+      "travel_time_h": 1.876,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 16,
+      "to": 1,
+      "length": 312.02,
+      "travel_time_h": 5.2,
+      "type": "intercity",
+      "bidirectional": true
+    },
+    {
+      "from": 17,
+      "to": 20,
+      "length": 63.64,
+      "travel_time_h": 1.061,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 17,
+      "to": 3,
+      "length": 82.73,
+      "travel_time_h": 1.379,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 17,
+      "to": 29,
+      "length": 115.75,
+      "travel_time_h": 1.929,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 18,
+      "to": 0,
+      "length": 21.33,
+      "travel_time_h": 0.356,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 18,
+      "to": 29,
+      "length": 35.28,
+      "travel_time_h": 0.588,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 19,
+      "to": 6,
+      "length": 29.8,
+      "travel_time_h": 0.497,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 19,
+      "to": 28,
+      "length": 131.64,
+      "travel_time_h": 2.194,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 20,
+      "to": 3,
+      "length": 68.92,
+      "travel_time_h": 1.149,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 20,
+      "to": 8,
+      "length": 106.32,
+      "travel_time_h": 1.772,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 20,
+      "to": 27,
+      "length": 97.73,
+      "travel_time_h": 1.629,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 21,
+      "to": 10,
+      "length": 44.27,
+      "travel_time_h": 0.738,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 21,
+      "to": 28,
+      "length": 56.59,
+      "travel_time_h": 0.943,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 22,
+      "to": 2,
+      "length": 110.28,
+      "travel_time_h": 1.838,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 22,
+      "to": 23,
+      "length": 120.05,
+      "travel_time_h": 2.001,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 22,
+      "to": 26,
+      "length": 99.69,
+      "travel_time_h": 1.661,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 23,
+      "to": 2,
+      "length": 20.83,
+      "travel_time_h": 0.347,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 23,
+      "to": 11,
+      "length": 82.61,
+      "travel_time_h": 1.377,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 23,
+      "to": 22,
+      "length": 120.05,
+      "travel_time_h": 2.001,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 24,
+      "to": 12,
+      "length": 190.37,
+      "travel_time_h": 3.173,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 25,
+      "to": 0,
+      "length": 56.02,
+      "travel_time_h": 0.934,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 25,
+      "to": 10,
+      "length": 69.64,
+      "travel_time_h": 1.161,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 26,
+      "to": 5,
+      "length": 160.23,
+      "travel_time_h": 2.67,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 26,
+      "to": 22,
+      "length": 99.69,
+      "travel_time_h": 1.661,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 27,
+      "to": 3,
+      "length": 82.58,
+      "travel_time_h": 1.376,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 27,
+      "to": 9,
+      "length": 175.02,
+      "travel_time_h": 2.917,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 27,
+      "to": 7,
+      "length": 137.86,
+      "travel_time_h": 2.298,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 28,
+      "to": 21,
+      "length": 56.59,
+      "travel_time_h": 0.943,
+      "type": "local",
+      "bidirectional": true
+    },
+    {
+      "from": 28,
+      "to": 19,
+      "length": 131.64,
+      "travel_time_h": 2.194,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 29,
+      "to": 8,
+      "length": 106.24,
+      "travel_time_h": 1.771,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 29,
+      "to": 16,
+      "length": 102.15,
+      "travel_time_h": 1.703,
+      "type": "regional",
+      "bidirectional": true
+    },
+    {
+      "from": 29,
+      "to": 17,
+      "length": 115.75,
+      "travel_time_h": 1.929,
+      "type": "regional",
+      "bidirectional": true
+    }
+  ]
+}
