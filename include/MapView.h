@@ -2,6 +2,7 @@
 #include <gui/Canvas.h>
 #include <gui/Shape.h>
 #include <gui/Image.h>
+#include <gui/DrawableString.h>
 #include <vector>
 #include <string>
 #include <filesystem>
