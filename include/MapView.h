@@ -3,6 +3,7 @@
 #include <gui/Shape.h>
 #include <gui/Image.h>
 #include <gui/DrawableString.h>
+#include "JsonService.h"
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -53,21 +54,10 @@ protected:
 private:
     void loadCities();
     void loadBackground();
-    td::ColorID mapHexToColor(const std::string& hex) const;
     bool saveJson() const;
     int nextCityId() const;
-    std::filesystem::path resolveDefaultJsonPath() const;
     std::vector<CityPoint> _cities;
-    struct RoadEdge { int fromId; int toId; };
     std::vector<RoadEdge> _roads;
-    struct RoadInfo {
-        int fromId = -1;
-        int toId = -1;
-        double length = 0.0;
-        double travelTimeH = 0.0;
-        std::string type;
-        bool bidirectional = true;
-    };
     std::vector<RoadInfo> _roadsFull;
     std::filesystem::path _jsonPath;
     bool _loaded = false;
