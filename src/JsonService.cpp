@@ -90,8 +90,9 @@ bool JsonService::loadFromJson(
         cp.y = extractNumber("\"y\"");
         cp.name = extractString("\"name\"");
         cp.weight = extractNumber("\"weight\"");
-        cp.visitation_status = extractInt("\"visitation_status\"");
-        if (cp.visitation_status < 0 || cp.visitation_status > 2) cp.visitation_status = 1;
+        int statusValue = extractInt("\"visitation_status\"");
+        if (statusValue < 0 || statusValue > 2) statusValue = 1;
+        cp.visitation_status = static_cast<VisitationStatus>(statusValue);
         
         if (!cp.name.empty()) {
             if (cp.id == static_cast<int>(outCities.size())) {
@@ -208,7 +209,7 @@ bool JsonService::saveToJson(
             << ",\"y\":" << std::fixed << std::setprecision(2) << c.y
             << ",\"name\":\"" << c.name << "\""
             << ",\"weight\":" << std::fixed << std::setprecision(1) << c.weight
-            << ",\"visitation_status\":" << c.visitation_status << "}";
+            << ",\"visitation_status\":" << static_cast<int>(c.visitation_status) << "}";
         if (i + 1 < cities.size()) out << ",";
         out << "\n";
     }

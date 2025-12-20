@@ -13,6 +13,7 @@
 #include <string>
 
 class MapView;
+enum class VisitationStatus : int;
 
 
 // Minimal side panel view for the Travelling Salesman project.
@@ -41,6 +42,8 @@ public:
     gui::Label lblConnectTo;
     gui::ComboBox cmbConnectTo;
     gui::Button btnToggleConnection;
+    gui::Label lblStatus;
+    gui::ComboBox cmbStatus;
     gui::GridLayout gl;
 
     SidePanelView();
@@ -73,4 +76,7 @@ private:
     void updateCurrentCoordsFromSelection();
     void updateConnectionsLabel();
     void populateConnectToCombo();
+    void populateStatusCombo();
+    void updateStatusFromSelection();
+    void handleStatusChange();
 };

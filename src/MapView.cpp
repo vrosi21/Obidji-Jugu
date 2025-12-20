@@ -42,21 +42,6 @@ std::vector<std::string> MapView::getCityNames() const
     return names;
 }
 
-td::ColorID MapView::mapHexToColor(const std::string& hex) const
-{
-    if (hex == "#d62728") return td::ColorID::Red;
-    if (hex == "#1f77b4") return td::ColorID::Blue;
-    if (hex == "#ff7f0e") return td::ColorID::Orange;
-    if (hex == "#2ca02c") return td::ColorID::Green;
-    if (hex == "#9467bd") return td::ColorID::Magenta;
-    if (hex == "#8c564b") return td::ColorID::SandyBrown;
-    if (hex == "#e377c2") return td::ColorID::Pink;
-    if (hex == "#e63946") return td::ColorID::Red;
-    if (hex == "#f4f0bb") return td::ColorID::LightYellow;
-    if (hex == "#8338ec") return td::ColorID::Violet;
-    return td::ColorID::Gray;
-}
-
 void MapView::onDraw(const gui::Rect& rect)
 {
     // Background: draw image with desired scaling (1000 x 866.3) if available, else white fill
@@ -101,18 +86,18 @@ void MapView::onDraw(const gui::Rect& rect)
     const int borderOffset = 3;
     for (const auto& c : _cities) {
         // Determine colors based on visitation_status
-        // 0=blocked: border=#e63946, center=#f4f0bb
-        // 1=open: border=#f4f0bb, center=#f4f0bb
-        // 2=goal: border=#f4f0bb, center=#8338ec
-        std::string borderColor = "#f4f0bb";
-        std::string centerColor = "#f4f0bb";
+        // 0=blocked: border=Red, center=LightYellow
+        // 1=open: border=LightYellow, center=LightYellow
+        // 2=goal: border=LightYellow, center=Violet
+        td::ColorID borderColor = td::ColorID::LightYellow;
+        td::ColorID centerColor = td::ColorID::LightYellow;
         
-        if (c.visitation_status == 0) {
-            borderColor = "#e63946";
-            centerColor = "#f4f0bb";
-        } else if (c.visitation_status == 2) {
-            borderColor = "#f4f0bb";
-            centerColor = "#8338ec";
+        if (c.visitation_status == VisitationStatus::Blocked) {
+            borderColor = td::ColorID::Red;
+            centerColor = td::ColorID::LightYellow;
+        } else if (c.visitation_status == VisitationStatus::Goal) {
+            borderColor = td::ColorID::LightYellow;
+            centerColor = td::ColorID::Violet;
         }
         
         // Draw border rect (2px wider on each side)
@@ -122,14 +107,14 @@ void MapView::onDraw(const gui::Rect& rect)
                             static_cast<int>(c.y) + size + borderOffset);
         gui::Shape borderShape;
         borderShape.createRect(borderRect);
-        borderShape.drawFillAndWire(mapHexToColor(borderColor), td::ColorID::Black, 1.0f);
+        borderShape.drawFillAndWire(borderColor, td::ColorID::Black, 1.0f);
         
         // Draw center rect
         gui::Rect centerRect(static_cast<int>(c.x), static_cast<int>(c.y),
                             static_cast<int>(c.x) + size, static_cast<int>(c.y) + size);
         gui::Shape centerShape;
         centerShape.createRect(centerRect);
-        centerShape.drawFillAndWire(mapHexToColor(centerColor), td::ColorID::Black, 1.0f);
+        centerShape.drawFillAndWire(centerColor, td::ColorID::Black, 1.0f);
         
         // Draw city name
         td::String c_name = c.name;
@@ -229,7 +214,7 @@ bool MapView::addCity(const std::string& name, double x, double y)
     cp.x = x;
     cp.y = y;
     cp.weight = 0.0;
-    cp.visitation_status = 1;
+    cp.visitation_status = VisitationStatus::Open;
 
     _cities.push_back(cp);
     bool saved = saveJson();
@@ -250,6 +235,22 @@ bool MapView::updateCity(int index, const std::string& name, double x, double y)
     _cities[static_cast<size_t>(index)].name = name;
     _cities[static_cast<size_t>(index)].x = x;
     _cities[static_cast<size_t>(index)].y = y;
+
+    bool saved = saveJson();
+    if (!saved) {
+        _cities[static_cast<size_t>(index)] = backup;
+        return false;
+    }
+    reDraw();
+    return true;
+}
+
+bool MapView::updateCityStatus(int index, VisitationStatus status)
+{
+    if (index < 0 || index >= static_cast<int>(_cities.size())) return false;
+
+    CityPoint backup = _cities[static_cast<size_t>(index)];
+    _cities[static_cast<size_t>(index)].visitation_status = status;
 
     bool saved = saveJson();
     if (!saved) {

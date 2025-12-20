@@ -8,6 +8,13 @@
 #include <string>
 #include <filesystem>
 
+// Visitation status enumeration
+enum class VisitationStatus : int {
+    Blocked = 0,
+    Open = 1,
+    Goal = 2
+};
+
 // Simple data holder for a city loaded from JSON
 struct CityPoint {
     int id = -1;
@@ -15,7 +22,7 @@ struct CityPoint {
     double y = 0.0;
     double weight = 0.0;
     std::string name;      // Optional label
-    int visitation_status = 1;  // 0=blocked, 1=open, 2=goal
+    VisitationStatus visitation_status = VisitationStatus::Open;
 };
 
 class MapView : public gui::Canvas
@@ -35,6 +42,9 @@ public:
 
     // Updates an existing city and persists to JSON on success
     bool updateCity(int index, const std::string& name, double x, double y);
+
+    // Updates an existing city's visitation status and persists to JSON on success
+    bool updateCityStatus(int index, VisitationStatus status);
 
     // Deletes a city (and connected roads) and persists on success
     bool deleteCity(int index);
