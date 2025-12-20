@@ -14,7 +14,7 @@ struct CityPoint {
     double y = 0.0;
     double weight = 0.0;
     std::string name;      // Optional label
-    std::string colorHex;  // Original hex; mapped to td::ColorID when drawing
+    int visitation_status = 1;  // 0=blocked, 1=open, 2=goal
 };
 
 class MapView : public gui::Canvas

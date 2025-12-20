@@ -118,8 +118,8 @@ void MapView::loadCities()
         cp.y = extractNumber("\"y\"");
         cp.name = extractString("\"name\"");
         cp.weight = extractNumber("\"weight\"");
-        cp.colorHex = extractString("\"color\"");
-        if (cp.colorHex.empty()) cp.colorHex = "#d62728";
+        cp.visitation_status = extractInt("\"visitation_status\"");
+        if (cp.visitation_status < 0 || cp.visitation_status > 2) cp.visitation_status = 1;
         if (!cp.name.empty()) {
             if (cp.id == static_cast<int>(_cities.size())) {
                 _cities.push_back(cp);
@@ -224,6 +224,9 @@ td::ColorID MapView::mapHexToColor(const std::string& hex) const
     if (hex == "#9467bd") return td::ColorID::Magenta;
     if (hex == "#8c564b") return td::ColorID::SandyBrown;
     if (hex == "#e377c2") return td::ColorID::Pink;
+    if (hex == "#e63946") return td::ColorID::Red;
+    if (hex == "#f4f0bb") return td::ColorID::LightYellow;
+    if (hex == "#8338ec") return td::ColorID::Violet;
     return td::ColorID::Gray;
 }
 
@@ -268,16 +271,43 @@ void MapView::onDraw(const gui::Rect& rect)
 
     // Draw cities on top
     const int size = 10;
+    const int borderOffset = 3;
     for (const auto& c : _cities) {
-        gui::Rect r(static_cast<int>(c.x), static_cast<int>(c.y),
-            static_cast<int>(c.x) + size, static_cast<int>(c.y) + size); // Using x1,y1,x2,y2 semantics
+        // Determine colors based on visitation_status
+        // 0=blocked: border=#e63946, center=#f4f0bb
+        // 1=open: border=#f4f0bb, center=#f4f0bb
+        // 2=goal: border=#f4f0bb, center=#8338ec
+        std::string borderColor = "#f4f0bb";
+        std::string centerColor = "#f4f0bb";
+        
+        if (c.visitation_status == 0) {
+            borderColor = "#e63946";
+            centerColor = "#f4f0bb";
+        } else if (c.visitation_status == 2) {
+            borderColor = "#f4f0bb";
+            centerColor = "#8338ec";
+        }
+        
+        // Draw border rect (2px wider on each side)
+        gui::Rect borderRect(static_cast<int>(c.x) - borderOffset, 
+                            static_cast<int>(c.y) - borderOffset,
+                            static_cast<int>(c.x) + size + borderOffset, 
+                            static_cast<int>(c.y) + size + borderOffset);
+        gui::Shape borderShape;
+        borderShape.createRect(borderRect);
+        borderShape.drawFillAndWire(mapHexToColor(borderColor), td::ColorID::Black, 1.0f);
+        
+        // Draw center rect
+        gui::Rect centerRect(static_cast<int>(c.x), static_cast<int>(c.y),
+                            static_cast<int>(c.x) + size, static_cast<int>(c.y) + size);
+        gui::Shape centerShape;
+        centerShape.createRect(centerRect);
+        centerShape.drawFillAndWire(mapHexToColor(centerColor), td::ColorID::Black, 1.0f);
+        
+        // Draw city name
         td::String c_name = c.name;
         gui::DrawableString str1(c_name);
         str1.draw(gui::Point(c.x, c.y + 10), gui::Font::ID::SystemNormal, td::ColorID::Black);
-
-
-        gui::Shape s; s.createRect(r);
-        s.drawFillAndWire(mapHexToColor(c.colorHex), td::ColorID::Black, 1.0f);
     }
 }
 
@@ -375,7 +405,7 @@ bool MapView::saveJson() const
             << ",\"y\":" << std::fixed << std::setprecision(2) << c.y
             << ",\"name\":\"" << c.name << "\""
             << ",\"weight\":" << std::fixed << std::setprecision(1) << c.weight
-            << ",\"color\":\"" << (c.colorHex.empty() ? "#d62728" : c.colorHex) << "\"}";
+            << ",\"visitation_status\":" << c.visitation_status << "}";
         if (i + 1 < _cities.size()) out << ",";
         out << "\n";
     }
@@ -413,7 +443,7 @@ bool MapView::addCity(const std::string& name, double x, double y)
     cp.x = x;
     cp.y = y;
     cp.weight = 0.0;
-    cp.colorHex = "#d62728";
+    cp.visitation_status = 1;
 
     _cities.push_back(cp);
     bool saved = saveJson();
