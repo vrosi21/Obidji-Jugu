@@ -247,21 +247,7 @@ void MapView::onDraw(const gui::Rect& rect)
         bg.drawFillAndWire(td::ColorID::White, td::ColorID::Black, 0.0f);
     }
 
-    // Draw each city as a 10x10 square at (x,y)
-    const int size = 10;
-    for (const auto& c : _cities) {
-        gui::Rect r(static_cast<int>(c.x), static_cast<int>(c.y),
-            static_cast<int>(c.x) + size, static_cast<int>(c.y) + size); // Using x1,y1,x2,y2 semantics
-        td::String c_name = c.name;
-        gui::DrawableString str1(c_name);
-        str1.draw(gui::Point(c.x, c.y + 10), gui::Font::ID::SystemNormal, td::ColorID::Black);
-
-
-        gui::Shape s; s.createRect(r);
-        s.drawFillAndWire(mapHexToColor(c.colorHex), td::ColorID::Black, 1.0f);
-    }
-
-    // Draw connection lines from center to center
+    // Draw connection lines first (so they appear under cities)
     gui::Shape bezierShape;
     auto bezier = bezierShape.createBezier(1, td::LinePattern::Solid);
     std::set<std::pair<int, int>> drawn;
@@ -279,6 +265,20 @@ void MapView::onDraw(const gui::Rect& rect)
         }
     }
     bezierShape.drawWire(td::ColorID::Black);
+
+    // Draw cities on top
+    const int size = 10;
+    for (const auto& c : _cities) {
+        gui::Rect r(static_cast<int>(c.x), static_cast<int>(c.y),
+            static_cast<int>(c.x) + size, static_cast<int>(c.y) + size); // Using x1,y1,x2,y2 semantics
+        td::String c_name = c.name;
+        gui::DrawableString str1(c_name);
+        str1.draw(gui::Point(c.x, c.y + 10), gui::Font::ID::SystemNormal, td::ColorID::Black);
+
+
+        gui::Shape s; s.createRect(r);
+        s.drawFillAndWire(mapHexToColor(c.colorHex), td::ColorID::Black, 1.0f);
+    }
 }
 
 std::pair<gui::CoordType, gui::CoordType> MapView::getPointCenter(const CityPoint& p) const
