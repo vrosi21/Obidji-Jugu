@@ -10,7 +10,7 @@
 #include <windows.h>
 
 namespace {
-    void dbg(const char* m){ OutputDebugStringA(m); }
+    void dbg(const char* m) { OutputDebugStringA(m); }
 }
 
 MapView::MapView()
@@ -29,26 +29,27 @@ void MapView::loadCities()
     };
 
     auto readFile = [](const fs::path& p)->std::string {
-        try { if(!fs::exists(p)) return {}; std::ifstream in(p); if(!in) return {}; std::ostringstream ss; ss<<in.rdbuf(); return ss.str(); } catch(...) { return {}; }
-    };
+        try { if (!fs::exists(p)) return {}; std::ifstream in(p); if (!in) return {}; std::ostringstream ss; ss << in.rdbuf(); return ss.str(); }
+        catch (...) { return {}; }
+        };
 
     fs::path cwd = fs::current_path();
     fs::path foundPath;
 
     // Also try exe directory similar to other loaders
-    char exeBuf[MAX_PATH] = {0};
+    char exeBuf[MAX_PATH] = { 0 };
     GetModuleFileNameA(nullptr, exeBuf, MAX_PATH);
     fs::path exeDir(exeBuf);
     exeDir = exeDir.parent_path();
 
     std::string content;
-    for (auto c: candidates) {
+    for (auto c : candidates) {
         fs::path p = cwd / c;
         content = readFile(p);
         if (!content.empty()) { foundPath = p; break; }
     }
     if (content.empty()) {
-        for (auto c: candidates) {
+        for (auto c : candidates) {
             fs::path p = exeDir / c;
             content = readFile(p);
             if (!content.empty()) { foundPath = p; break; }
@@ -96,10 +97,10 @@ void MapView::loadCities()
             if (n1 == std::string::npos) return 0.0;
             size_t n2 = obj.find_first_not_of("0123456789.-", n1);
             return std::atof(obj.substr(n1, n2 - n1).c_str());
-        };
+            };
         auto extractInt = [&](const char* key)->int {
             return static_cast<int>(extractNumber(key));
-        };
+            };
         auto extractString = [&](const char* key)->std::string {
             size_t k = obj.find(key);
             if (k == std::string::npos) return {};
@@ -108,7 +109,7 @@ void MapView::loadCities()
             size_t q2 = obj.find('"', q1 + 1);
             if (q1 == std::string::npos || q2 == std::string::npos) return {};
             return obj.substr(q1 + 1, q2 - q1 - 1);
-        };
+            };
 
         CityPoint cp;
         int parsedId = extractInt("\"id\"");
@@ -122,12 +123,14 @@ void MapView::loadCities()
         if (!cp.name.empty()) {
             if (cp.id == static_cast<int>(_cities.size())) {
                 _cities.push_back(cp);
-            } else if (cp.id >= 0 && cp.id < 10000) { // guard against runaway ids
+            }
+            else if (cp.id >= 0 && cp.id < 10000) { // guard against runaway ids
                 if (_cities.size() <= static_cast<size_t>(cp.id)) {
                     _cities.resize(static_cast<size_t>(cp.id) + 1);
                 }
                 _cities[static_cast<size_t>(cp.id)] = cp;
-            } else {
+            }
+            else {
                 _cities.push_back(cp);
             }
         }
@@ -155,7 +158,7 @@ void MapView::loadCities()
                     if (n1 == std::string::npos) return -1;
                     size_t n2 = obj.find_first_not_of("0123456789-", n1);
                     return std::atoi(obj.substr(n1, n2 - n1).c_str());
-                };
+                    };
                 auto extractDouble = [&](const char* key)->double {
                     size_t k = obj.find(key);
                     if (k == std::string::npos) return 0.0;
@@ -164,7 +167,7 @@ void MapView::loadCities()
                     if (n1 == std::string::npos) return 0.0;
                     size_t n2 = obj.find_first_not_of("0123456789.-", n1);
                     return std::atof(obj.substr(n1, n2 - n1).c_str());
-                };
+                    };
                 auto extractString = [&](const char* key)->std::string {
                     size_t k = obj.find(key);
                     if (k == std::string::npos) return {};
@@ -173,7 +176,7 @@ void MapView::loadCities()
                     size_t q2 = obj.find('"', q1 + 1);
                     if (q1 == std::string::npos || q2 == std::string::npos) return {};
                     return obj.substr(q1 + 1, q2 - q1 - 1);
-                };
+                    };
                 auto extractBool = [&](const char* key)->bool {
                     size_t k = obj.find(key);
                     if (k == std::string::npos) return true;
@@ -183,11 +186,11 @@ void MapView::loadCities()
                     if (t != std::string::npos && t < obj.size() && (t < f || f == std::string::npos)) return true;
                     if (f != std::string::npos && f < obj.size()) return false;
                     return true;
-                };
+                    };
                 int from = extractInt("\"from\"");
                 int to = extractInt("\"to\"");
                 if (from >= 0 && to >= 0) {
-                    _roads.push_back({from, to});
+                    _roads.push_back({ from, to });
                     RoadInfo ri;
                     ri.fromId = from;
                     ri.toId = to;
@@ -233,11 +236,12 @@ void MapView::onDraw(const gui::Rect& rect)
         const float srcH = 745.0f;
         const float targetH = targetW * (srcH / srcW); // 1000 * 745/860 ≈ 866.279
         gui::Rect imgRect(rect.left,
-                          rect.top,
-                          rect.left + targetW,
-                          rect.top + targetH);
+            rect.top,
+            rect.left + targetW,
+            rect.top + targetH);
         _bgImage.draw(imgRect, gui::Image::AspectRatio::No);
-    } else {
+    }
+    else {
         gui::Shape bg;
         bg.createRect(rect);
         bg.drawFillAndWire(td::ColorID::White, td::ColorID::Black, 0.0f);
@@ -247,7 +251,12 @@ void MapView::onDraw(const gui::Rect& rect)
     const int size = 10;
     for (const auto& c : _cities) {
         gui::Rect r(static_cast<int>(c.x), static_cast<int>(c.y),
-                    static_cast<int>(c.x)+size, static_cast<int>(c.y)+size); // Using x1,y1,x2,y2 semantics
+            static_cast<int>(c.x) + size, static_cast<int>(c.y) + size); // Using x1,y1,x2,y2 semantics
+        td::String c_name = c.name;
+        gui::DrawableString str1(c_name);
+        str1.draw(gui::Point(c.x, c.y + 10), gui::Font::ID::SystemNormal, td::ColorID::Black);
+
+
         gui::Shape s; s.createRect(r);
         s.drawFillAndWire(mapHexToColor(c.colorHex), td::ColorID::Black, 1.0f);
     }
@@ -255,17 +264,17 @@ void MapView::onDraw(const gui::Rect& rect)
     // Draw connection lines from center to center
     gui::Shape bezierShape;
     auto bezier = bezierShape.createBezier(1, td::LinePattern::Solid);
-    std::set<std::pair<int,int>> drawn;
+    std::set<std::pair<int, int>> drawn;
     for (const auto& e : _roads) {
         int a = std::min(e.fromId, e.toId);
         int b = std::max(e.fromId, e.toId);
-        if (drawn.insert({a,b}).second) {
+        if (drawn.insert({ a,b }).second) {
             // find city points by id (id equals index in current data)
             if (a >= 0 && b >= 0 && a < (int)_cities.size() && b < (int)_cities.size()) {
                 auto c1 = getPointCenter(_cities[a]);
                 auto c2 = getPointCenter(_cities[b]);
-                bezier.moveTo({c1.first, c1.second});
-                bezier.lineTo({c2.first, c2.second});
+                bezier.moveTo({ c1.first, c1.second });
+                bezier.lineTo({ c2.first, c2.second });
             }
         }
     }
@@ -288,13 +297,14 @@ void MapView::loadBackground()
         "../res/assets/yugoslavia.png"
     };
 
-    auto exists = [](const fs::path& p){ try { return fs::exists(p); } catch(...) { return false; } };
+    auto exists = [](const fs::path& p) { try { return fs::exists(p); } catch (...) { return false; } };
 
     fs::path cwd;
-    try { cwd = fs::current_path(); } catch(...) { cwd = fs::path("."); }
+    try { cwd = fs::current_path(); }
+    catch (...) { cwd = fs::path("."); }
 
     // Also try exe directory
-    char exeBuf[MAX_PATH] = {0};
+    char exeBuf[MAX_PATH] = { 0 };
     GetModuleFileNameA(nullptr, exeBuf, MAX_PATH);
     fs::path exeDir(exeBuf);
     exeDir = exeDir.parent_path();
@@ -316,10 +326,12 @@ void MapView::loadBackground()
         if (_bgImage.isOK()) {
             _bgLoaded = true;
             OutputDebugStringA((std::string("[MapView] Loaded background image: ") + toLoad + "\n").c_str());
-        } else {
+        }
+        else {
             OutputDebugStringA((std::string("[MapView] Failed to load background: ") + toLoad + "\n").c_str());
         }
-    } else {
+    }
+    else {
         OutputDebugStringA("[MapView] Background image not found in search paths\n");
         _bgLoaded = false;
     }
@@ -447,13 +459,13 @@ bool MapView::deleteCity(int index)
     auto adjustId = [index](int id) {
         if (id > index) return id - 1;
         return id;
-    };
+        };
 
     std::vector<RoadEdge> newRoads;
     std::vector<RoadInfo> newRoadsFull;
     for (const auto& r : _roads) {
         if (r.fromId == index || r.toId == index) continue;
-        RoadEdge nr{adjustId(r.fromId), adjustId(r.toId)};
+        RoadEdge nr{ adjustId(r.fromId), adjustId(r.toId) };
         newRoads.push_back(nr);
     }
     for (const auto& r : _roadsFull) {
@@ -482,8 +494,8 @@ std::vector<int> MapView::getConnections(int index) const
     std::set<int> ids;
     if (index < 0 || index >= static_cast<int>(_cities.size())) return {};
     for (const auto& r : _roads) {
-        if (r.fromId == index && r.toId >=0 && r.toId < static_cast<int>(_cities.size())) ids.insert(r.toId);
-        if (r.toId == index && r.fromId >=0 && r.fromId < static_cast<int>(_cities.size())) ids.insert(r.fromId);
+        if (r.fromId == index && r.toId >= 0 && r.toId < static_cast<int>(_cities.size())) ids.insert(r.toId);
+        if (r.toId == index && r.fromId >= 0 && r.fromId < static_cast<int>(_cities.size())) ids.insert(r.fromId);
     }
     return std::vector<int>(ids.begin(), ids.end());
 }
@@ -492,7 +504,7 @@ std::vector<std::string> MapView::getConnectionNames(int index) const
 {
     std::vector<std::string> names;
     for (int i : getConnections(index)) {
-        if (i >=0 && i < static_cast<int>(_cities.size())) {
+        if (i >= 0 && i < static_cast<int>(_cities.size())) {
             names.push_back(_cities[static_cast<size_t>(i)].name);
         }
     }
@@ -510,15 +522,15 @@ bool MapView::addConnection(int fromIndex, int toIndex)
             if ((r.fromId == a && r.toId == b) || (r.fromId == b && r.toId == a)) return true;
         }
         return false;
-    };
+        };
     if (exists(fromIndex, toIndex)) return true;
 
     double dx = _cities[static_cast<size_t>(fromIndex)].x - _cities[static_cast<size_t>(toIndex)].x;
     double dy = _cities[static_cast<size_t>(fromIndex)].y - _cities[static_cast<size_t>(toIndex)].y;
-    double length = std::sqrt(dx*dx + dy*dy);
+    double length = std::sqrt(dx * dx + dy * dy);
     double travel = length / 60.0; // arbitrary scaling for demo
 
-    _roads.push_back({fromIndex, toIndex});
+    _roads.push_back({ fromIndex, toIndex });
     RoadInfo ri;
     ri.fromId = fromIndex;
     ri.toId = toIndex;
@@ -549,15 +561,15 @@ bool MapView::removeConnection(int fromIndex, int toIndex)
 
     auto isPair = [&](int a, int b, int x, int y)->bool {
         return (a == x && b == y) || (a == y && b == x);
-    };
+        };
 
-    _roads.erase(std::remove_if(_roads.begin(), _roads.end(), [&](const RoadEdge& r){
+    _roads.erase(std::remove_if(_roads.begin(), _roads.end(), [&](const RoadEdge& r) {
         return isPair(r.fromId, r.toId, fromIndex, toIndex);
-    }), _roads.end());
+        }), _roads.end());
 
-    _roadsFull.erase(std::remove_if(_roadsFull.begin(), _roadsFull.end(), [&](const RoadInfo& r){
+    _roadsFull.erase(std::remove_if(_roadsFull.begin(), _roadsFull.end(), [&](const RoadInfo& r) {
         return isPair(r.fromId, r.toId, fromIndex, toIndex);
-    }), _roadsFull.end());
+        }), _roadsFull.end());
 
     bool saved = saveJson();
     if (!saved) {
