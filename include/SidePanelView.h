@@ -19,6 +19,7 @@ class MapView;
 class SidePanelView : public gui::View
 {
 public:
+    bool mustVisit;
     gui::Label lblXCoord;
     gui::NumericEdit txtEditXCoord;
     gui::Label lblYCoord;
@@ -44,6 +45,7 @@ public:
     gui::GridLayout gl;
     gui::Label lblCurrentWeight;
     gui::NumericEdit neCurrentWeight;
+    gui::Button toggleMustVisit;
 
     SidePanelView();
 
@@ -75,4 +77,5 @@ private:
     void updateCurrentCoordsFromSelection();
     void updateConnectionsLabel();
     void populateConnectToCombo();
+    void handleToggleMustVisit();
 };

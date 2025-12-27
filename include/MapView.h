@@ -13,6 +13,7 @@ struct CityPoint {
     double x = 0.0;
     double y = 0.0;
     double weight = 0.0;
+    bool mustVisit = false;
     std::string name;      // Optional label
     std::string colorHex;  // Original hex; mapped to td::ColorID when drawing
 };
@@ -33,7 +34,7 @@ public:
     bool addCity(const std::string& name, double x, double y);
 
     // Updates an existing city and persists to JSON on success
-    bool updateCity(int index, const std::string& name, double x, double y, double weight);
+    bool updateCity(int index, const std::string& name, double x, double y, double weight, bool mustVisit);
 
     // Deletes a city (and connected roads) and persists on success
     bool deleteCity(int index);

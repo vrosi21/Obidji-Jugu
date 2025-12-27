@@ -110,6 +110,17 @@ void MapView::loadCities()
             if (q1 == std::string::npos || q2 == std::string::npos) return {};
             return obj.substr(q1 + 1, q2 - q1 - 1);
             };
+        auto extractBoolLocal = [&](const char* key)->bool {
+            size_t k = obj.find(key);
+            if (k == std::string::npos) return false; // Default false
+            size_t colon = obj.find(':', k);
+            size_t t = obj.find("true", colon);
+            size_t f = obj.find("false", colon);
+            // Provjeri šta dolazi prije
+            if (t != std::string::npos && t < obj.size() && (f == std::string::npos || t < f)) return true;
+            return false;
+            };
+        
 
         CityPoint cp;
         int parsedId = extractInt("\"id\"");
@@ -118,6 +129,7 @@ void MapView::loadCities()
         cp.y = extractNumber("\"y\"");
         cp.name = extractString("\"name\"");
         cp.weight = extractNumber("\"weight\"");
+        cp.mustVisit = extractBoolLocal("\"mustVisit\"");
         cp.colorHex = extractString("\"color\"");
         if (cp.colorHex.empty()) cp.colorHex = "#d62728";
         if (!cp.name.empty()) {
@@ -375,7 +387,9 @@ bool MapView::saveJson() const
             << ",\"y\":" << std::fixed << std::setprecision(2) << c.y
             << ",\"name\":\"" << c.name << "\""
             << ",\"weight\":" << std::fixed << std::setprecision(1) << c.weight
-            << ",\"color\":\"" << (c.colorHex.empty() ? "#d62728" : c.colorHex) << "\"}";
+            << ",\"color\":\"" << (c.colorHex.empty() ? "#d62728" : c.colorHex) << "\""
+            << ",\"mustVisit\":" << (c.mustVisit ? "true" : "false")
+            << "}";
         if (i + 1 < _cities.size()) out << ",";
         out << "\n";
     }
@@ -414,6 +428,7 @@ bool MapView::addCity(const std::string& name, double x, double y)
     cp.y = y;
     cp.weight = 0.0;
     cp.colorHex = "#d62728";
+    cp.mustVisit = false;
 
     _cities.push_back(cp);
     bool saved = saveJson();
@@ -425,7 +440,7 @@ bool MapView::addCity(const std::string& name, double x, double y)
     return true;
 }
 
-bool MapView::updateCity(int index, const std::string& name, double x, double y, double weight)
+bool MapView::updateCity(int index, const std::string& name, double x, double y, double weight, bool mustVisit)
 {
     if (index < 0 || index >= static_cast<int>(_cities.size())) return false;
     if (name.empty()) return false;
@@ -435,6 +450,7 @@ bool MapView::updateCity(int index, const std::string& name, double x, double y,
     _cities[static_cast<size_t>(index)].x = x;
     _cities[static_cast<size_t>(index)].y = y;
     _cities[static_cast<size_t>(index)].weight = weight;
+    _cities[static_cast<size_t>(index)].mustVisit = mustVisit;
 
     bool saved = saveJson();
     if (!saved) {

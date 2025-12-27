@@ -28,7 +28,9 @@ SidePanelView::SidePanelView()
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle connection")),
-    gl(11, 6)
+    gl(12, 6),
+    mustVisit(false),
+    toggleMustVisit("Toggle Must Visit")
 {
         gui::GridComposer gc(gl);
 
@@ -46,6 +48,7 @@ SidePanelView::SidePanelView()
         gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 3);
         // Row 6: Current X and Y labels and current X and Y inputs
         gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY); gc.appendCol(lblCurrentWeight); gc.appendCol(neCurrentWeight);
+        gc.appendRow(toggleMustVisit);
         // Row 7: Update and Delete buttons
         btnUpdatePoint.setType(gui::Button::Type::Default);
         btnUpdatePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
@@ -63,6 +66,7 @@ SidePanelView::SidePanelView()
         btnToggleConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
         gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
 
+        
         setLayout(&gl);
 }
 
@@ -119,6 +123,11 @@ bool SidePanelView::onClick(gui::Button* pBtn)
         handleToggleConnection();
         return true;
     }
+    if (pBtn == &toggleMustVisit)
+    {
+        handleToggleMustVisit();
+        return true;
+    }
     return false;
 }
 
@@ -171,6 +180,15 @@ void SidePanelView::updateCurrentCoordsFromSelection()
             xStr = sx.str();
             yStr = sy.str();
             wStr = sw.str();
+
+            mustVisit = cp.mustVisit;
+            if (mustVisit) {
+                toggleMustVisit.setTitle("Must Visit: YES");
+                // Opcionalno promijeni boju teksta ako framework dopušta
+            }
+            else {
+                toggleMustVisit.setTitle("Must Visit: NO");
+            }
         }
     }
     neCurrentX.setText(xStr.c_str());
@@ -211,6 +229,17 @@ void SidePanelView::populateConnectToCombo()
     }
 }
 
+void SidePanelView::handleToggleMustVisit() {
+    if (mustVisit) {
+        mustVisit = false;
+        toggleMustVisit.setTitle("Must Visit: NO");
+    }
+    else {
+        mustVisit = true;
+        toggleMustVisit.setTitle("Must Visit: YES");
+    }
+}
+
 void SidePanelView::handleAddPoint()
 {
     if (!_mapView) return;
@@ -244,7 +273,7 @@ void SidePanelView::handleUpdatePoint()
     double y = std::atof(neCurrentY.getText().c_str());
     double weight = std::atof(neCurrentWeight.getText().c_str());
 
-    if (_mapView->updateCity(idx, name, x, y, weight))
+    if (_mapView->updateCity(idx, name, x, y, weight, mustVisit))
     {
         _pointNames = _mapView->getCityNames();
         populatePointNames(_pointNames);
