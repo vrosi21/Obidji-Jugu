@@ -20,6 +20,8 @@ SidePanelView::SidePanelView()
     neCurrentX(td::DataType::decimal1),
     lblCurrentY(tr("Current Y:")),
     neCurrentY(td::DataType::decimal1),
+    lblCurrentWeight(tr("Weight:")),
+    neCurrentWeight(td::DataType::decimal1),
     btnUpdatePoint(tr("Update point")),
     btnDeletePoint(tr("Delete point")),
     lblConnections(tr("Connections:")),
@@ -43,7 +45,7 @@ SidePanelView::SidePanelView()
         // Row 5: Current city name label and currenc city name input
         gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 3);
         // Row 6: Current X and Y labels and current X and Y inputs
-        gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY);
+        gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY); gc.appendCol(lblCurrentWeight); gc.appendCol(neCurrentWeight);
         // Row 7: Update and Delete buttons
         btnUpdatePoint.setType(gui::Button::Type::Default);
         btnUpdatePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
@@ -154,6 +156,7 @@ void SidePanelView::updateCurrentCoordsFromSelection()
     int idx = cmbPoints.getSelectedIndex();
     std::string xStr = "0";
     std::string yStr = "0";
+    std::string wStr = "0";
     if (_mapView && idx >= 0)
     {
         CityPoint cp;
@@ -161,14 +164,18 @@ void SidePanelView::updateCurrentCoordsFromSelection()
         {
             std::ostringstream sx;
             std::ostringstream sy;
+            std::ostringstream sw;
             sx << std::fixed << std::setprecision(2) << cp.x;
             sy << std::fixed << std::setprecision(2) << cp.y;
+            sw << std::fixed << std::setprecision(2) << cp.weight;
             xStr = sx.str();
             yStr = sy.str();
+            wStr = sw.str();
         }
     }
     neCurrentX.setText(xStr.c_str());
     neCurrentY.setText(yStr.c_str());
+    neCurrentWeight.setText(wStr.c_str());
     reDraw();
 }
 
@@ -235,6 +242,7 @@ void SidePanelView::handleUpdatePoint()
     std::string name = lnEditCurrentCityName.getText().c_str();
     double x = std::atof(neCurrentX.getText().c_str());
     double y = std::atof(neCurrentY.getText().c_str());
+    double weight = std::atof(neCurrentWeight.getText().c_str());
 
     if (_mapView->updateCity(idx, name, x, y))
     {

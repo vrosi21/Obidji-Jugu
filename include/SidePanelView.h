@@ -42,6 +42,8 @@ public:
     gui::ComboBox cmbConnectTo;
     gui::Button btnToggleConnection;
     gui::GridLayout gl;
+    gui::Label lblCurrentWeight;
+    gui::NumericEdit neCurrentWeight;
 
     SidePanelView();
 
