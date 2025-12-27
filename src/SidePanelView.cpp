@@ -36,17 +36,17 @@ SidePanelView::SidePanelView()
         gui::GridComposer gc(gl);
 
         // Row 0: Name label and Name input
-        gc.appendRow(lblName); gc.appendCol(lnEditName, 3);
+        gc.appendRow(lblName); gc.appendCol(lnEditName, 5);
         // Row 1: X and Y labels and X and Y inputs
-        gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
+        gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendSpace(1,0); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
         // Row 2: Add point button
         btnAddPt.setType(gui::Button::Type::Default);
         btnAddPt.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
         gc.appendRow(btnAddPt, -1, td::HAlignment::Left);
         // Row 3: Select point label and dropdown on the same row
-        gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 3);
+        gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 5);
         // Row 5: Current city name label and currenc city name input
-        gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 3);
+        gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 5);
         // Row 6: Current X and Y labels and current X and Y inputs
         gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY); gc.appendCol(lblCurrentWeight); gc.appendCol(neCurrentWeight);
         gc.appendRow(toggleMustVisit);
