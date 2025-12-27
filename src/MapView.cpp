@@ -425,7 +425,7 @@ bool MapView::addCity(const std::string& name, double x, double y)
     return true;
 }
 
-bool MapView::updateCity(int index, const std::string& name, double x, double y)
+bool MapView::updateCity(int index, const std::string& name, double x, double y, double weight)
 {
     if (index < 0 || index >= static_cast<int>(_cities.size())) return false;
     if (name.empty()) return false;
@@ -434,6 +434,7 @@ bool MapView::updateCity(int index, const std::string& name, double x, double y)
     _cities[static_cast<size_t>(index)].name = name;
     _cities[static_cast<size_t>(index)].x = x;
     _cities[static_cast<size_t>(index)].y = y;
+    _cities[static_cast<size_t>(index)].weight = weight;
 
     bool saved = saveJson();
     if (!saved) {

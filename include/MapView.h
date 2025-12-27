@@ -33,7 +33,7 @@ public:
     bool addCity(const std::string& name, double x, double y);
 
     // Updates an existing city and persists to JSON on success
-    bool updateCity(int index, const std::string& name, double x, double y);
+    bool updateCity(int index, const std::string& name, double x, double y, double weight);
 
     // Deletes a city (and connected roads) and persists on success
     bool deleteCity(int index);

@@ -244,7 +244,7 @@ void SidePanelView::handleUpdatePoint()
     double y = std::atof(neCurrentY.getText().c_str());
     double weight = std::atof(neCurrentWeight.getText().c_str());
 
-    if (_mapView->updateCity(idx, name, x, y))
+    if (_mapView->updateCity(idx, name, x, y, weight))
     {
         _pointNames = _mapView->getCityNames();
         populatePointNames(_pointNames);
