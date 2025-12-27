@@ -28,9 +28,10 @@ SidePanelView::SidePanelView()
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle connection")),
-    gl(12, 6),
+    gl(14, 6),
     mustVisit(false),
-    toggleMustVisit("Toggle Must Visit")
+    toggleMustVisit("Toggle Must Visit"),
+    lblSolvingSection("Solve:")
 {
         gui::GridComposer gc(gl);
 
@@ -66,7 +67,16 @@ SidePanelView::SidePanelView()
         btnToggleConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
         gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
 
+        // Row 13
+        lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
+        gc.appendRow(lblSolvingSection);
+        gc.appendRow(cmbSolvingAlgorithm);
+
         
+        // Populate solving algorithms combobox
+        populateSolvingAlgorithms(_algorithmNames);
+
+
         setLayout(&gl);
 }
 
@@ -87,6 +97,16 @@ void SidePanelView::populatePointNames(const std::vector<std::string>& names)
         lnEditCurrentCityName.setText("");
         neCurrentX.setText("0.0");
         neCurrentY.setText("0.0");
+    }
+}
+
+void SidePanelView::populateSolvingAlgorithms(const std::vector<std::string>& names)
+{
+    _algorithmNames = names;
+    cmbSolvingAlgorithm.clean();
+    for (const auto& n : names)
+    {
+        cmbSolvingAlgorithm.addItem(n.c_str());
     }
 }
 
