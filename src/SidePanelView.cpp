@@ -28,10 +28,13 @@ SidePanelView::SidePanelView()
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle connection")),
-    gl(14, 6),
+    gl(15, 6),
     mustVisit(false),
     toggleMustVisit("Toggle Must Visit"),
-    lblSolvingSection("Solve:")
+    lblSolvingSection("Solve:"),
+    btnStartPause("Start/Pause"),
+    btnStepFwd("step >"),
+    btnStepBwd("< step")
 {
         gui::GridComposer gc(gl);
 
@@ -67,15 +70,18 @@ SidePanelView::SidePanelView()
         btnToggleConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
         gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
 
-        // Row 13
+        // Row 14
         lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
         gc.appendRow(lblSolvingSection);
-        gc.appendRow(cmbSolvingAlgorithm);
+        gc.appendRow(cmbSolvingAlgorithm, 6);
 
         
         // Populate solving algorithms combobox
         populateSolvingAlgorithms(_algorithmNames);
 
+
+        // Row 15
+        gc.appendRow(btnStartPause, 2); gc.appendCol(btnStepBwd, 2); gc.appendCol(btnStepFwd, 2);
 
         setLayout(&gl);
 }
@@ -146,6 +152,18 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &toggleMustVisit)
     {
         handleToggleMustVisit();
+        return true;
+    }
+    if (pBtn == &btnStartPause) {
+        // Implement Start/Pause Logic
+        return true;
+    }
+    if (pBtn == &btnStartPause) {
+        // Implement Step Forward Logic
+        return true;
+    }
+    if (pBtn == &btnStartPause) {
+        // Implement Step Backward Logic
         return true;
     }
     return false;

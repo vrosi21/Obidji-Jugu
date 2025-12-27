@@ -49,6 +49,10 @@ public:
     gui::Label lblSolvingSection;
     gui::ComboBox cmbSolvingAlgorithm;
 
+    gui::Button btnStartPause;
+    gui::Button btnStepFwd;
+    gui::Button btnStepBwd;
+
     SidePanelView();
 
     ~SidePanelView() = default;
