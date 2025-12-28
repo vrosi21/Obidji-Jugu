@@ -36,6 +36,8 @@ public:
     gui::NumericEdit neCurrentX;
     gui::Label lblCurrentY;
     gui::NumericEdit neCurrentY;
+    gui::Label lblCurrentWeight;
+    gui::NumericEdit neCurrentWeight;
     gui::Button btnUpdatePoint;
     gui::Button btnDeletePoint;
     gui::Label lblConnections;
