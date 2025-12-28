@@ -1,4 +1,4 @@
-// Main entry point for The Travelling Salesman application
+// Main entry point for Obiđi Jugu application
 #include "Application.h"
 #include <td/StringConverter.h>
 #include <fstream>

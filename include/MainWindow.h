@@ -1,4 +1,4 @@
-// Main application window for The Travelling Salesman
+// Main application window for Obiđi Jugu
 #pragma once
 #include <gui/Window.h>
 #include <fstream>
@@ -26,7 +26,7 @@ public:
     MainWindow()
     : gui::Window(gui::Size(1500, 866))
     {
-        setTitle("The Travelling Salesman");
+        setTitle("Obiđi Jugu");
             setToolBar(_toolBar);
         setCentralView(&_mainView);
     }

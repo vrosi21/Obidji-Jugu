@@ -1,6 +1,6 @@
-# The Travelling Salesman — DSAI Group Project
+# Obiđi Jugu — DSAI Group Project
 
-Short, working README for the group project. This repository contains the group implementation and experiments for the Travelling Salesman-related assignments in the DSAI program.
+Short, working README for the group project. This repository contains the group implementation and experiments for Obiđi Jugu-related assignments in the DSAI program.
 
 ## Status
 Work in progress — the project is being developed using CMake and Visual Studio on Windows. This file is intentionally brief; more details and usage docs will be added as the project matures.

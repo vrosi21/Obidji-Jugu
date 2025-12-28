@@ -3,7 +3,7 @@
     <Images>
         <!-- Toolbar flag icons provided in project res folder -->
         <Res id="flagEN" path=":flag-us.png"/>
-        <Res id="flagBA" path=":flag-bs.png"/>
+        <Res id="flagBA" path=":flag-bhs.png"/>
 		
         <!-- Keep example icons if needed elsewhere -->
         <Res id="zoomIn" path="Work/Common/Icons/zoomIn64.png"/>
