@@ -44,6 +44,14 @@ public:
     gui::Button btnToggleConnection;
     gui::Label lblStatus;
     gui::ComboBox cmbStatus;
+    
+    gui::Label lblSolvingSection;
+    gui::ComboBox cmbSolvingAlgorithm;
+    
+    gui::Button btnStartPause;
+    gui::Button btnStepFwd;
+    gui::Button btnStepBwd;
+    
     gui::GridLayout gl;
 
     SidePanelView();
@@ -52,6 +60,8 @@ public:
 
     // Populate dropdown with provided point names
     void populatePointNames(const std::vector<std::string>& names);
+
+    void populateSolvingAlgorithms(const std::vector<std::string>& names);
 
     // Connects to the map view so we can query/update points
     void setMapView(MapView* mapView);
@@ -65,6 +75,7 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
+    std::vector<std::string> _algorithmNames = {"Simulated Annealing", "Nearest Neighbor", "Genetic Algorithm"};
     MapView* _mapView = nullptr;
 
     void handleAddPoint();

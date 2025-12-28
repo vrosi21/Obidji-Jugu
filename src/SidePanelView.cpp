@@ -27,22 +27,26 @@ SidePanelView::SidePanelView()
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle connection")),
     lblStatus(tr("Status:")),
-    gl(13, 6)
+    lblSolvingSection("Solve:"),
+    btnStartPause("Start/Pause"),
+    btnStepFwd("step >"),
+    btnStepBwd("< step"),
+    gl(15, 6)
 {
         gui::GridComposer gc(gl);
 
         // Row 0: Name label and Name input
-        gc.appendRow(lblName); gc.appendCol(lnEditName, 3);
+        gc.appendRow(lblName); gc.appendCol(lnEditName, 5);
         // Row 1: X and Y labels and X and Y inputs
-        gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
+        gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendSpace(1,0); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
         // Row 2: Add point button
         btnAddPt.setType(gui::Button::Type::Default);
         btnAddPt.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
         gc.appendRow(btnAddPt, -1, td::HAlignment::Left);
         // Row 3: Select point label and dropdown on the same row
-        gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 3);
+        gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 5);
         // Row 5: Current city name label and currenc city name input
-        gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 3);
+        gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 5);
         // Row 6: Current X and Y labels and current X and Y inputs
         gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY);
         // Row 7: Update and Delete buttons
@@ -63,6 +67,19 @@ SidePanelView::SidePanelView()
         gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
         // Row 12: Status label and dropdown
         gc.appendRow(lblStatus); gc.appendCol(cmbStatus, 3);
+        
+        // Row 13
+        lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
+        gc.appendRow(lblSolvingSection);
+        gc.appendRow(cmbSolvingAlgorithm);
+
+
+        // Populate solving algorithms combobox
+        populateSolvingAlgorithms(_algorithmNames);
+
+        
+        // Row 13 & 14: Control buttons
+        gc.appendRow(btnStartPause, 2); gc.appendCol(btnStepBwd, 2); gc.appendCol(btnStepFwd, 2);
 
         setLayout(&gl);
         
@@ -77,6 +94,16 @@ void SidePanelView::populateStatusCombo()
     cmbStatus.addItem(tr("Open"));
     cmbStatus.addItem(tr("Goal"));
     cmbStatus.selectIndex(1); // Default to Open
+}
+
+void SidePanelView::populateSolvingAlgorithms(const std::vector<std::string>& names)
+{
+    _algorithmNames = names;
+    cmbSolvingAlgorithm.clean();
+    for (const auto& n : names)
+    {
+        cmbSolvingAlgorithm.addItem(n.c_str());
+    }
 }
 
 void SidePanelView::populatePointNames(const std::vector<std::string>& names)
@@ -135,6 +162,18 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &btnToggleConnection)
     {
         handleToggleConnection();
+        return true;
+    }
+    if (pBtn == &btnStartPause) {
+        // Implement Start/Pause Logic
+        return true;
+    }
+    if (pBtn == &btnStepFwd) {
+        // Implement Step Forward Logic
+        return true;
+    }
+    if (pBtn == &btnStepBwd) {
+        // Implement Step Backward Logic
         return true;
     }
     return false;
