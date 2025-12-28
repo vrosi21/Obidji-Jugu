@@ -1,5 +1,5 @@
 ﻿#include "SidePanelView.h"
-#include "MapView.h"
+#include "DataRepository.h"
 #include <gui/GridLayout.h>
 #include <cstdlib>
 #include <sstream>
@@ -179,9 +179,9 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     return false;
 }
 
-void SidePanelView::setMapView(MapView* mapView)
+void SidePanelView::setRepository(DataRepository* repo)
 {
-    _mapView = mapView;
+    _repo = repo;
     syncSelectionDetails();
 }
 
@@ -213,10 +213,10 @@ void SidePanelView::updateCurrentCoordsFromSelection()
     int idx = cmbPoints.getSelectedIndex();
     std::string xStr = "0";
     std::string yStr = "0";
-    if (_mapView && idx >= 0)
+    if (_repo && idx >= 0)
     {
         CityPoint cp;
-        if (_mapView->getCity(idx, cp))
+        if (_repo->getCity(idx, cp))
         {
             std::ostringstream sx;
             std::ostringstream sy;
@@ -235,9 +235,9 @@ void SidePanelView::updateConnectionsLabel()
 {
     std::string text;
     int idx = cmbPoints.getSelectedIndex();
-    if (_mapView && idx >= 0)
+    if (_repo && idx >= 0)
     {
-        auto names = _mapView->getConnectionNames(idx);
+        auto names = _repo->getConnectionNames(idx);
         for (size_t i = 0; i < names.size(); ++i)
         {
             text += names[i];
@@ -266,10 +266,10 @@ void SidePanelView::populateConnectToCombo()
 void SidePanelView::updateStatusFromSelection()
 {
     int idx = cmbPoints.getSelectedIndex();
-    if (_mapView && idx >= 0)
+    if (_repo && idx >= 0)
     {
         CityPoint cp;
-        if (_mapView->getCity(idx, cp))
+        if (_repo->getCity(idx, cp))
         {
             cmbStatus.selectIndex(static_cast<int>(cp.visitation_status));
         }
@@ -278,25 +278,25 @@ void SidePanelView::updateStatusFromSelection()
 
 void SidePanelView::handleStatusChange()
 {
-    if (!_mapView) return;
+    if (!_repo) return;
     int cityIdx = cmbPoints.getSelectedIndex();
     int statusIdx = cmbStatus.getSelectedIndex();
     if (cityIdx < 0 || statusIdx < 0) return;
     
     VisitationStatus status = static_cast<VisitationStatus>(statusIdx);
-    _mapView->updateCityStatus(cityIdx, status);
+    _repo->updateCityStatus(cityIdx, status);
 }
 
 void SidePanelView::handleAddPoint()
 {
-    if (!_mapView) return;
+    if (!_repo) return;
     std::string name = lnEditName.getText().c_str();
     double x = std::atof(txtEditXCoord.getText().c_str());
     double y = std::atof(txtEditYCoord.getText().c_str());
 
-    if (_mapView->addCity(name, x, y))
+    if (_repo->addCity(name, x, y))
     {
-        _pointNames = _mapView->getCityNames();
+        _pointNames = _repo->getCityNames();
         populatePointNames(_pointNames);
         cmbPoints.selectIndex(static_cast<int>(_pointNames.size()) - 1);
         updateCurrentNameFromSelection();
@@ -311,7 +311,7 @@ void SidePanelView::handleAddPoint()
 
 void SidePanelView::handleUpdatePoint()
 {
-    if (!_mapView) return;
+    if (!_repo) return;
     int idx = cmbPoints.getSelectedIndex();
     if (idx < 0) return;
 
@@ -319,9 +319,9 @@ void SidePanelView::handleUpdatePoint()
     double x = std::atof(neCurrentX.getText().c_str());
     double y = std::atof(neCurrentY.getText().c_str());
 
-    if (_mapView->updateCity(idx, name, x, y))
+    if (_repo->updateCity(idx, name, x, y, 0.0))
     {
-        _pointNames = _mapView->getCityNames();
+        _pointNames = _repo->getCityNames();
         populatePointNames(_pointNames);
         if (idx >= (int)_pointNames.size())
         {
@@ -335,12 +335,12 @@ void SidePanelView::handleUpdatePoint()
 
 void SidePanelView::handleDeletePoint()
 {
-    if (!_mapView) return;
+    if (!_repo) return;
     int idx = cmbPoints.getSelectedIndex();
     if (idx < 0) return;
-    if (_mapView->deleteCity(idx))
+    if (_repo->deleteCity(idx))
     {
-        _pointNames = _mapView->getCityNames();
+        _pointNames = _repo->getCityNames();
         populatePointNames(_pointNames);
         int newIdx = idx;
         if (newIdx >= (int)_pointNames.size()) newIdx = static_cast<int>(_pointNames.size()) - 1;
@@ -352,7 +352,7 @@ void SidePanelView::handleDeletePoint()
 
 void SidePanelView::handleToggleConnection()
 {
-    if (!_mapView) return;
+    if (!_repo) return;
     int fromIdx = cmbPoints.getSelectedIndex();
     int toIdxLocal = cmbConnectTo.getSelectedIndex();
     if (fromIdx < 0 || toIdxLocal < 0) return;
@@ -373,13 +373,13 @@ void SidePanelView::handleToggleConnection()
     if (actualTo < 0) return;
 
     // Check if connection exists and toggle it
-    if (_mapView->hasConnection(fromIdx, actualTo))
+    if (_repo->hasConnection(fromIdx, actualTo))
     {
-        _mapView->removeConnection(fromIdx, actualTo);
+        _repo->removeConnection(fromIdx, actualTo);
     }
     else
     {
-        _mapView->addConnection(fromIdx, actualTo);
+        _repo->addConnection(fromIdx, actualTo);
     }
     updateConnectionsLabel();
 }

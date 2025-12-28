@@ -12,14 +12,15 @@
 #include <vector>
 #include <string>
 
-class MapView;
+class DataRepository;
 enum class VisitationStatus : int;
 
 
-// Minimal side panel view for the Travelling Salesman project.
+// Side panel for city/road CRUD operations and algorithm control
 class SidePanelView : public gui::View
 {
 public:
+    // --- UI Controls ---
     gui::Label lblXCoord;
     gui::NumericEdit txtEditXCoord;
     gui::Label lblYCoord;
@@ -55,18 +56,16 @@ public:
     gui::GridLayout gl;
 
     SidePanelView();
-
     ~SidePanelView() = default;
 
     // Populate dropdown with provided point names
     void populatePointNames(const std::vector<std::string>& names);
-
     void populateSolvingAlgorithms(const std::vector<std::string>& names);
 
-    // Connects to the map view so we can query/update points
-    void setMapView(MapView* mapView);
-
-    // Sync current selection fields (name + coords) with selected dropdown item
+    // Connect to data repository for CRUD operations
+    void setRepository(DataRepository* repo);
+    
+    // Sync current selection fields with selected dropdown item
     void syncSelectionDetails();
 
 protected:
@@ -76,7 +75,7 @@ protected:
 private:
     std::vector<std::string> _pointNames;
     std::vector<std::string> _algorithmNames = {"Simulated Annealing", "Nearest Neighbor", "Genetic Algorithm"};
-    MapView* _mapView = nullptr;
+    DataRepository* _repo = nullptr;
 
     void handleAddPoint();
     void handleUpdatePoint();

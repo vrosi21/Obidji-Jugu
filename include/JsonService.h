@@ -1,26 +1,9 @@
 #pragma once
+#include "DataTypes.h"
 #include <vector>
-#include <string>
 #include <filesystem>
 
-// Forward declarations for data structures
-struct CityPoint;
-
-struct RoadInfo {
-    int fromId = -1;
-    int toId = -1;
-    double length = 0.0;
-    double travelTimeH = 0.0;
-    std::string type;
-    bool bidirectional = true;
-};
-
-struct RoadEdge { 
-    int fromId; 
-    int toId; 
-};
-
-// Service class for JSON file operations
+// Pure I/O service for JSON file operations (no state)
 class JsonService
 {
 public:
@@ -44,4 +27,11 @@ public:
 
 private:
     JsonService() = delete; // Static-only class
+    
+    // JSON parsing helpers
+    static std::string readFileContent(const std::filesystem::path& path);
+    static double extractNumber(const std::string& obj, const char* key);
+    static int extractInt(const std::string& obj, const char* key);
+    static std::string extractString(const std::string& obj, const char* key);
+    static bool extractBool(const std::string& obj, const char* key);
 };
