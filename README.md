@@ -24,8 +24,8 @@ Clone the repository and build with CMake + Visual Studio from PowerShell. Repla
 
 ```powershell
 # from a directory where you want the repo
-git clone https://github.com/vrosi21/DSAI_AI_Project_The_Travelling_Salesman.git
-cd DSAI_AI_Project_The_Travelling_Salesman
+git clone https://github.com/vrosi21/DSAI_AI-Project-Obidji-Jugu.git
+cd DSAI_AI-Project-Obidji-Jugu
 
 # create an out-of-source build and configure for Visual Studio 2022 x64
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
@@ -39,7 +39,7 @@ cmake --build build --config Release
 Top-level folders (tree shows only folders and top-level files):
 
 ```
-The_Travelling_Salesman/
+DSAI_AI-Project-Obidji-Jugu/
 ├─ CMakeLists.txt
 ├─ TTS.cmake
 ├─ README.md
