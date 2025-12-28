@@ -3,9 +3,17 @@
 #include <gui/Shape.h>
 #include <gui/Image.h>
 #include <gui/DrawableString.h>
+#include "JsonService.h"
 #include <vector>
 #include <string>
 #include <filesystem>
+
+// Visitation status enumeration
+enum class VisitationStatus : int {
+    Blocked = 0,
+    Open = 1,
+    Goal = 2
+};
 
 // Simple data holder for a city loaded from JSON
 struct CityPoint {
@@ -14,7 +22,7 @@ struct CityPoint {
     double y = 0.0;
     double weight = 0.0;
     std::string name;      // Optional label
-    std::string colorHex;  // Original hex; mapped to td::ColorID when drawing
+    VisitationStatus visitation_status = VisitationStatus::Open;
 };
 
 class MapView : public gui::Canvas
@@ -35,6 +43,9 @@ public:
     // Updates an existing city and persists to JSON on success
     bool updateCity(int index, const std::string& name, double x, double y);
 
+    // Updates an existing city's visitation status and persists to JSON on success
+    bool updateCityStatus(int index, VisitationStatus status);
+
     // Deletes a city (and connected roads) and persists on success
     bool deleteCity(int index);
 
@@ -53,21 +64,10 @@ protected:
 private:
     void loadCities();
     void loadBackground();
-    td::ColorID mapHexToColor(const std::string& hex) const;
     bool saveJson() const;
     int nextCityId() const;
-    std::filesystem::path resolveDefaultJsonPath() const;
     std::vector<CityPoint> _cities;
-    struct RoadEdge { int fromId; int toId; };
     std::vector<RoadEdge> _roads;
-    struct RoadInfo {
-        int fromId = -1;
-        int toId = -1;
-        double length = 0.0;
-        double travelTimeH = 0.0;
-        std::string type;
-        bool bidirectional = true;
-    };
     std::vector<RoadInfo> _roadsFull;
     std::filesystem::path _jsonPath;
     bool _loaded = false;

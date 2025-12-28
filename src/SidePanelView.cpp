@@ -26,7 +26,8 @@ SidePanelView::SidePanelView()
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle connection")),
-    gl(11, 6)
+    lblStatus(tr("Status:")),
+    gl(13, 6)
 {
         gui::GridComposer gc(gl);
 
@@ -60,8 +61,22 @@ SidePanelView::SidePanelView()
         btnToggleConnection.setType(gui::Button::Type::Default);
         btnToggleConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
         gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
+        // Row 12: Status label and dropdown
+        gc.appendRow(lblStatus); gc.appendCol(cmbStatus, 3);
 
         setLayout(&gl);
+        
+        // Populate status dropdown with enum values
+        populateStatusCombo();
+}
+
+void SidePanelView::populateStatusCombo()
+{
+    cmbStatus.clean();
+    cmbStatus.addItem(tr("Blocked"));
+    cmbStatus.addItem(tr("Open"));
+    cmbStatus.addItem(tr("Goal"));
+    cmbStatus.selectIndex(1); // Default to Open
 }
 
 void SidePanelView::populatePointNames(const std::vector<std::string>& names)
@@ -90,6 +105,11 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
     {
         int idx = pCB->getSelectedIndex();
         selectIndexAndUpdate(idx);
+        return true;
+    }
+    if (pCB == &cmbStatus)
+    {
+        handleStatusChange();
         return true;
     }
     return false;
@@ -204,6 +224,30 @@ void SidePanelView::populateConnectToCombo()
     }
 }
 
+void SidePanelView::updateStatusFromSelection()
+{
+    int idx = cmbPoints.getSelectedIndex();
+    if (_mapView && idx >= 0)
+    {
+        CityPoint cp;
+        if (_mapView->getCity(idx, cp))
+        {
+            cmbStatus.selectIndex(static_cast<int>(cp.visitation_status));
+        }
+    }
+}
+
+void SidePanelView::handleStatusChange()
+{
+    if (!_mapView) return;
+    int cityIdx = cmbPoints.getSelectedIndex();
+    int statusIdx = cmbStatus.getSelectedIndex();
+    if (cityIdx < 0 || statusIdx < 0) return;
+    
+    VisitationStatus status = static_cast<VisitationStatus>(statusIdx);
+    _mapView->updateCityStatus(cityIdx, status);
+}
+
 void SidePanelView::handleAddPoint()
 {
     if (!_mapView) return;
@@ -309,4 +353,5 @@ void SidePanelView::selectIndexAndUpdate(int idx)
     updateCurrentCoordsFromSelection();
     updateConnectionsLabel();
     populateConnectToCombo();
+    updateStatusFromSelection();
 }
