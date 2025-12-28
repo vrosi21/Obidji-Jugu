@@ -1,4 +1,5 @@
 #include "MapView.h"
+#include "MapPoint.h"
 #include <set>
 #include <windows.h>
 #include <filesystem>
@@ -51,58 +52,19 @@ void MapView::onDraw(const gui::Rect& rect)
         int b = std::max(e.fromId, e.toId);
         if (drawn.insert({ a, b }).second) {
             if (a >= 0 && b >= 0 && a < (int)cities.size() && b < (int)cities.size()) {
-                auto c1 = getPointCenter(cities[a]);
-                auto c2 = getPointCenter(cities[b]);
-                bezier.moveTo({ c1.first, c1.second });
-                bezier.lineTo({ c2.first, c2.second });
+                auto c1 = MapPointStyle::getCenter(cities[a].x, cities[a].y);
+                auto c2 = MapPointStyle::getCenter(cities[b].x, cities[b].y);
+                bezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
+                bezier.lineTo({ static_cast<gui::CoordType>(c2.first), static_cast<gui::CoordType>(c2.second) });
             }
         }
     }
     bezierShape.drawWire(td::ColorID::Black);
 
-    // Draw cities on top
-    const int size = 10;
-    const int borderOffset = 3;
-    
-    for (const auto& c : cities) {
-        // Colors based on visitation_status
-        td::ColorID borderColor = td::ColorID::LightYellow;
-        td::ColorID centerColor = td::ColorID::LightYellow;
-        
-        if (c.visitation_status == VisitationStatus::Blocked) {
-            borderColor = td::ColorID::Red;
-            centerColor = td::ColorID::LightYellow;
-        } else if (c.visitation_status == VisitationStatus::Goal) {
-            borderColor = td::ColorID::LightYellow;
-            centerColor = td::ColorID::Violet;
-        }
-        
-        // Border rectangle
-        gui::Rect borderRect(static_cast<int>(c.x) - borderOffset, 
-                            static_cast<int>(c.y) - borderOffset,
-                            static_cast<int>(c.x) + size + borderOffset, 
-                            static_cast<int>(c.y) + size + borderOffset);
-        gui::Shape borderShape;
-        borderShape.createRect(borderRect);
-        borderShape.drawFillAndWire(borderColor, td::ColorID::Black, 1.0f);
-        
-        // Center rectangle
-        gui::Rect centerRect(static_cast<int>(c.x), static_cast<int>(c.y),
-                            static_cast<int>(c.x) + size, static_cast<int>(c.y) + size);
-        gui::Shape centerShape;
-        centerShape.createRect(centerRect);
-        centerShape.drawFillAndWire(centerColor, td::ColorID::Black, 1.0f);
-        
-        // City name label
-        td::String c_name = c.name;
-        gui::DrawableString str1(c_name);
-        str1.draw(gui::Point(c.x, c.y + 10), gui::Font::ID::SystemNormal, td::ColorID::Black);
+    // Draw cities on top using MapPointRenderer
+    for (const auto& city : cities) {
+        MapPointRenderer::draw(city);
     }
-}
-
-std::pair<gui::CoordType, gui::CoordType> MapView::getPointCenter(const CityPoint& p) const
-{
-    return { static_cast<gui::CoordType>(p.x + 5), static_cast<gui::CoordType>(p.y + 5) };
 }
 
 void MapView::loadBackground()

@@ -28,7 +28,4 @@ private:
     DataRepository* _repo = nullptr;
     gui::Image _bgImage;
     bool _bgLoaded = false;
-
-    // Returns the center of a city (10x10 rectangle): (x+5, y+5)
-    std::pair<gui::CoordType, gui::CoordType> getPointCenter(const CityPoint& p) const;
 };
