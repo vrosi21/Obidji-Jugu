@@ -14,13 +14,13 @@ DataRepository::DataRepository()
 void DataRepository::load()
 {
     _jsonPath = JsonService::findJsonFile();
-    JsonService::loadFromJson(_jsonPath, _cities, _roads, _roadsFull, _startPointId);
+    JsonService::loadFromJson(_jsonPath, _cities, _roads, _roadsFull);
 }
 
 bool DataRepository::save()
 {
     auto path = _jsonPath.empty() ? JsonService::findJsonFile() : _jsonPath;
-    return JsonService::saveToJson(path, _cities, _roadsFull, _startPointId);
+    return JsonService::saveToJson(path, _cities, _roadsFull);
 }
 
 int DataRepository::nextCityId() const
@@ -110,13 +110,6 @@ bool DataRepository::deleteCity(int index)
     auto backupCities = _cities;
     auto backupRoads = _roads;
     auto backupRoadsFull = _roadsFull;
-    int backupStartId = _startPointId;
-
-    // Clear start point if it's the deleted city
-    int deletedId = _cities[index].id;
-    if (_startPointId == deletedId) {
-        _startPointId = -1;
-    }
 
     // Remove city and reindex
     _cities.erase(_cities.begin() + index);
@@ -150,7 +143,6 @@ bool DataRepository::deleteCity(int index)
         _cities = std::move(backupCities);
         _roads = std::move(backupRoads);
         _roadsFull = std::move(backupRoadsFull);
-        _startPointId = backupStartId;
         return false;
     }
     
@@ -280,22 +272,4 @@ std::vector<std::string> DataRepository::getConnectionNames(int index) const
         names.push_back(_cities[i].name);
     }
     return names;
-}
-
-// === START POINT ===
-
-bool DataRepository::setStartPoint(int index)
-{
-    if (!isValidIndex(index)) return false;
-    
-    int backupStartId = _startPointId;
-    _startPointId = _cities[index].id;
-    
-    if (!save()) {
-        _startPointId = backupStartId;
-        return false;
-    }
-    
-    notifyChange();
-    return true;
 }

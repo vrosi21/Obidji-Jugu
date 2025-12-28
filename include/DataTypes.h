@@ -6,7 +6,8 @@
 enum class VisitationStatus : int {
     Blocked = 0,
     Open = 1,
-    Goal = 2
+    Goal = 2,
+    Start = 3
 };
 
 // City data structure

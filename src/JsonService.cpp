@@ -69,18 +69,13 @@ bool JsonService::loadFromJson(
     const std::filesystem::path& jsonPath,
     std::vector<CityPoint>& outCities,
     std::vector<RoadEdge>& outRoads,
-    std::vector<RoadInfo>& outRoadsFull,
-    int& outStartPointId)
+    std::vector<RoadInfo>& outRoadsFull)
 {
     std::string content = readFileContent(jsonPath);
     if (content.empty()) {
         dbg("[JsonService] Failed to read JSON file\n");
         return false;
     }
-
-    // Parse start point
-    outStartPointId = extractInt(content, "\"start\"");
-    if (outStartPointId < 0) outStartPointId = -1;
 
     // Find array boundaries
     size_t citiesKey = content.find("\"cities\"");
@@ -114,7 +109,7 @@ bool JsonService::loadFromJson(
         city.weight = extractNumber(obj, "\"weight\"");
         
         int statusValue = extractInt(obj, "\"visitation_status\"");
-        statusValue = (statusValue < 0 || statusValue > 2) ? 1 : statusValue;
+        statusValue = (statusValue < 0 || statusValue > 3) ? 1 : statusValue;
         city.visitation_status = static_cast<VisitationStatus>(statusValue);
         
         if (!city.name.empty()) {
@@ -179,8 +174,7 @@ bool JsonService::loadFromJson(
 bool JsonService::saveToJson(
     const std::filesystem::path& jsonPath,
     const std::vector<CityPoint>& cities,
-    const std::vector<RoadInfo>& roadsFull,
-    int startPointId)
+    const std::vector<RoadInfo>& roadsFull)
 {
     std::ofstream out(jsonPath, std::ios::trunc);
     if (!out) {
@@ -188,11 +182,7 @@ bool JsonService::saveToJson(
         return false;
     }
 
-    out << "{\n";
-    if (startPointId >= 0) {
-        out << "  \"start\": " << startPointId << ",\n";
-    }
-    out << "  \"cities\": [\n";
+    out << "{\n  \"cities\": [\n";
     for (size_t i = 0; i < cities.size(); ++i) {
         const auto& c = cities[i];
         out << "    {\"id\":" << c.id

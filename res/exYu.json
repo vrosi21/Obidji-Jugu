@@ -1,5 +1,4 @@
 {
-  "start": 24,
   "cities": [
     {"id":0,"x":708.60,"y":301.47,"name":"Beograd","weight":116.6,"visitation_status":2},
     {"id":1,"x":242.06,"y":185.91,"name":"Zagreb","weight":68.8,"visitation_status":2},
@@ -13,7 +12,7 @@
     {"id":9,"x":596.03,"y":616.30,"name":"Podgorica","weight":15.1,"visitation_status":2},
     {"id":10,"x":789.40,"y":406.49,"name":"Kragujevac","weight":15.1,"visitation_status":1},
     {"id":11,"x":787.86,"y":577.48,"name":"Priština","weight":14.5,"visitation_status":2},
-    {"id":12,"x":110.83,"y":225.48,"name":"Rijeka","weight":12.8,"visitation_status":1},
+    {"id":12,"x":110.83,"y":225.48,"name":"Rijeka","weight":12.8,"visitation_status":3},
     {"id":13,"x":642.22,"y":137.03,"name":"Subotica","weight":9.8,"visitation_status":1},
     {"id":14,"x":250.47,"y":72.17,"name":"Maribor","weight":9.6,"visitation_status":1},
     {"id":15,"x":689.74,"y":587.92,"name":"Peć","weight":8.5,"visitation_status":1},

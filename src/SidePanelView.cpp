@@ -29,12 +29,11 @@ SidePanelView::SidePanelView()
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle connection")),
     lblStatus(tr("Status:")),
-    btnSetStart(tr("Set as Start")),
     lblSolvingSection("Solve:"),
     btnStartPause("Start/Pause"),
     btnStepFwd("step >"),
     btnStepBwd("< step"),
-    gl(16, 6)
+    gl(15, 6)
 {
         gui::GridComposer gc(gl);
 
@@ -70,10 +69,6 @@ SidePanelView::SidePanelView()
         gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
         // Row 12: Status label and dropdown
         gc.appendRow(lblStatus); gc.appendCol(cmbStatus, 3);
-        // Row 12b: Set as Start button
-        btnSetStart.setType(gui::Button::Type::Normal);
-        btnSetStart.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
-        gc.appendRow(btnSetStart, -1, td::HAlignment::Left);
         
         // Row 13
         lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
@@ -100,6 +95,7 @@ void SidePanelView::populateStatusCombo()
     cmbStatus.addItem(tr("Blocked"));
     cmbStatus.addItem(tr("Open"));
     cmbStatus.addItem(tr("Goal"));
+    cmbStatus.addItem(tr("Start"));
     cmbStatus.selectIndex(1); // Default to Open
 }
 
@@ -170,11 +166,6 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &btnToggleConnection)
     {
         handleToggleConnection();
-        return true;
-    }
-    if (pBtn == &btnSetStart)
-    {
-        handleSetStart();
         return true;
     }
     if (pBtn == &btnStartPause) {
@@ -302,6 +293,18 @@ void SidePanelView::handleStatusChange()
     if (cityIdx < 0 || statusIdx < 0) return;
     
     VisitationStatus status = static_cast<VisitationStatus>(statusIdx);
+    
+    // If setting to Start, clear any existing Start status
+    if (status == VisitationStatus::Start) {
+        for (size_t i = 0; i < _repo->cityCount(); ++i) {
+            if (static_cast<int>(i) == cityIdx) continue;
+            CityPoint cp;
+            if (_repo->getCity(static_cast<int>(i), cp) && cp.visitation_status == VisitationStatus::Start) {
+                _repo->updateCityStatus(static_cast<int>(i), VisitationStatus::Open);
+            }
+        }
+    }
+    
     _repo->updateCityStatus(cityIdx, status);
 }
 
@@ -401,14 +404,6 @@ void SidePanelView::handleToggleConnection()
         _repo->addConnection(fromIdx, actualTo);
     }
     updateConnectionsLabel();
-}
-
-void SidePanelView::handleSetStart()
-{
-    if (!_repo) return;
-    int idx = cmbPoints.getSelectedIndex();
-    if (idx < 0) return;
-    _repo->setStartPoint(idx);
 }
 
 void SidePanelView::selectIndexAndUpdate(int idx)
