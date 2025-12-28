@@ -12,7 +12,7 @@ struct MapPointStyle {
     static constexpr int BorderOffset = 3;    // Border extends this much beyond inner rect
     
     // Get colors based on visitation status
-    static void getColors(VisitationStatus status, td::ColorID& borderColor, td::ColorID& centerColor);
+    static void getColors(VisitationStatus status, bool isStart, td::ColorID& borderColor, td::ColorID& centerColor);
     
     // Get center point of a map point (for road connections)
     static std::pair<double, double> getCenter(double x, double y);
@@ -21,5 +21,5 @@ struct MapPointStyle {
 // === MapPoint Renderer ===
 struct MapPointRenderer {
     // Draw a map point at given position with border and center based on status
-    static void draw(const CityPoint& mapPoint);
+    static void draw(const CityPoint& mapPoint, int startPointId = -1);
 };

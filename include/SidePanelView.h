@@ -47,6 +47,7 @@ public:
     gui::Button btnToggleConnection;
     gui::Label lblStatus;
     gui::ComboBox cmbStatus;
+    gui::Button btnSetStart;
     
     gui::Label lblSolvingSection;
     gui::ComboBox cmbSolvingAlgorithm;
@@ -83,6 +84,7 @@ private:
     void handleUpdatePoint();
     void handleDeletePoint();
     void handleToggleConnection();
+    void handleSetStart();
     void selectIndexAndUpdate(int idx);
     void updateCurrentNameFromSelection();
     void updateCurrentCoordsFromSelection();

@@ -41,6 +41,7 @@ void MapView::onDraw(const gui::Rect& rect)
 
     const auto& cities = _repo->cities();
     const auto& roads = _repo->roads();
+    int startPointId = _repo->getStartPointId();
 
     // Draw connection lines first (under cities)
     gui::Shape bezierShape;
@@ -63,7 +64,7 @@ void MapView::onDraw(const gui::Rect& rect)
 
     // Draw cities on top using MapPointRenderer
     for (const auto& city : cities) {
-        MapPointRenderer::draw(city);
+        MapPointRenderer::draw(city, startPointId);
     }
 }
 

@@ -34,6 +34,10 @@ public:
     std::vector<int> getConnections(int index) const;
     std::vector<std::string> getConnectionNames(int index) const;
     
+    // --- Start Point ---
+    int getStartPointId() const { return _startPointId; }
+    bool setStartPoint(int index);
+    
     // --- Direct access for rendering (read-only) ---
     const std::vector<CityPoint>& cities() const { return _cities; }
     const std::vector<RoadEdge>& roads() const { return _roads; }
@@ -47,6 +51,7 @@ private:
     std::vector<RoadInfo> _roadsFull;
     std::filesystem::path _jsonPath;
     ChangeCallback _onDataChanged;
+    int _startPointId = -1;  // ID of the start point (-1 = none)
     
     // --- Internal helpers ---
     void load();

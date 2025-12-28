@@ -12,14 +12,16 @@ public:
         const std::filesystem::path& jsonPath,
         std::vector<CityPoint>& outCities,
         std::vector<RoadEdge>& outRoads,
-        std::vector<RoadInfo>& outRoadsFull
+        std::vector<RoadInfo>& outRoadsFull,
+        int& outStartPointId
     );
 
     // Save cities and roads to JSON file
     static bool saveToJson(
         const std::filesystem::path& jsonPath,
         const std::vector<CityPoint>& cities,
-        const std::vector<RoadInfo>& roadsFull
+        const std::vector<RoadInfo>& roadsFull,
+        int startPointId
     );
 
     // Find JSON file in search paths

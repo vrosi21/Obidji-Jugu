@@ -2,19 +2,24 @@
 
 // === MapPointStyle Implementation ===
 
-void MapPointStyle::getColors(VisitationStatus status, td::ColorID& borderColor, td::ColorID& centerColor)
+void MapPointStyle::getColors(VisitationStatus status, bool isStart, td::ColorID& borderColor, td::ColorID& centerColor)
 {
     borderColor = td::ColorID::Yellow;
     centerColor = td::ColorID::Yellow;
     
+    // Start point has cyan center
+    if (isStart) {
+        centerColor = td::ColorID::Cyan;
+    }
+    
     switch (status) {
         case VisitationStatus::Blocked:
             borderColor = td::ColorID::Red;
-            centerColor = td::ColorID::Yellow;
+            if (!isStart) centerColor = td::ColorID::Yellow;
             break;
         case VisitationStatus::Goal:
             borderColor = td::ColorID::Yellow;
-            centerColor = td::ColorID::Violet;
+            if (!isStart) centerColor = td::ColorID::Violet;
             break;
         case VisitationStatus::Open:
         default:
@@ -29,10 +34,11 @@ std::pair<double, double> MapPointStyle::getCenter(double x, double y)
 
 // === MapPointRenderer Implementation ===
 
-void MapPointRenderer::draw(const CityPoint& mapPoint)
+void MapPointRenderer::draw(const CityPoint& mapPoint, int startPointId)
 {
+    bool isStart = (startPointId >= 0 && mapPoint.id == startPointId);
     td::ColorID borderColor, centerColor;
-    MapPointStyle::getColors(mapPoint.visitation_status, borderColor, centerColor);
+    MapPointStyle::getColors(mapPoint.visitation_status, isStart, borderColor, centerColor);
     
     int ix = static_cast<int>(mapPoint.x);
     int iy = static_cast<int>(mapPoint.y);

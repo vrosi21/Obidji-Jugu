@@ -1,4 +1,5 @@
 {
+  "start": 24,
   "cities": [
     {"id":0,"x":708.60,"y":301.47,"name":"Beograd","weight":116.6,"visitation_status":2},
     {"id":1,"x":242.06,"y":185.91,"name":"Zagreb","weight":68.8,"visitation_status":2},
