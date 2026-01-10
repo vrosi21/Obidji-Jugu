@@ -3,10 +3,14 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <limits>
+#include <queue>
+#include <utility>
 
 DataRepository::DataRepository()
 {
     load();
+    recomputeMetricClosure();
 }
 
 // === PRIVATE HELPERS ===
@@ -39,6 +43,7 @@ bool DataRepository::isValidIndex(int index) const
 
 void DataRepository::notifyChange()
 {
+    recomputeMetricClosure();
     if (_onDataChanged) _onDataChanged();
 }
 
@@ -272,4 +277,112 @@ std::vector<std::string> DataRepository::getConnectionNames(int index) const
         names.push_back(_cities[i].name);
     }
     return names;
+}
+
+// === METRIC CLOSURE API ===
+
+double DataRepository::getMetricDistance(int i, int j) const
+{
+    if (!isValidIndex(i) || !isValidIndex(j)) return std::numeric_limits<double>::infinity();
+    if (i >= static_cast<int>(_metricDist.size()) || j >= static_cast<int>(_metricDist.size())) return std::numeric_limits<double>::infinity();
+    return _metricDist[i][j];
+}
+
+bool DataRepository::getShortestRoadPath(int i, int j, std::vector<int>& outPath) const
+{
+    outPath.clear();
+    if (!isValidIndex(i) || !isValidIndex(j)) return false;
+    if (i >= static_cast<int>(_metricPrev.size()) || j >= static_cast<int>(_metricPrev.size())) return false;
+    if (!std::isfinite(_metricDist[i][j])) return false;
+
+    int cur = j;
+    while (cur != -1 && cur != i) {
+        outPath.push_back(cur);
+        cur = _metricPrev[i][cur];
+    }
+    if (cur == i) {
+        outPath.push_back(i);
+        std::reverse(outPath.begin(), outPath.end());
+        return true;
+    }
+    outPath.clear();
+    return false;
+}
+
+std::vector<int> DataRepository::getLargestConnectedComponent() const
+{
+    int n = static_cast<int>(_cities.size());
+    std::vector<int> compIds(n, -1);
+    int comp = 0;
+
+    for (int s = 0; s < n; ++s) {
+        if (compIds[s] != -1) continue;
+        std::vector<int> q;
+        q.push_back(s);
+        compIds[s] = comp;
+        for (size_t qi = 0; qi < q.size(); ++qi) {
+            int u = q[qi];
+            for (int v : getConnections(u)) {
+                if (compIds[v] == -1) { compIds[v] = comp; q.push_back(v); }
+            }
+        }
+        comp++;
+    }
+
+    std::vector<int> sizes(comp, 0);
+    for (int id : compIds) if (id >= 0) sizes[id]++;
+    int bestComp = -1, bestSize = 0;
+    for (int i = 0; i < comp; ++i) if (sizes[i] > bestSize) { bestSize = sizes[i]; bestComp = i; }
+
+    std::vector<int> res;
+    for (int i = 0; i < n; ++i) if (compIds[i] == bestComp) res.push_back(i);
+    return res;
+}
+
+// === INTERNAL: METRIC CLOSURE COMPUTATION ===
+
+void DataRepository::recomputeMetricClosure()
+{
+    int n = static_cast<int>(_cities.size());
+    _metricDist.assign(n, std::vector<double>(n, std::numeric_limits<double>::infinity()));
+    _metricPrev.assign(n, std::vector<int>(n, -1));
+    if (n == 0) return;
+
+    // Build adjacency list with Euclidean edge weights for each road
+    std::vector<std::vector<std::pair<int,double>>> adj(n);
+    auto euclid = [&](int a, int b){
+        double dx = _cities[a].x - _cities[b].x; double dy = _cities[a].y - _cities[b].y; return std::sqrt(dx*dx + dy*dy);
+    };
+    for (const auto& r : _roads) {
+        if (!isValidIndex(r.fromId) || !isValidIndex(r.toId)) continue;
+        double w = euclid(r.fromId, r.toId);
+        adj[r.fromId].push_back({r.toId, w});
+        adj[r.toId].push_back({r.fromId, w});
+    }
+
+    // Dijkstra from every source
+    for (int s = 0; s < n; ++s) {
+        std::vector<double> dist(n, std::numeric_limits<double>::infinity());
+        std::vector<int> prev(n, -1);
+        struct Node { double d; int v; };
+        auto cmp = [](const Node& a, const Node& b){ return a.d > b.d; };
+        std::priority_queue<Node, std::vector<Node>, decltype(cmp)> pq(cmp);
+        dist[s] = 0.0; pq.push({0.0, s});
+
+        while (!pq.empty()) {
+            Node top = pq.top(); pq.pop();
+            double d = top.d; int u = top.v;
+            if (d != dist[u]) continue;
+            for (auto& e : adj[u]) {
+                int v = e.first; double w = e.second;
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    prev[v] = u;
+                    pq.push({dist[v], v});
+                }
+            }
+        }
+        _metricDist[s] = std::move(dist);
+        _metricPrev[s] = std::move(prev);
+    }
 }

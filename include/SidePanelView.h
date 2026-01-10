@@ -11,23 +11,34 @@
 
 #include <vector>
 #include <string>
+#include <functional>
 
 class DataRepository;
 enum class VisitationStatus : int;
 
+// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed
+using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 
 // Side panel for city/road CRUD operations and algorithm control
 class SidePanelView : public gui::View
 {
 public:
-    // --- UI Controls ---
+    // --- Section Headers ---
+    gui::Label lblAddSection;
+    gui::Label lblEditSection;
+    gui::Label lblConnectionsSection;
+    gui::Label lblSolvingSection;
+    
+    // --- Add Point Section ---
+    gui::Label lblName;
+    gui::LineEdit lnEditName;
     gui::Label lblXCoord;
     gui::NumericEdit txtEditXCoord;
     gui::Label lblYCoord;
     gui::NumericEdit txtEditYCoord;
     gui::Button btnAddPt;
-    gui::Label lblName;
-    gui::LineEdit lnEditName;
+    
+    // --- Edit Point Section ---
     gui::Label lblChoosePoint;
     gui::ComboBox cmbPoints;
     gui::Label lblCurrentCityName;
@@ -38,17 +49,20 @@ public:
     gui::NumericEdit neCurrentY;
     gui::Label lblCurrentWeight;
     gui::NumericEdit neCurrentWeight;
+    gui::Label lblStatus;
+    gui::ComboBox cmbStatus;
     gui::Button btnUpdatePoint;
     gui::Button btnDeletePoint;
+    
+    // --- Connections Section ---
     gui::Label lblConnections;
     gui::Label lblConnectionsValue;
     gui::Label lblConnectTo;
     gui::ComboBox cmbConnectTo;
     gui::Button btnToggleConnection;
-    gui::Label lblStatus;
-    gui::ComboBox cmbStatus;
     
-    gui::Label lblSolvingSection;
+    // --- Solve Section ---
+    gui::Label lblAlgorithm;
     gui::ComboBox cmbSolvingAlgorithm;
     
     gui::Button btnStartPause;
@@ -67,6 +81,12 @@ public:
     // Connect to data repository for CRUD operations
     void setRepository(DataRepository* repo);
     
+    // Set callback for solver control actions
+    void setSolverCallback(SolverCallback callback);
+    
+    // Get currently selected algorithm index
+    int getSelectedAlgorithmIndex() const;
+    
     // Sync current selection fields with selected dropdown item
     void syncSelectionDetails();
 
@@ -76,8 +96,9 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
-    std::vector<std::string> _algorithmNames = {"Simulated Annealing", "Nearest Neighbor", "Genetic Algorithm"};
+    std::vector<std::string> _algorithmNames = {"BFS", "DFS", "Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm"};
     DataRepository* _repo = nullptr;
+    SolverCallback _solverCallback;
 
     void handleAddPoint();
     void handleUpdatePoint();

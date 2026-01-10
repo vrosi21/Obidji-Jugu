@@ -33,6 +33,14 @@ public:
     bool hasConnection(int fromIndex, int toIndex) const;
     std::vector<int> getConnections(int index) const;
     std::vector<std::string> getConnectionNames(int index) const;
+
+    // --- Metric closure (shortest paths on road graph) ---
+    // Returns shortest road distance between cities i and j; infinity if unreachable
+    double getMetricDistance(int i, int j) const;
+    // Reconstructs the shortest road path from i to j as a sequence of city indices; returns false if unreachable
+    bool getShortestRoadPath(int i, int j, std::vector<int>& outPath) const;
+    // Returns indices of the largest connected component (by road connectivity)
+    std::vector<int> getLargestConnectedComponent() const;
     
     // --- Direct access for rendering (read-only) ---
     const std::vector<CityPoint>& cities() const { return _cities; }
@@ -47,6 +55,10 @@ private:
     std::vector<RoadInfo> _roadsFull;
     std::filesystem::path _jsonPath;
     ChangeCallback _onDataChanged;
+
+    // Metric-closure data: all-pairs shortest-path distances and predecessors
+    std::vector<std::vector<double>> _metricDist;  // dist[src][dst]
+    std::vector<std::vector<int>> _metricPrev;     // prev[src][dst]
     
     // --- Internal helpers ---
     void load();
@@ -54,4 +66,5 @@ private:
     int nextCityId() const;
     bool isValidIndex(int index) const;
     void notifyChange();
+    void recomputeMetricClosure();
 };

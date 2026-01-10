@@ -1,0 +1,100 @@
+#pragma once
+#include "TSPAlgorithm.h"
+
+// Simulated Annealing algorithm for TSP
+// Metaheuristic that uses temperature-based acceptance to escape local minima
+class SimulatedAnnealingAlgorithm : public TSPAlgorithm {
+public:
+    SimulatedAnnealingAlgorithm(
+        double initialTemp = 10000.0,
+        double minTemp = 0.001,
+        double coolingRate = 0.995
+    ) : _initialTemp(initialTemp),
+        _minTemp(minTemp),
+        _coolingRate(coolingRate) {}
+
+    ~SimulatedAnnealingAlgorithm() override = default;
+
+    const char* getName() const override {
+        return "Simulated Annealing";
+    }
+
+    // Get current temperature for visualization
+    double getTemperature() const { return _temperature; }
+
+protected:
+    void initializeTSP() override {
+        _temperature = _initialTemp;
+
+        // Generate initial random tour
+        _tspState.tour = generateRandomTour();
+        _tspState.tourLength = calculateTourLength(_tspState.tour);
+        _tspState.bestTour = _tspState.tour;
+        _tspState.bestLength = _tspState.tourLength;
+
+        // For random number generation
+        _realDist = std::uniform_real_distribution<double>(0.0, 1.0);
+    }
+
+    bool performStep() override {
+        if (_temperature <= _minTemp || _cityCount < 4) {
+            _tspState.finished = true;
+            return false;
+        }
+
+        // Generate neighbor solution using 2-opt swap
+        std::vector<int> newTour = _tspState.tour;
+        
+        // Select two random positions to swap
+        std::uniform_int_distribution<int> posDist(0, _cityCount - 1);
+        int i = posDist(_rng);
+        int j = posDist(_rng);
+        
+        // Ensure i < j and they're not adjacent
+        if (i > j) std::swap(i, j);
+        if (j - i < 2) {
+            j = (i + 2) % _cityCount;
+            if (j < i) std::swap(i, j);
+        }
+
+        // Perform 2-opt swap
+        twoOptSwap(newTour, i, j);
+
+        // Calculate new tour length
+        double newLength = calculateTourLength(newTour);
+        if (!std::isfinite(newLength)) {
+            // Reject infeasible tour edges (disconnected); treat as not accepted
+            _temperature *= _coolingRate;
+            return _temperature > _minTemp;
+        }
+        double delta = newLength - _tspState.tourLength;
+
+        // Accept or reject the new solution
+        bool accept = false;
+        if (delta < 0) {
+            // Always accept improvements
+            accept = true;
+        } else {
+            // Accept worse solutions with probability exp(-delta/T)
+            double probability = std::exp(-delta / _temperature);
+            accept = _realDist(_rng) < probability;
+        }
+
+        if (accept) {
+            _tspState.tour = newTour;
+            _tspState.tourLength = newLength;
+        }
+
+        // Cool down
+        _temperature *= _coolingRate;
+
+        return _temperature > _minTemp;
+    }
+
+private:
+    double _initialTemp;
+    double _minTemp;
+    double _coolingRate;
+    double _temperature = 0.0;
+    std::uniform_real_distribution<double> _realDist;
+};
