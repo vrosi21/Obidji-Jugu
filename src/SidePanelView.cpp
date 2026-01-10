@@ -143,6 +143,14 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         handleStatusChange();
         return true;
     }
+    if (pCB == &cmbSolvingAlgorithm)
+    {
+        // Notify that algorithm selection changed (action code 2)
+        if (_solverCallback) {
+            _solverCallback(2, pCB->getSelectedIndex());
+        }
+        return true;
+    }
     return false;
 }
 
@@ -169,15 +177,21 @@ bool SidePanelView::onClick(gui::Button* pBtn)
         return true;
     }
     if (pBtn == &btnStartPause) {
-        // Implement Start/Pause Logic
+        if (_solverCallback) {
+            _solverCallback(0, cmbSolvingAlgorithm.getSelectedIndex());
+        }
         return true;
     }
     if (pBtn == &btnStepFwd) {
-        // Implement Step Forward Logic
+        if (_solverCallback) {
+            _solverCallback(1, cmbSolvingAlgorithm.getSelectedIndex());
+        }
         return true;
     }
     if (pBtn == &btnStepBwd) {
-        // Implement Step Backward Logic
+        if (_solverCallback) {
+            _solverCallback(-1, cmbSolvingAlgorithm.getSelectedIndex());
+        }
         return true;
     }
     return false;
@@ -415,4 +429,14 @@ void SidePanelView::selectIndexAndUpdate(int idx)
     updateConnectionsLabel();
     populateConnectToCombo();
     updateStatusFromSelection();
+}
+
+void SidePanelView::setSolverCallback(SolverCallback callback)
+{
+    _solverCallback = callback;
+}
+
+int SidePanelView::getSelectedAlgorithmIndex() const
+{
+    return cmbSolvingAlgorithm.getSelectedIndex();
 }

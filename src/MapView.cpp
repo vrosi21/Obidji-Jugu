@@ -1,5 +1,6 @@
 #include "MapView.h"
 #include "MapPoint.h"
+#include "SearchAlgorithm.h"
 #include <set>
 #include <windows.h>
 #include <filesystem>
@@ -19,6 +20,11 @@ void MapView::setRepository(DataRepository* repo)
     if (_repo) {
         _repo->setOnDataChanged([this]() { reDraw(); });
     }
+}
+
+void MapView::setSolver(SearchAlgorithm* solver)
+{
+    _solver = solver;
 }
 
 void MapView::onDraw(const gui::Rect& rect)
@@ -60,6 +66,11 @@ void MapView::onDraw(const gui::Rect& rect)
         }
     }
     bezierShape.drawWire(td::ColorID::Black);
+
+    // Draw algorithm visualization (path, if found)
+    if (_solver) {
+        drawAlgorithmState();
+    }
 
     // Draw cities on top using MapPointRenderer
     for (const auto& city : cities) {
@@ -110,4 +121,105 @@ void MapView::loadBackground()
     } else {
         dbg("[MapView] Background image not found\n");
     }
+}
+
+void MapView::drawAlgorithmState()
+{
+    if (!_solver || !_repo) return;
+
+    const auto& cities = _repo->cities();
+    
+    // Build sets for quick lookup
+    auto visitedVec = _solver->getVisited();
+    std::set<int> visitedSet(visitedVec.begin(), visitedVec.end());
+    
+    const auto& frontierVec = _solver->getFrontier();
+    std::set<int> frontierSet(frontierVec.begin(), frontierVec.end());
+
+    int currentIdx = _solver->getCurrentIdx();
+    
+    // Draw visited nodes with a green overlay
+    for (int idx : visitedSet) {
+        if (idx >= 0 && idx < static_cast<int>(cities.size())) {
+            const auto& city = cities[idx];
+            int ix = static_cast<int>(city.x);
+            int iy = static_cast<int>(city.y);
+            
+            gui::Rect overlayRect(
+                ix - MapPointStyle::BorderOffset - 2,
+                iy - MapPointStyle::BorderOffset - 2,
+                ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 2,
+                iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 2
+            );
+            gui::Shape overlay;
+            overlay.createRect(overlayRect);
+            overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, 2.0f);
+        }
+    }
+    
+    // Draw frontier nodes with an orange overlay
+    for (int idx : frontierSet) {
+        if (idx >= 0 && idx < static_cast<int>(cities.size())) {
+            const auto& city = cities[idx];
+            int ix = static_cast<int>(city.x);
+            int iy = static_cast<int>(city.y);
+            
+            gui::Rect overlayRect(
+                ix - MapPointStyle::BorderOffset - 2,
+                iy - MapPointStyle::BorderOffset - 2,
+                ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 2,
+                iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 2
+            );
+            gui::Shape overlay;
+            overlay.createRect(overlayRect);
+            overlay.drawFillAndWire(td::ColorID::Orange, td::ColorID::DarkRed, 2.0f);
+        }
+    }
+    
+    // Draw current node with special highlight
+    if (currentIdx >= 0 && currentIdx < static_cast<int>(cities.size())) {
+        const auto& city = cities[currentIdx];
+        int ix = static_cast<int>(city.x);
+        int iy = static_cast<int>(city.y);
+        
+        gui::Rect currentRect(
+            ix - MapPointStyle::BorderOffset - 4,
+            iy - MapPointStyle::BorderOffset - 4,
+            ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 4,
+            iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 4
+        );
+        gui::Shape currentOverlay;
+        currentOverlay.createRect(currentRect);
+        currentOverlay.drawWire(td::ColorID::Blue, 3.0f);
+    }
+    
+    // Draw solution path if found
+    const auto& path = _solver->getPath();
+    if (!path.empty()) {
+        drawPath(path);
+    }
+}
+
+void MapView::drawPath(const std::vector<int>& path)
+{
+    if (path.size() < 2 || !_repo) return;
+
+    const auto& cities = _repo->cities();
+
+    // Draw path edges in blue
+    gui::Shape pathShape;
+    auto pathBezier = pathShape.createBezier(3, td::LinePattern::Solid);
+    
+    for (size_t i = 0; i + 1 < path.size(); ++i) {
+        int a = path[i];
+        int b = path[i + 1];
+        
+        if (a >= 0 && b >= 0 && a < static_cast<int>(cities.size()) && b < static_cast<int>(cities.size())) {
+            auto c1 = MapPointStyle::getCenter(cities[a].x, cities[a].y);
+            auto c2 = MapPointStyle::getCenter(cities[b].x, cities[b].y);
+            pathBezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
+            pathBezier.lineTo({ static_cast<gui::CoordType>(c2.first), static_cast<gui::CoordType>(c2.second) });
+        }
+    }
+    pathShape.drawWire(td::ColorID::Blue);
 }

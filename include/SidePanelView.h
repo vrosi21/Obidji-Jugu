@@ -11,10 +11,13 @@
 
 #include <vector>
 #include <string>
+#include <functional>
 
 class DataRepository;
 enum class VisitationStatus : int;
 
+// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed
+using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 
 // Side panel for city/road CRUD operations and algorithm control
 class SidePanelView : public gui::View
@@ -67,6 +70,12 @@ public:
     // Connect to data repository for CRUD operations
     void setRepository(DataRepository* repo);
     
+    // Set callback for solver control actions
+    void setSolverCallback(SolverCallback callback);
+    
+    // Get currently selected algorithm index
+    int getSelectedAlgorithmIndex() const;
+    
     // Sync current selection fields with selected dropdown item
     void syncSelectionDetails();
 
@@ -76,8 +85,9 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
-    std::vector<std::string> _algorithmNames = {"Simulated Annealing", "Nearest Neighbor", "Genetic Algorithm"};
+    std::vector<std::string> _algorithmNames = {"BFS", "DFS"};
     DataRepository* _repo = nullptr;
+    SolverCallback _solverCallback;
 
     void handleAddPoint();
     void handleUpdatePoint();
