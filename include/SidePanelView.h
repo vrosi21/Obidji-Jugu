@@ -96,7 +96,7 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
-    std::vector<std::string> _algorithmNames = {"BFS", "DFS"};
+    std::vector<std::string> _algorithmNames = {"BFS", "DFS", "Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm"};
     DataRepository* _repo = nullptr;
     SolverCallback _solverCallback;
 

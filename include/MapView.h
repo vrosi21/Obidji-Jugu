@@ -8,6 +8,7 @@
 #include <set>
 
 class SearchAlgorithm;
+class TSPAlgorithm;
 
 // MapView: Rendering-only canvas that draws cities and roads
 // Data operations are delegated to DataRepository
@@ -36,6 +37,8 @@ private:
     void loadBackground();
     void drawAlgorithmState();
     void drawPath(const std::vector<int>& path);
+    void drawTSPState();
+    void drawTour(const std::vector<int>& tour, td::ColorID color, float lineWidth);
     
     DataRepository* _repo = nullptr;
     SearchAlgorithm* _solver = nullptr;

@@ -50,7 +50,7 @@ public:
 
     // Execute one step of the algorithm
     // Returns true if step was executed, false if algorithm is complete
-    bool step() {
+    virtual bool step() {
         if (!_repo || _state.finished || _state.frontier.empty()) {
             _state.finished = true;
             return false;
@@ -91,7 +91,7 @@ public:
     }
 
     // Undo the last step
-    bool stepBack() {
+    virtual bool stepBack() {
         if (_history.empty()) {
             return false;
         }
@@ -104,32 +104,32 @@ public:
     }
 
     // Check if algorithm has finished
-    bool isComplete() const {
+    virtual bool isComplete() const {
         return _state.finished;
     }
 
     // Check if goal was found
-    bool foundGoal() const {
+    virtual bool foundGoal() const {
         return _state.foundGoal;
     }
 
     // Get visited node indices
-    std::vector<int> getVisited() const {
+    virtual std::vector<int> getVisited() const {
         return std::vector<int>(_state.visited.begin(), _state.visited.end());
     }
 
     // Get frontier node indices
-    const std::vector<int>& getFrontier() const {
+    virtual const std::vector<int>& getFrontier() const {
         return _state.frontier;
     }
 
     // Get current path (only valid after goal is found)
-    const std::vector<int>& getPath() const {
+    virtual const std::vector<int>& getPath() const {
         return _path;
     }
 
     // Get current node being processed
-    int getCurrentIdx() const {
+    virtual int getCurrentIdx() const {
         return _state.currentIdx;
     }
 

@@ -9,6 +9,9 @@
 #include "SearchAlgorithm.h"
 #include "BFSAlgorithm.h"
 #include "DFSAlgorithm.h"
+#include "NearestNeighborAlgorithm.h"
+#include "SimulatedAnnealingAlgorithm.h"
+#include "GeneticAlgorithmTSP.h"
 
 // Timer interval for auto-stepping (in seconds)
 constexpr float SOLVER_STEP_INTERVAL = 0.5f;
@@ -67,6 +70,11 @@ protected:
                 stopSolver();
             }
             _mapView.refresh();
+
+            // Restart timer for next step if still running
+            if (_running) {
+                _timer.start();
+            }
         }
         return true;
     }
@@ -112,6 +120,15 @@ private:
                 break;
             case 1:
                 _solver = std::make_unique<DFSAlgorithm>();
+                break;
+            case 2:
+                _solver = std::make_unique<NearestNeighborAlgorithm>();
+                break;
+            case 3:
+                _solver = std::make_unique<SimulatedAnnealingAlgorithm>();
+                break;
+            case 4:
+                _solver = std::make_unique<GeneticAlgorithmTSP>();
                 break;
             default:
                 _solver = std::make_unique<BFSAlgorithm>();
