@@ -23,14 +23,22 @@ using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 class SidePanelView : public gui::View
 {
 public:
-    // --- UI Controls ---
+    // --- Section Headers ---
+    gui::Label lblAddSection;
+    gui::Label lblEditSection;
+    gui::Label lblConnectionsSection;
+    gui::Label lblSolvingSection;
+    
+    // --- Add Point Section ---
+    gui::Label lblName;
+    gui::LineEdit lnEditName;
     gui::Label lblXCoord;
     gui::NumericEdit txtEditXCoord;
     gui::Label lblYCoord;
     gui::NumericEdit txtEditYCoord;
     gui::Button btnAddPt;
-    gui::Label lblName;
-    gui::LineEdit lnEditName;
+    
+    // --- Edit Point Section ---
     gui::Label lblChoosePoint;
     gui::ComboBox cmbPoints;
     gui::Label lblCurrentCityName;
@@ -41,17 +49,20 @@ public:
     gui::NumericEdit neCurrentY;
     gui::Label lblCurrentWeight;
     gui::NumericEdit neCurrentWeight;
+    gui::Label lblStatus;
+    gui::ComboBox cmbStatus;
     gui::Button btnUpdatePoint;
     gui::Button btnDeletePoint;
+    
+    // --- Connections Section ---
     gui::Label lblConnections;
     gui::Label lblConnectionsValue;
     gui::Label lblConnectTo;
     gui::ComboBox cmbConnectTo;
     gui::Button btnToggleConnection;
-    gui::Label lblStatus;
-    gui::ComboBox cmbStatus;
     
-    gui::Label lblSolvingSection;
+    // --- Solve Section ---
+    gui::Label lblAlgorithm;
     gui::ComboBox cmbSolvingAlgorithm;
     
     gui::Button btnStartPause;

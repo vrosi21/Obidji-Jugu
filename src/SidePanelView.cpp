@@ -7,86 +7,127 @@
 #include <gui/GridComposer.h>
 
 SidePanelView::SidePanelView()
-    : lblXCoord("X:"),
+    : // Section Headers
+    lblAddSection(tr("Add New Point")),
+    lblEditSection(tr("Edit Selected Point")),
+    lblConnectionsSection(tr("Connections")),
+    lblSolvingSection(tr("Solve")),
+    // Add Point Section
+    lblName(tr("City Name:")),
+    lnEditName(),
+    lblXCoord("X:"),
     txtEditXCoord(td::DataType::decimal1),
     lblYCoord("Y:"),
     txtEditYCoord(td::DataType::decimal1),
-    btnAddPt(tr("Add point")),
-    lnEditName(),
-    lblName(tr("City name:")),
-    lblChoosePoint(tr("Select point:")),
-    lblCurrentCityName(tr("Current city name:")),
-    lblCurrentX(tr("Current X:")),
+    btnAddPt(tr("Add Point")),
+    // Edit Point Section
+    lblChoosePoint(tr("Select:")),
+    lblCurrentCityName(tr("Name:")),
+    lblCurrentX("X:"),
     neCurrentX(td::DataType::decimal1),
-    lblCurrentY(tr("Current Y:")),
+    lblCurrentY("Y:"),
     neCurrentY(td::DataType::decimal1),
     lblCurrentWeight(tr("Weight:")),
     neCurrentWeight(td::DataType::decimal1),
-    btnUpdatePoint(tr("Update point")),
-    btnDeletePoint(tr("Delete point")),
-    lblConnections(tr("Connections:")),
+    lblStatus(tr("Status:")),
+    btnUpdatePoint(tr("Update")),
+    btnDeletePoint(tr("Delete")),
+    // Connections Section
+    lblConnections(tr("Connected to:")),
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
-    btnToggleConnection(tr("Toggle connection")),
-    lblStatus(tr("Status:")),
-    lblSolvingSection("Solve:"),
-    btnStartPause("Start/Pause"),
-    btnStepFwd("step >"),
-    btnStepBwd("< step"),
-    gl(15, 6)
+    btnToggleConnection(tr("Toggle")),
+    // Solve Section
+    lblAlgorithm(tr("Algorithm:")),
+    btnStartPause(tr("Start/Pause")),
+    btnStepFwd(tr("Step >")),
+    btnStepBwd(tr("< Step")),
+    // Layout (24 rows, 4 columns)
+    gl(24, 4)
 {
-        gui::GridComposer gc(gl);
+    gui::GridComposer gc(gl);
 
-        // Row 0: Name label and Name input
-        gc.appendRow(lblName); gc.appendCol(lnEditName, 5);
-        // Row 1: X and Y labels and X and Y inputs
-        gc.appendRow(lblXCoord); gc.appendCol(txtEditXCoord); gc.appendSpace(1,0); gc.appendCol(lblYCoord); gc.appendCol(txtEditYCoord);
-        // Row 2: Add point button
-        btnAddPt.setType(gui::Button::Type::Default);
-        btnAddPt.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
-        gc.appendRow(btnAddPt, -1, td::HAlignment::Left);
-        // Row 3: Select point label and dropdown on the same row
-        gc.appendRow(lblChoosePoint); gc.appendCol(cmbPoints, 5);
-        // Row 5: Current city name label and currenc city name input
-        gc.appendRow(lblCurrentCityName); gc.appendCol(lnEditCurrentCityName, 5);
-        // Row 6: Current X and Y labels and current X and Y inputs
-        gc.appendRow(lblCurrentX); gc.appendCol(neCurrentX); gc.appendCol(lblCurrentY); gc.appendCol(neCurrentY); gc.appendCol(lblCurrentWeight); gc.appendCol(neCurrentWeight);
-        // Row 7: Update and Delete buttons
-        btnUpdatePoint.setType(gui::Button::Type::Default);
-        btnUpdatePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
-        btnDeletePoint.setType(gui::Button::Type::Default);
-        btnDeletePoint.setSizeLimitForNChars(11, gui::Control::Limit::UseAsMin);
-        gc.appendRow(btnUpdatePoint); gc.appendCol(btnDeletePoint, -1, td::HAlignment::Right);
-        // Row 8: Connections label
-        gc.appendRow(lblConnections, -1, td::HAlignment::Left);
-        // Row 9: Connections value label
-        gc.appendRow(lblConnectionsValue, -1, td::HAlignment::Left);
-        // Row 10: Connect to label and dropdown
-        gc.appendRow(lblConnectTo); 
-        // Row 11: Toggle connection button
-        btnToggleConnection.setType(gui::Button::Type::Default);
-        btnToggleConnection.setSizeLimitForNChars(15, gui::Control::Limit::UseAsMin);
-        gc.appendRow(cmbConnectTo); gc.appendCol(btnToggleConnection, 3);
-        // Row 12: Status label and dropdown
-        gc.appendRow(lblStatus); gc.appendCol(cmbStatus, 3);
-        
-        // Row 13
-        lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
-        gc.appendRow(lblSolvingSection);
-        gc.appendRow(cmbSolvingAlgorithm);
+    // ========================================
+    // SECTION 1: Add New Point
+    // ========================================
+    lblAddSection.setFont(gui::Font::ID::SystemLargerBold);
+    gc.appendRow(lblAddSection, 4);
+    
+    gc.appendRow(lblName);
+    gc.appendCol(lnEditName, 3);
+    
+    gc.appendRow(lblXCoord);
+    gc.appendCol(txtEditXCoord);
+    gc.appendCol(lblYCoord);
+    gc.appendCol(txtEditYCoord);
+    
+    btnAddPt.setType(gui::Button::Type::Default);
+    gc.appendRow(btnAddPt, 2);
 
+    // ========================================
+    // SECTION 2: Edit Selected Point
+    // ========================================
+    lblEditSection.setFont(gui::Font::ID::SystemLargerBold);
+    gc.appendRow(lblEditSection, 4);
+    
+    gc.appendRow(lblChoosePoint);
+    gc.appendCol(cmbPoints, 3);
+    
+    gc.appendRow(lblCurrentCityName);
+    gc.appendCol(lnEditCurrentCityName, 3);
+    
+    gc.appendRow(lblCurrentX);
+    gc.appendCol(neCurrentX);
+    gc.appendCol(lblCurrentY);
+    gc.appendCol(neCurrentY);
+    
+    gc.appendRow(lblCurrentWeight);
+    gc.appendCol(neCurrentWeight, 3);
+    
+    gc.appendRow(lblStatus);
+    gc.appendCol(cmbStatus, 3);
+    
+    btnUpdatePoint.setType(gui::Button::Type::Default);
+    btnDeletePoint.setType(gui::Button::Type::Default);
+    gc.appendRow(btnUpdatePoint, 2);
+    gc.appendCol(btnDeletePoint, 2);
 
-        // Populate solving algorithms combobox
-        populateSolvingAlgorithms(_algorithmNames);
+    // ========================================
+    // SECTION 3: Connections
+    // ========================================
+    lblConnectionsSection.setFont(gui::Font::ID::SystemLargerBold);
+    gc.appendRow(lblConnectionsSection, 4);
+    
+    gc.appendRow(lblConnections);
+    gc.appendCol(lblConnectionsValue, 3);
+    
+    gc.appendRow(lblConnectTo);
+    gc.appendCol(cmbConnectTo, 3);
+    
+    btnToggleConnection.setType(gui::Button::Type::Default);
+    gc.appendRow(btnToggleConnection, 2);
 
-        
-        // Row 13 & 14: Control buttons
-        gc.appendRow(btnStartPause, 2); gc.appendCol(btnStepBwd, 2); gc.appendCol(btnStepFwd, 2);
+    // ========================================
+    // SECTION 4: Solve
+    // ========================================
+    lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
+    gc.appendRow(lblSolvingSection, 4);
+    
+    gc.appendRow(lblAlgorithm);
+    gc.appendCol(cmbSolvingAlgorithm, 3);
+    
+    btnStartPause.setType(gui::Button::Type::Default);
+    btnStepBwd.setType(gui::Button::Type::Default);
+    btnStepFwd.setType(gui::Button::Type::Default);
+    gc.appendRow(btnStartPause, 2);
+    gc.appendCol(btnStepBwd);
+    gc.appendCol(btnStepFwd);
 
-        setLayout(&gl);
-        
-        // Populate status dropdown with enum values
-        populateStatusCombo();
+    setLayout(&gl);
+    
+    // Populate dropdowns
+    populateStatusCombo();
+    populateSolvingAlgorithms(_algorithmNames);
 }
 
 void SidePanelView::populateStatusCombo()
