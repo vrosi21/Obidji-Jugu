@@ -6,6 +6,8 @@
 #include "DataRepository.h"
 #include <vector>
 #include <set>
+#include <gui/Timer.h>
+
 
 class SearchAlgorithm;
 class TSPAlgorithm;
@@ -30,7 +32,12 @@ public:
     // Public method to trigger redraw (wraps protected reDraw)
     void refresh() { reDraw(); }
 
+    void startSolutionAnimation();
+
+
 protected:
+    bool onTimer(gui::Timer* pTimer) override;
+
     void onDraw(const gui::Rect& rect) override;
 
 private:
@@ -44,4 +51,14 @@ private:
     SearchAlgorithm* _solver = nullptr;
     gui::Image _bgImage;
     bool _bgLoaded = false;
+
+    bool buildExpandedTourPath(const std::vector<int>& tour, std::vector<int>& outPath) const;
+    void drawAnimatedSolution();
+    void stopSolutionAnimation();
+
+    gui::Timer _solutionTimer;
+    bool _solutionAnimating = false;
+    std::vector<int> _solutionExpandedPath;
+    size_t _solutionAnimEdgeCount = 0;
+
 };

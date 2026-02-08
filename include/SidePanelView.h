@@ -71,6 +71,8 @@ public:
     
     gui::GridLayout gl;
 
+    gui::Button showSolution;
+
     SidePanelView();
     ~SidePanelView() = default;
 

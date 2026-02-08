@@ -43,7 +43,8 @@ SidePanelView::SidePanelView()
     btnStepFwd(tr("Step >")),
     btnStepBwd(tr("< Step")),
     // Layout (24 rows, 4 columns)
-    gl(24, 4)
+    showSolution(tr("Show Solution")),
+    gl(25, 4)
 {
     gui::GridComposer gc(gl);
 
@@ -122,6 +123,8 @@ SidePanelView::SidePanelView()
     gc.appendRow(btnStartPause, 2);
     gc.appendCol(btnStepBwd);
     gc.appendCol(btnStepFwd);
+
+    gc.appendRow(showSolution);
 
     setLayout(&gl);
     
@@ -235,6 +238,13 @@ bool SidePanelView::onClick(gui::Button* pBtn)
         }
         return true;
     }
+    if (pBtn == &showSolution) {
+        if (_solverCallback) {
+            _solverCallback(3, cmbSolvingAlgorithm.getSelectedIndex());
+        }
+        return true;
+    }
+
     return false;
 }
 

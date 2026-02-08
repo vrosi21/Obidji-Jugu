@@ -101,6 +101,16 @@ private:
             case 2:  // Algorithm changed
                 selectAlgorithm(algorithmIdx);
                 break;
+            case 3:  // Show solution (animated)
+                if (_running) {
+                    stopSolver();
+                }
+                // samo za Simulated Annealing (index 3 u tvom comboboxu)
+                if (algorithmIdx == 3) {
+                    _mapView.startSolutionAnimation();
+                }
+                break;
+
         }
     }
 

@@ -1,4 +1,4 @@
-#include "MapView.h"
+﻿#include "MapView.h"
 #include "MapPoint.h"
 #include "SearchAlgorithm.h"
 #include "TSPAlgorithm.h"
@@ -7,15 +7,24 @@
 #include <iomanip>
 #include <windows.h>
 #include <filesystem>
+#include "SimulatedAnnealingAlgorithm.h"
+#include <algorithm>
+#include <limits>
+
 
 namespace {
     void dbg(const char* m) { OutputDebugStringA(m); }
+    constexpr float SOLUTION_ANIM_INTERVAL_SEC = 0.05f;
+    constexpr size_t SOLUTION_ANIM_SEGMENTS_PER_TICK = 1;
+
 }
 
 MapView::MapView()
+    : _solutionTimer(this, SOLUTION_ANIM_INTERVAL_SEC, false)
 {
     loadBackground();
 }
+
 
 void MapView::setRepository(DataRepository* repo)
 {
@@ -28,6 +37,7 @@ void MapView::setRepository(DataRepository* repo)
 void MapView::setSolver(SearchAlgorithm* solver)
 {
     _solver = solver;
+    stopSolutionAnimation();
 }
 
 void MapView::onDraw(const gui::Rect& rect)
@@ -237,6 +247,11 @@ void MapView::drawPath(const std::vector<int>& path)
 
 void MapView::drawTSPState()
 {
+    if (_solutionAnimating) {
+        drawAnimatedSolution();
+        return;
+    }
+
     TSPAlgorithm* tspSolver = dynamic_cast<TSPAlgorithm*>(_solver);
     if (!tspSolver || !_repo) return;
 
@@ -329,3 +344,102 @@ void MapView::drawTour(const std::vector<int>& tour, td::ColorID color, float li
     }
     tourShape.drawWire(color);
 }
+
+
+bool MapView::onTimer(gui::Timer* pTimer)
+{
+    if (pTimer == &_solutionTimer && _solutionAnimating) {
+        const size_t maxEdges = (_solutionExpandedPath.size() > 1) ? (_solutionExpandedPath.size() - 1) : 0;
+
+        if (_solutionAnimEdgeCount < maxEdges) {
+            size_t next = _solutionAnimEdgeCount + SOLUTION_ANIM_SEGMENTS_PER_TICK;
+            _solutionAnimEdgeCount = (next > maxEdges) ? maxEdges : next;
+        }
+
+        if (_solutionExpandedPath.size() < 2 || _solutionAnimEdgeCount >= (_solutionExpandedPath.size() - 1)) {
+            _solutionAnimating = false;
+            _solutionTimer.stop();
+        }
+
+        reDraw();
+        if (_solutionAnimating) _solutionTimer.start(); // one-shot timer -> restart
+        return true;
+    }
+    return false;
+}
+
+void MapView::startSolutionAnimation()
+{
+    if (!_repo || !_solver) return;
+
+    // samo Simulated Annealing
+    auto* sa = dynamic_cast<SimulatedAnnealingAlgorithm*>(_solver);
+    if (!sa) return;
+
+    const auto& bestTour = sa->getBestTour();
+    const auto& tourToUse = (!bestTour.empty()) ? bestTour : sa->getTour();
+    if (tourToUse.size() < 2) return;
+
+    std::vector<int> expanded;
+    if (!buildExpandedTourPath(tourToUse, expanded)) return;
+
+    _solutionExpandedPath = std::move(expanded);
+    _solutionAnimEdgeCount = 1;   // da se odmah vidi prvi segment
+    _solutionAnimating = true;
+
+    _solutionTimer.stop();
+    _solutionTimer.start();
+    reDraw();
+}
+
+void MapView::stopSolutionAnimation()
+{
+    _solutionAnimating = false;
+    _solutionTimer.stop();
+    _solutionExpandedPath.clear();
+    _solutionAnimEdgeCount = 0;
+}
+
+bool MapView::buildExpandedTourPath(const std::vector<int>& tour, std::vector<int>& outPath) const
+{
+    outPath.clear();
+    if (!_repo || tour.size() < 2) return false;
+
+    for (size_t i = 0; i < tour.size(); ++i) {
+        int a = tour[i];
+        int b = tour[(i + 1) % tour.size()];
+
+        std::vector<int> leg;
+        if (!_repo->getShortestRoadPath(a, b, leg) || leg.size() < 2) return false;
+
+        if (outPath.empty()) outPath.insert(outPath.end(), leg.begin(), leg.end());
+        else outPath.insert(outPath.end(), leg.begin() + 1, leg.end()); // bez dupliranja čvora
+    }
+    return outPath.size() >= 2;
+}
+
+void MapView::drawAnimatedSolution()
+{
+    if (!_solutionAnimating || _solutionExpandedPath.size() < 2 || !_repo) return;
+
+    const auto& cities = _repo->cities();
+    const size_t maxEdges = _solutionExpandedPath.size() - 1;
+    const size_t edgeCount = (_solutionAnimEdgeCount > maxEdges) ? maxEdges : _solutionAnimEdgeCount;
+
+    gui::Shape pathShape;
+    auto bezier = pathShape.createBezier(4, td::LinePattern::Solid);
+
+    for (size_t i = 0; i < edgeCount; ++i) {
+        int u = _solutionExpandedPath[i];
+        int v = _solutionExpandedPath[i + 1];
+        if (u < 0 || v < 0 || u >= (int)cities.size() || v >= (int)cities.size()) continue;
+
+        auto c1 = MapPointStyle::getCenter(cities[u].x, cities[u].y);
+        auto c2 = MapPointStyle::getCenter(cities[v].x, cities[v].y);
+        bezier.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
+        bezier.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
+    }
+
+    pathShape.drawWire(td::ColorID::Red);
+}
+
