@@ -15,6 +15,8 @@
 
 // Timer interval for auto-stepping (in seconds)
 constexpr float SOLVER_STEP_INTERVAL = 0.5f;
+constexpr float SOLUTION_ANIM_INTERVAL = 0.05f;
+
 
 class MainView : public gui::View
 {
@@ -27,11 +29,15 @@ private:
     std::unique_ptr<SearchAlgorithm> _solver;
     bool _running = false;
     int _currentAlgorithmIdx = 0;
+    gui::Timer _solutionTimer;
+    bool _solutionRunning = false;
+
 
 public:
     MainView()
         : _hlayout(2)
         , _timer(this, SOLVER_STEP_INTERVAL, false)
+        , _solutionTimer(this, SOLUTION_ANIM_INTERVAL, false)
     {
         setMargins(0, 0, 0, 0);
         
@@ -65,19 +71,27 @@ protected:
     bool onTimer(gui::Timer* pTimer) override
     {
         if (pTimer == &_timer && _running && _solver) {
-            if (!_solver->step()) {
-                // Algorithm finished
-                stopSolver();
+            if (!_solver->step()) stopSolver();
+            _mapView.refresh();
+            if (_running) _timer.start();
+            return true;
+        }
+
+        if (pTimer == &_solutionTimer && _solutionRunning) {
+            if (!_mapView.advanceSolutionAnimation(1)) {
+                _solutionRunning = false;
+                _solutionTimer.stop();
+            }
+            else {
+                _solutionTimer.start(); // one-shot restart
             }
             _mapView.refresh();
-
-            // Restart timer for next step if still running
-            if (_running) {
-                _timer.start();
-            }
+            return true;
         }
+
         return true;
     }
+
 
 private:
     // Handle solver control actions from SidePanelView
@@ -101,13 +115,16 @@ private:
             case 2:  // Algorithm changed
                 selectAlgorithm(algorithmIdx);
                 break;
-            case 3:  // Show solution (animated)
-                if (_running) {
-                    stopSolver();
-                }
-                // samo za Simulated Annealing (index 3 u tvom comboboxu)
-                if (algorithmIdx == 3) {
-                    _mapView.startSolutionAnimation();
+            case 3: // Show Solution (animated)
+                if (_running) stopSolver();
+
+                _solutionRunning = false;
+                _solutionTimer.stop();
+
+                _mapView.startSolutionAnimation();  
+                if (_mapView.isSolutionAnimating()) {
+                    _solutionRunning = true;
+                    _solutionTimer.start();
                 }
                 break;
 
@@ -150,6 +167,12 @@ private:
         
         // Connect solver to MapView for visualization
         _mapView.setSolver(_solver.get());
+
+        _solutionRunning = false;
+        _solutionTimer.stop();
+        _mapView.stopSolutionAnimation();
+
+
         _mapView.refresh();
     }
 
@@ -162,6 +185,12 @@ private:
             _solver->reset(&_repo);
         }
 
+
+        _solutionRunning = false;
+        _solutionTimer.stop();
+        _mapView.stopSolutionAnimation();
+
+        
         _running = true;
         _timer.start();
     }

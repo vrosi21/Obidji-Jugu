@@ -368,36 +368,56 @@ bool MapView::onTimer(gui::Timer* pTimer)
     return false;
 }
 
+
+
+
 void MapView::startSolutionAnimation()
 {
     if (!_repo || !_solver) return;
 
-    // samo Simulated Annealing
-    auto* sa = dynamic_cast<SimulatedAnnealingAlgorithm*>(_solver);
-    if (!sa) return;
+    auto* tsp = dynamic_cast<TSPAlgorithm*>(_solver);
+    if (!tsp) return;
 
-    const auto& bestTour = sa->getBestTour();
-    const auto& tourToUse = (!bestTour.empty()) ? bestTour : sa->getTour();
+    const auto& bestTour = tsp->getBestTour();
+    const auto& curTour = tsp->getTour();
+    const auto& tourToUse = (!bestTour.empty()) ? bestTour : curTour;
+
     if (tourToUse.size() < 2) return;
 
     std::vector<int> expanded;
     if (!buildExpandedTourPath(tourToUse, expanded)) return;
 
     _solutionExpandedPath = std::move(expanded);
-    _solutionAnimEdgeCount = 1;   // da se odmah vidi prvi segment
+    _solutionAnimEdgeCount = 1;     
     _solutionAnimating = true;
-
-    _solutionTimer.stop();
-    _solutionTimer.start();
-    reDraw();
 }
 
 void MapView::stopSolutionAnimation()
 {
     _solutionAnimating = false;
-    _solutionTimer.stop();
     _solutionExpandedPath.clear();
     _solutionAnimEdgeCount = 0;
+}
+
+bool MapView::advanceSolutionAnimation(size_t edgesPerTick)
+{
+    if (!_solutionAnimating) return false;
+    if (_solutionExpandedPath.size() < 2) { stopSolutionAnimation(); return false; }
+
+    const size_t maxEdges = _solutionExpandedPath.size() - 1;
+    if (_solutionAnimEdgeCount >= maxEdges) {
+        _solutionAnimating = false;
+        return false;
+    }
+
+    size_t next = _solutionAnimEdgeCount + edgesPerTick;
+    _solutionAnimEdgeCount = (next > maxEdges) ? maxEdges : next;
+
+    if (_solutionAnimEdgeCount >= maxEdges) {
+        _solutionAnimating = false;
+        return false;
+    }
+    return true;
 }
 
 bool MapView::buildExpandedTourPath(const std::vector<int>& tour, std::vector<int>& outPath) const
@@ -413,8 +433,9 @@ bool MapView::buildExpandedTourPath(const std::vector<int>& tour, std::vector<in
         if (!_repo->getShortestRoadPath(a, b, leg) || leg.size() < 2) return false;
 
         if (outPath.empty()) outPath.insert(outPath.end(), leg.begin(), leg.end());
-        else outPath.insert(outPath.end(), leg.begin() + 1, leg.end()); // bez dupliranja čvora
+        else outPath.insert(outPath.end(), leg.begin() + 1, leg.end()); 
     }
+
     return outPath.size() >= 2;
 }
 
@@ -425,21 +446,51 @@ void MapView::drawAnimatedSolution()
     const auto& cities = _repo->cities();
     const size_t maxEdges = _solutionExpandedPath.size() - 1;
     const size_t edgeCount = (_solutionAnimEdgeCount > maxEdges) ? maxEdges : _solutionAnimEdgeCount;
+    if (edgeCount == 0) return;
 
-    gui::Shape pathShape;
-    auto bezier = pathShape.createBezier(4, td::LinePattern::Solid);
+    const size_t currentEdgeIdx = edgeCount - 1;
 
-    for (size_t i = 0; i < edgeCount; ++i) {
-        int u = _solutionExpandedPath[i];
-        int v = _solutionExpandedPath[i + 1];
-        if (u < 0 || v < 0 || u >= (int)cities.size() || v >= (int)cities.size()) continue;
+    if (currentEdgeIdx > 0) {
+        gui::Shape completedShape;
+        auto completed = completedShape.createBezier(4, td::LinePattern::Solid);
 
-        auto c1 = MapPointStyle::getCenter(cities[u].x, cities[u].y);
-        auto c2 = MapPointStyle::getCenter(cities[v].x, cities[v].y);
-        bezier.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
-        bezier.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
+        for (size_t i = 0; i < currentEdgeIdx; ++i) {
+            int u = _solutionExpandedPath[i];
+            int v = _solutionExpandedPath[i + 1];
+            if (u < 0 || v < 0 || u >= (int)cities.size() || v >= (int)cities.size()) continue;
+
+            auto c1 = MapPointStyle::getCenter(cities[u].x, cities[u].y);
+            auto c2 = MapPointStyle::getCenter(cities[v].x, cities[v].y);
+            completed.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
+            completed.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
+        }
+        completedShape.drawWire(td::ColorID::Red);
     }
 
-    pathShape.drawWire(td::ColorID::Red);
-}
+    {
+        int u = _solutionExpandedPath[currentEdgeIdx];
+        int v = _solutionExpandedPath[currentEdgeIdx + 1];
+        if (u >= 0 && v >= 0 && u < (int)cities.size() && v < (int)cities.size()) {
+            gui::Shape currentShape;
+            auto curr = currentShape.createBezier(6, td::LinePattern::Solid);
 
+            auto c1 = MapPointStyle::getCenter(cities[u].x, cities[u].y);
+            auto c2 = MapPointStyle::getCenter(cities[v].x, cities[v].y);
+            curr.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
+            curr.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
+            currentShape.drawWire(td::ColorID::Green);
+
+            int ix = (int)cities[v].x;
+            int iy = (int)cities[v].y;
+            gui::Rect overlayRect(
+                ix - MapPointStyle::BorderOffset - 4,
+                iy - MapPointStyle::BorderOffset - 4,
+                ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 4,
+                iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 4
+            );
+            gui::Shape overlay;
+            overlay.createRect(overlayRect);
+            overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, 2.0f);
+        }
+    }
+}

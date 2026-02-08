@@ -33,6 +33,12 @@ public:
     void refresh() { reDraw(); }
 
     void startSolutionAnimation();
+    void stopSolutionAnimation();
+    bool isSolutionAnimating() const { return _solutionAnimating; }
+
+    // returns true if still animating, false if finished
+    bool advanceSolutionAnimation(size_t edgesPerTick);
+
 
 
 protected:
@@ -54,11 +60,12 @@ private:
 
     bool buildExpandedTourPath(const std::vector<int>& tour, std::vector<int>& outPath) const;
     void drawAnimatedSolution();
-    void stopSolutionAnimation();
 
     gui::Timer _solutionTimer;
     bool _solutionAnimating = false;
     std::vector<int> _solutionExpandedPath;
     size_t _solutionAnimEdgeCount = 0;
+    
+
 
 };

@@ -240,10 +240,11 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     }
     if (pBtn == &showSolution) {
         if (_solverCallback) {
-            _solverCallback(3, cmbSolvingAlgorithm.getSelectedIndex());
+            _solverCallback(3, cmbSolvingAlgorithm.getSelectedIndex()); // 3 = show solution
         }
         return true;
     }
+
 
     return false;
 }
