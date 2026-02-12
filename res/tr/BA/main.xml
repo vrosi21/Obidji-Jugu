@@ -30,5 +30,50 @@
 		<Res id="errNoPoints" tr="Nema dostupnih tačaka"/>
 		<Res id="errSolveFail" tr="Računanje neuspješno: "/>
 		<Res id="errUnknownAlgo" tr="Nepoznat algoritam"/>
+
+		<!-- ============================= -->
+		<!-- SidePanelView translations -->
+		<!-- ============================= -->
+
+		<!-- Section headers -->
+		<Res id="Add New Point" tr="Dodaj novu tačku"/>
+		<Res id="Edit Selected Point" tr="Uredi odabranu tačku"/>
+		<Res id="Connections" tr="Veze"/>
+		<Res id="Solve" tr="Rješavanje"/>
+
+		<!-- Add Point -->
+		<Res id="City Name:" tr="Naziv grada:"/>
+		<Res id="X:" tr="X:"/>
+		<Res id="Y:" tr="Y:"/>
+		<Res id="Add Point" tr="Dodaj tačku"/>
+
+		<!-- Edit Point -->
+		<Res id="Select:" tr="Odaberi:"/>
+		<Res id="Name:" tr="Naziv:"/>
+		<Res id="Weight:" tr="Težina:"/>
+		<Res id="Status:" tr="Status:"/>
+		<Res id="Update" tr="Ažuriraj"/>
+		<Res id="Delete" tr="Obriši"/>
+
+		<!-- Status values -->
+		<Res id="Blocked" tr="Blokirano"/>
+		<Res id="Open" tr="Otvoreno"/>
+		<Res id="Goal" tr="Cilj"/>
+		<Res id="Start" tr="Početak"/>
+
+		<!-- Connections -->
+		<Res id="Connected to:" tr="Povezano sa:"/>
+		<Res id="Connect to:" tr="Poveži sa:"/>
+		<Res id="Toggle" tr="Uključi/isključi"/>
+		<Res id="None" tr="Nema"/>
+
+		<!-- Solving -->
+		<Res id="Algorithm:" tr="Algoritam:"/>
+		<Res id="Start/Pause" tr="Pokreni/Pauziraj"/>
+		<Res id="Step >" tr="Korak >"/>
+		<Res id="< Step" tr="< Korak"/>
+		<Res id="Show Solution" tr="Prikaži rješenje"/>
+
+		
 	</Translations>
 </DevRes>

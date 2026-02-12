@@ -30,5 +30,49 @@
 		<Res id="errNoPoints" tr="No points provided"/>
 		<Res id="errSolveFail" tr="Computation failed: "/>
 		<Res id="errUnknownAlgo" tr="Unknown algorithm"/>
+
+		<!-- ============================= -->
+		<!-- SidePanelView translations -->
+		<!-- ============================= -->
+
+		<!-- Section headers -->
+		<Res id="Add New Point" tr="Add New Point"/>
+		<Res id="Edit Selected Point" tr="Edit Selected Point"/>
+		<Res id="Connections" tr="Connections"/>
+		<Res id="Solve" tr="Solve"/>
+
+		<!-- Add Point -->
+		<Res id="City Name:" tr="City Name:"/>
+		<Res id="X:" tr="X:"/>
+		<Res id="Y:" tr="Y:"/>
+		<Res id="Add Point" tr="Add Point"/>
+
+		<!-- Edit Point -->
+		<Res id="Select:" tr="Select:"/>
+		<Res id="Name:" tr="Name:"/>
+		<Res id="Weight:" tr="Weight:"/>
+		<Res id="Status:" tr="Status:"/>
+		<Res id="Update" tr="Update"/>
+		<Res id="Delete" tr="Delete"/>
+
+		<!-- Status values -->
+		<Res id="Blocked" tr="Blocked"/>
+		<Res id="Open" tr="Open"/>
+		<Res id="Goal" tr="Goal"/>
+		<Res id="Start" tr="Start"/>
+
+		<!-- Connections -->
+		<Res id="Connected to:" tr="Connected to:"/>
+		<Res id="Connect to:" tr="Connect to:"/>
+		<Res id="Toggle" tr="Toggle"/>
+		<Res id="None" tr="None"/>
+
+		<!-- Solving -->
+		<Res id="Algorithm:" tr="Algorithm:"/>
+		<Res id="Start/Pause" tr="Start/Pause"/>
+		<Res id="Step >" tr="Step >"/>
+		<Res id="< Step" tr="< Step"/>
+		<Res id="Show Solution" tr="Show Solution"/>
+
 	</Translations>
 </DevRes>
