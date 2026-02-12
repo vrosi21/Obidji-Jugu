@@ -18,12 +18,14 @@ namespace {
     constexpr size_t SOLUTION_ANIM_SEGMENTS_PER_TICK = 1;
 
 }
-
 MapView::MapView()
-    : _solutionTimer(this, SOLUTION_ANIM_INTERVAL_SEC, false)
+    : _currentSize(ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT)
+    , _solutionTimer(this, SOLUTION_ANIM_INTERVAL_SEC, false)
 {
+    enableResizeEvent(true);
     loadBackground();
 }
+
 
 
 void MapView::setRepository(DataRepository* repo)
@@ -40,15 +42,33 @@ void MapView::setSolver(SearchAlgorithm* solver)
     stopSolutionAnimation();
 }
 
+void MapView::onResize(const gui::Size& newSize)
+{
+    _currentSize = newSize;
+}
+
 void MapView::onDraw(const gui::Rect& rect)
 {
-    // Draw background
+    // Compute uniform scale and offsets to preserve proportions and center the map
+    float viewW = static_cast<float>(rect.right - rect.left);
+    float viewH = static_cast<float>(rect.bottom - rect.top);
+    float scaleX = viewW / ORIGINAL_MAP_WIDTH;
+    float scaleY = viewH / ORIGINAL_MAP_HEIGHT;
+    float scale = std::min(scaleX, scaleY);
+    float offsetX = rect.left + (viewW - ORIGINAL_MAP_WIDTH * scale) / 2.0f;
+    float offsetY = rect.top + (viewH - ORIGINAL_MAP_HEIGHT * scale) / 2.0f;
+
+    // store for other methods
+    _scaleX = scale;
+    _scaleY = scale;
+    _offsetX = offsetX;
+    _offsetY = offsetY;
+
+    // Draw background - scaled and centered
     if (_bgLoaded && _bgImage.isOK()) {
-        const float targetW = 1000.0f;
-        const float srcW = 860.0f;
-        const float srcH = 745.0f;
-        const float targetH = targetW * (srcH / srcW);
-        gui::Rect imgRect(rect.left, rect.top, rect.left + targetW, rect.top + targetH);
+        gui::Rect imgRect(static_cast<gui::CoordType>(offsetX), static_cast<gui::CoordType>(offsetY),
+                          static_cast<gui::CoordType>(offsetX + ORIGINAL_MAP_WIDTH * scale),
+                          static_cast<gui::CoordType>(offsetY + ORIGINAL_MAP_HEIGHT * scale));
         _bgImage.draw(imgRect, gui::Image::AspectRatio::No);
     } else {
         gui::Shape bg;
@@ -61,9 +81,13 @@ void MapView::onDraw(const gui::Rect& rect)
     const auto& cities = _repo->cities();
     const auto& roads = _repo->roads();
 
-    // Draw connection lines first (under cities)
+    // Draw connection lines first (under cities) - scaled
+    float avgScale = _scaleX; // uniform scale
+    float scaledLineWidth = 1.0f * avgScale;
+    if (scaledLineWidth < 0.5f) scaledLineWidth = 0.5f;
+
     gui::Shape bezierShape;
-    auto bezier = bezierShape.createBezier(1, td::LinePattern::Solid);
+    auto bezier = bezierShape.createBezier(scaledLineWidth, td::LinePattern::Solid);
     std::set<std::pair<int, int>> drawn;
     
     for (const auto& e : roads) {
@@ -71,8 +95,8 @@ void MapView::onDraw(const gui::Rect& rect)
         int b = std::max(e.fromId, e.toId);
         if (drawn.insert({ a, b }).second) {
             if (a >= 0 && b >= 0 && a < (int)cities.size() && b < (int)cities.size()) {
-                auto c1 = MapPointStyle::getCenter(cities[a].x, cities[a].y);
-                auto c2 = MapPointStyle::getCenter(cities[b].x, cities[b].y);
+                auto c1 = MapPointStyle::getScaledCenter(cities[a].x, cities[a].y, _scaleX, _offsetX, _offsetY);
+                auto c2 = MapPointStyle::getScaledCenter(cities[b].x, cities[b].y, _scaleX, _offsetX, _offsetY);
                 bezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
                 bezier.lineTo({ static_cast<gui::CoordType>(c2.first), static_cast<gui::CoordType>(c2.second) });
             }
@@ -85,9 +109,9 @@ void MapView::onDraw(const gui::Rect& rect)
         drawAlgorithmState();
     }
 
-    // Draw cities on top using MapPointRenderer
+    // Draw cities on top using scaled MapPointRenderer
     for (const auto& city : cities) {
-        MapPointRenderer::draw(city);
+        MapPointRenderer::drawScaled(city, _scaleX, _offsetX, _offsetY);
     }
 }
 
@@ -159,22 +183,29 @@ void MapView::drawAlgorithmState()
 
     int currentIdx = _solver->getCurrentIdx();
     
+    // Calculate scaled sizes
+    float avgScale = _scaleX;
+    float scaledSize = MapPointStyle::Size * avgScale;
+    float scaledBorder = MapPointStyle::BorderOffset * avgScale;
+    float scaledLineWidth = 2.0f * avgScale;
+    if (scaledLineWidth < 1.0f) scaledLineWidth = 1.0f;
+    
     // Draw visited nodes with a green overlay
     for (int idx : visitedSet) {
         if (idx >= 0 && idx < static_cast<int>(cities.size())) {
             const auto& city = cities[idx];
-            int ix = static_cast<int>(city.x);
-            int iy = static_cast<int>(city.y);
+            float sx = _offsetX + static_cast<float>(city.x) * _scaleX;
+            float sy = _offsetY + static_cast<float>(city.y) * _scaleX;
             
             gui::Rect overlayRect(
-                ix - MapPointStyle::BorderOffset - 2,
-                iy - MapPointStyle::BorderOffset - 2,
-                ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 2,
-                iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 2
+                sx - scaledBorder - 2 * avgScale,
+                sy - scaledBorder - 2 * avgScale,
+                sx + scaledSize + scaledBorder + 2 * avgScale,
+                sy + scaledSize + scaledBorder + 2 * avgScale
             );
             gui::Shape overlay;
             overlay.createRect(overlayRect);
-            overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, 2.0f);
+            overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, scaledLineWidth);
         }
     }
     
@@ -182,36 +213,36 @@ void MapView::drawAlgorithmState()
     for (int idx : frontierSet) {
         if (idx >= 0 && idx < static_cast<int>(cities.size())) {
             const auto& city = cities[idx];
-            int ix = static_cast<int>(city.x);
-            int iy = static_cast<int>(city.y);
+            float sx = _offsetX + static_cast<float>(city.x) * _scaleX;
+            float sy = _offsetY + static_cast<float>(city.y) * _scaleX;
             
             gui::Rect overlayRect(
-                ix - MapPointStyle::BorderOffset - 2,
-                iy - MapPointStyle::BorderOffset - 2,
-                ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 2,
-                iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 2
+                sx - scaledBorder - 2 * avgScale,
+                sy - scaledBorder - 2 * avgScale,
+                sx + scaledSize + scaledBorder + 2 * avgScale,
+                sy + scaledSize + scaledBorder + 2 * avgScale
             );
             gui::Shape overlay;
             overlay.createRect(overlayRect);
-            overlay.drawFillAndWire(td::ColorID::Orange, td::ColorID::DarkRed, 2.0f);
+            overlay.drawFillAndWire(td::ColorID::Orange, td::ColorID::DarkRed, scaledLineWidth);
         }
     }
     
     // Draw current node with special highlight
     if (currentIdx >= 0 && currentIdx < static_cast<int>(cities.size())) {
         const auto& city = cities[currentIdx];
-        int ix = static_cast<int>(city.x);
-        int iy = static_cast<int>(city.y);
+        float sx = _offsetX + static_cast<float>(city.x) * _scaleX;
+        float sy = _offsetY + static_cast<float>(city.y) * _scaleX;
         
         gui::Rect currentRect(
-            ix - MapPointStyle::BorderOffset - 4,
-            iy - MapPointStyle::BorderOffset - 4,
-            ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 4,
-            iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 4
+            sx - scaledBorder - 4 * avgScale,
+            sy - scaledBorder - 4 * avgScale,
+            sx + scaledSize + scaledBorder + 4 * avgScale,
+            sy + scaledSize + scaledBorder + 4 * avgScale
         );
         gui::Shape currentOverlay;
         currentOverlay.createRect(currentRect);
-        currentOverlay.drawWire(td::ColorID::Blue, 3.0f);
+        currentOverlay.drawWire(td::ColorID::Blue, 3.0f * avgScale);
     }
     
     // Draw solution path if found
@@ -227,17 +258,21 @@ void MapView::drawPath(const std::vector<int>& path)
 
     const auto& cities = _repo->cities();
 
-    // Draw path edges in blue
+    // Draw path edges in blue - scaled
+    float avgScale = _scaleX;
+    float scaledLineWidth = 3.0f * avgScale;
+    if (scaledLineWidth < 1.5f) scaledLineWidth = 1.5f;
+    
     gui::Shape pathShape;
-    auto pathBezier = pathShape.createBezier(3, td::LinePattern::Solid);
+    auto pathBezier = pathShape.createBezier(scaledLineWidth, td::LinePattern::Solid);
     
     for (size_t i = 0; i + 1 < path.size(); ++i) {
         int a = path[i];
         int b = path[i + 1];
         
         if (a >= 0 && b >= 0 && a < static_cast<int>(cities.size()) && b < static_cast<int>(cities.size())) {
-            auto c1 = MapPointStyle::getCenter(cities[a].x, cities[a].y);
-            auto c2 = MapPointStyle::getCenter(cities[b].x, cities[b].y);
+            auto c1 = MapPointStyle::getScaledCenter(cities[a].x, cities[a].y, _scaleX, _offsetX, _offsetY);
+            auto c2 = MapPointStyle::getScaledCenter(cities[b].x, cities[b].y, _scaleX, _offsetX, _offsetY);
             pathBezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
             pathBezier.lineTo({ static_cast<gui::CoordType>(c2.first), static_cast<gui::CoordType>(c2.second) });
         }
@@ -256,17 +291,24 @@ void MapView::drawTSPState()
     if (!tspSolver || !_repo) return;
 
     const auto& cities = _repo->cities();
+    
+    // Calculate scaled sizes
+    float avgScale = _scaleX;
+    float scaledSize = MapPointStyle::Size * avgScale;
+    float scaledBorder = MapPointStyle::BorderOffset * avgScale;
+    float scaledLineWidth = 2.0f * avgScale;
+    if (scaledLineWidth < 1.0f) scaledLineWidth = 1.0f;
 
     // Draw current tour in cyan
     const auto& currentTour = tspSolver->getTour();
     if (!currentTour.empty()) {
-        drawTour(currentTour, td::ColorID::Cyan, 2.0f);
+        drawTour(currentTour, td::ColorID::Cyan, 2.0f * avgScale);
     }
 
     // Draw best tour in green (if different and exists)
     const auto& bestTour = tspSolver->getBestTour();
     if (!bestTour.empty() && bestTour != currentTour) {
-        drawTour(bestTour, td::ColorID::Green, 3.0f);
+        drawTour(bestTour, td::ColorID::Green, 3.0f * avgScale);
     }
 
     // Highlight cities in the current tour
@@ -274,28 +316,28 @@ void MapView::drawTSPState()
         int idx = currentTour[i];
         if (idx >= 0 && idx < static_cast<int>(cities.size())) {
             const auto& city = cities[idx];
-            int ix = static_cast<int>(city.x);
-            int iy = static_cast<int>(city.y);
+            float sx = static_cast<float>(city.x) * _scaleX;
+            float sy = _offsetY + static_cast<float>(city.y) * _scaleX;
             
             gui::Rect overlayRect(
-                ix - MapPointStyle::BorderOffset - 2,
-                iy - MapPointStyle::BorderOffset - 2,
-                ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 2,
-                iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 2
+                sx - scaledBorder - 2 * avgScale,
+                sy - scaledBorder - 2 * avgScale,
+                sx + scaledSize + scaledBorder + 2 * avgScale,
+                sy + scaledSize + scaledBorder + 2 * avgScale
             );
             gui::Shape overlay;
             overlay.createRect(overlayRect);
             
             // First city in tour gets special color
             if (i == 0) {
-                overlay.drawFillAndWire(td::ColorID::Cyan, td::ColorID::DarkBlue, 2.0f);
+                overlay.drawFillAndWire(td::ColorID::Cyan, td::ColorID::DarkBlue, scaledLineWidth);
             } else {
-                overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, 1.5f);
+                overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, scaledLineWidth * 0.75f);
             }
         }
     }
 
-    // Display tour length info
+    // Display tour length info - scaled position
     double currentLength = tspSolver->getTourLength();
     double bestLength = tspSolver->getBestLength();
     int step = tspSolver->getCurrentStep();
@@ -311,7 +353,7 @@ void MapView::drawTSPState()
     }
 
     gui::DrawableString infoStr(info.str().c_str());
-    gui::Point textPos(10, 10);
+    gui::Point textPos(static_cast<gui::CoordType>(_offsetX + 10 * _scaleX), static_cast<gui::CoordType>(_offsetY + 10 * _scaleX));
     infoStr.draw(textPos, gui::Font::ID::SystemNormal, td::ColorID::Black);
 }
 
@@ -321,8 +363,12 @@ void MapView::drawTour(const std::vector<int>& tour, td::ColorID color, float li
 
     const auto& cities = _repo->cities();
 
+    // Scale the line width appropriately
+    float scaledLineWidth = lineWidth;
+    if (scaledLineWidth < 1.0f) scaledLineWidth = 1.0f;
+
     gui::Shape tourShape;
-    auto tourBezier = tourShape.createBezier(static_cast<gui::CoordType>(lineWidth), td::LinePattern::Solid);
+    auto tourBezier = tourShape.createBezier(static_cast<gui::CoordType>(scaledLineWidth), td::LinePattern::Solid);
     
     // Draw each TSP edge along the underlying road shortest path
     for (size_t i = 0; i < tour.size(); ++i) {
@@ -335,8 +381,8 @@ void MapView::drawTour(const std::vector<int>& tour, td::ColorID color, float li
             for (size_t k = 0; k + 1 < path.size(); ++k) {
                 int u = path[k];
                 int v = path[k + 1];
-                auto c1 = MapPointStyle::getCenter(cities[u].x, cities[u].y);
-                auto c2 = MapPointStyle::getCenter(cities[v].x, cities[v].y);
+                auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
+                auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
                 tourBezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
                 tourBezier.lineTo({ static_cast<gui::CoordType>(c2.first), static_cast<gui::CoordType>(c2.second) });
             }

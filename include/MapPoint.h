@@ -16,10 +16,16 @@ struct MapPointStyle {
     
     // Get center point of a map point (for road connections)
     static std::pair<double, double> getCenter(double x, double y);
+    
+    // Get center point with scaling applied
+    static std::pair<double, double> getScaledCenter(double x, double y, float scale, float offsetX, float offsetY);
 };
 
 // === MapPoint Renderer ===
 struct MapPointRenderer {
     // Draw a map point at given position with border and center based on status
     static void draw(const CityPoint& mapPoint);
+    
+    // Draw a map point with scaling and offset applied for window resize
+    static void drawScaled(const CityPoint& mapPoint, float scale, float offsetX, float offsetY);
 };
