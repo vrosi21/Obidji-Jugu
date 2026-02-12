@@ -1,6 +1,7 @@
 #pragma once
 #include <gui/View.h>
 #include <gui/HorizontalLayout.h>
+#include <gui/SplitterLayout.h>
 #include <gui/Timer.h>
 #include <memory>
 #include "DataRepository.h"
@@ -21,7 +22,7 @@ constexpr float SOLUTION_ANIM_INTERVAL = 0.05f;
 class MainView : public gui::View
 {
 private:
-    gui::HorizontalLayout _hlayout;
+    gui::SplitterLayout _splitter{gui::SplitterLayout::Orientation::Horizontal, gui::SplitterLayout::AuxiliaryCell::Second};
     DataRepository _repo;       // Single data source (owns the data)
     MapView _mapView;           // Rendering only
     SidePanelView _sidePanel;   // UI controls
@@ -35,21 +36,22 @@ private:
 
 public:
     MainView()
-        : _hlayout(2)
+        : _splitter(gui::SplitterLayout::Orientation::Horizontal, gui::SplitterLayout::AuxiliaryCell::Second)
         , _timer(this, SOLVER_STEP_INTERVAL, false)
         , _solutionTimer(this, SOLUTION_ANIM_INTERVAL, false)
     {
         setMargins(0, 0, 0, 0);
         
-        // Size limits
-        _sidePanel.setSizeLimits(500, gui::Control::Limit::UseAsMin,
-                                 866, gui::Control::Limit::UseAsMin);
-        _mapView.setSizeLimits(1000, gui::Control::Limit::UseAsMin,
-                               866, gui::Control::Limit::UseAsMin);
+        // Size limits - allow resizing with reasonable minimums
+        // Side panel has a minimum width to keep controls usable
+        _sidePanel.setSizeLimits(300, gui::Control::Limit::UseAsMin,
+                                 200, gui::Control::Limit::UseAsMin);
+        // Map view can scale down but has minimum to stay readable
+        _mapView.setSizeLimits(400, gui::Control::Limit::UseAsMin,
+                               350, gui::Control::Limit::UseAsMin);
 
-        _hlayout.append(_mapView, td::HAlignment::Left, td::VAlignment::Top);
-        _hlayout.append(_sidePanel, td::HAlignment::Left, td::VAlignment::Top);
-        setLayout(&_hlayout);
+        _splitter.setContent(_mapView, _sidePanel);
+        setLayout(&_splitter);
 
         // Wire up: repository -> mapView & sidePanel
         _mapView.setRepository(&_repo);
