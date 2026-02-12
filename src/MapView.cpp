@@ -316,8 +316,9 @@ void MapView::drawTSPState()
         int idx = currentTour[i];
         if (idx >= 0 && idx < static_cast<int>(cities.size())) {
             const auto& city = cities[idx];
-            float sx = static_cast<float>(city.x) * _scaleX;
-            float sy = _offsetY + static_cast<float>(city.y) * _scaleX;
+            float sx = _offsetX + static_cast<float>(city.x) * _scaleX;
+            float sy = _offsetY + static_cast<float>(city.y) * _scaleY;
+
             
             gui::Rect overlayRect(
                 sx - scaledBorder - 2 * avgScale,
@@ -505,8 +506,8 @@ void MapView::drawAnimatedSolution()
             int v = _solutionExpandedPath[i + 1];
             if (u < 0 || v < 0 || u >= (int)cities.size() || v >= (int)cities.size()) continue;
 
-            auto c1 = MapPointStyle::getCenter(cities[u].x, cities[u].y);
-            auto c2 = MapPointStyle::getCenter(cities[v].x, cities[v].y);
+            auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
+            auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
             completed.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
             completed.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
         }
@@ -520,20 +521,27 @@ void MapView::drawAnimatedSolution()
             gui::Shape currentShape;
             auto curr = currentShape.createBezier(6, td::LinePattern::Solid);
 
-            auto c1 = MapPointStyle::getCenter(cities[u].x, cities[u].y);
-            auto c2 = MapPointStyle::getCenter(cities[v].x, cities[v].y);
+            auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
+            auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
             curr.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
             curr.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
             currentShape.drawWire(td::ColorID::Green);
 
-            int ix = (int)cities[v].x;
-            int iy = (int)cities[v].y;
+            float avgScale = _scaleX;
+            float scaledSize = MapPointStyle::Size * avgScale;
+            float scaledBorder = MapPointStyle::BorderOffset * avgScale;
+
+            auto cc = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
+            float ix = cc.first - (scaledSize * 0.5f);   // ili koristi tačno kako ti je MapPointStyle centar definisan
+            float iy = cc.second - (scaledSize * 0.5f);
+
             gui::Rect overlayRect(
-                ix - MapPointStyle::BorderOffset - 4,
-                iy - MapPointStyle::BorderOffset - 4,
-                ix + MapPointStyle::Size + MapPointStyle::BorderOffset + 4,
-                iy + MapPointStyle::Size + MapPointStyle::BorderOffset + 4
+                ix - scaledBorder - 4 * avgScale,
+                iy - scaledBorder - 4 * avgScale,
+                ix + scaledSize + scaledBorder + 4 * avgScale,
+                iy + scaledSize + scaledBorder + 4 * avgScale
             );
+
             gui::Shape overlay;
             overlay.createRect(overlayRect);
             overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, 2.0f);
