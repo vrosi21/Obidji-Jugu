@@ -85,20 +85,59 @@ public:
     
     gui::GridLayout gl;
 
-    gui::Button showSolution;
+    
 
     // --- Algorithm Specific Buttons ---
     // -- Nearest Neighbor --
     gui::CheckBox checkBoxEnable2opt;
+
+    gui::Label lblImprovementCycles;
     gui::NumericEdit txtEditImprovementCycles;
 
+
     // -- Simulated Annealing --
+    gui::Label lblInitialTemperature;
     gui::NumericEdit txtEditInitialTemperature;
+
+    gui::Label lblCoolingRateAlpha;
     gui::Slider sliderCoolingRateAlpha;
+
+    gui::Label lblIterationsPerTemperatureLevel;
     gui::NumericEdit txtEditIterationsPerTemperatureLevel;
+
     gui::ComboBox cmbSAInitialSolution;
 
-    // -- Genetic Algorithm
+
+    // -- Genetic Algorithm --
+    gui::Label lblPopulationSize;
+    gui::NumericEdit txtEditPopulationSize;
+
+    gui::Label lblNumberOfGenerations;
+    gui::NumericEdit txtEditNumberOfGenerations;
+
+    gui::Label lblMutationRate;
+    gui::NumericEdit txtEditMutationRate;
+
+    gui::Label lblCrossoverRate;
+    gui::NumericEdit txtEditCrossoverRate;
+
+    gui::ComboBox cmbSelectionMethod;
+
+    gui::ComboBox cmbMutationCrossoverOperator;
+
+    gui::Label lblElitismPercentage;
+    gui::NumericEdit txtEditElitismPercentage;
+
+    gui::Button btnRandomizeParameters;
+
+
+
+
+    gui::Button showSolution;
+    gui::Label lblAnimationSpeed;
+    gui::Slider sliderAnimationSpeed;
+
+
 
 
 

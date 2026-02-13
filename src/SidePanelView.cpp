@@ -49,16 +49,38 @@ SidePanelView::SidePanelView()
     btnStartPause(tr("Start/Pause")),
     btnStepFwd(tr("Step >")),
     btnStepBwd(tr("< Step")),
+    // --- NN inputs
+    lblImprovementCycles(tr("Improvement cycles:")),
     checkBoxEnable2opt(tr("2-opt optimization")),
     txtEditImprovementCycles(td::DataType::decimal1),
+    // --- SA inputs ---
+    lblInitialTemperature(tr("Initial temperature:")),
+    lblCoolingRateAlpha(tr("Cooling rate (alpha):")),
+    lblIterationsPerTemperatureLevel(tr("Iterations per temperature:")),
     txtEditInitialTemperature(td::DataType::decimal1),
     sliderCoolingRateAlpha(tr("Cooling rate - alpha")),
     txtEditIterationsPerTemperatureLevel(td::DataType::decimal1),
     cmbSAInitialSolution(),
+    // --- GA inputs ---
+    lblPopulationSize(tr("Population size:")),
+    lblNumberOfGenerations(tr("Generations:")),
+    lblMutationRate(tr("Mutation rate:")),
+    lblCrossoverRate(tr("Crossover rate:")),
+    lblElitismPercentage(tr("Elitism (%):")),
+    txtEditPopulationSize(td::DataType::decimal1),
+    txtEditNumberOfGenerations(td::DataType::decimal1),
+    txtEditMutationRate(td::DataType::decimal1),
+    txtEditCrossoverRate(td::DataType::decimal1),
+    cmbSelectionMethod(),
+    cmbMutationCrossoverOperator(),
+    txtEditElitismPercentage(td::DataType::decimal1),
+    btnRandomizeParameters(tr("Randomize parameters")),
 
     // Layout (24 rows, 4 columns)
     showSolution(tr("Show Solution")),
-    gl(31, 4)
+    lblAnimationSpeed(tr("Animation speed")),
+    sliderAnimationSpeed(),
+    gl(36, 4)
 {
     gui::GridComposer gc(gl);
 
@@ -146,19 +168,42 @@ SidePanelView::SidePanelView()
 
     //NN inputs (Shows only when NN selected)
     gc.appendRow(checkBoxEnable2opt, 4);
-    gc.appendRow(txtEditImprovementCycles, 4);
+    gc.appendRow(lblImprovementCycles);
+    gc.appendCol(txtEditImprovementCycles, 3);
 
     //SA inputs (Shows only when SA selected)
-    gc.appendRow(txtEditInitialTemperature, 4);
+    gc.appendRow(lblInitialTemperature);
+    gc.appendCol(txtEditInitialTemperature, 3);
     sliderCoolingRateAlpha.setRange(0.90, 0.99);
-    gc.appendRow(sliderCoolingRateAlpha, 4);
-    gc.appendRow(txtEditIterationsPerTemperatureLevel, 4);
+    gc.appendRow(lblCoolingRateAlpha);
+    gc.appendCol(sliderCoolingRateAlpha, 3);
+    gc.appendRow(lblIterationsPerTemperatureLevel);
+    gc.appendCol(txtEditIterationsPerTemperatureLevel, 3);
     cmbSAInitialSolution.addItem("Random");
     cmbSAInitialSolution.addItem("Nearest Neighbor");
     gc.appendRow(cmbSAInitialSolution, 4);
     
     //GA inputs (Shows only when GA selected)
-
+    gc.appendRow(lblPopulationSize);
+    gc.appendCol(txtEditPopulationSize, 3);
+    gc.appendRow(lblNumberOfGenerations);
+    gc.appendCol(txtEditNumberOfGenerations, 3);
+    gc.appendRow(lblMutationRate);
+    gc.appendCol(txtEditMutationRate, 3);
+    gc.appendRow(lblCrossoverRate);
+    gc.appendCol(txtEditCrossoverRate, 3);
+    gc.appendRow(cmbSelectionMethod, 4);
+    gc.appendRow(cmbMutationCrossoverOperator, 4);
+    gc.appendRow(lblElitismPercentage);
+    gc.appendCol(txtEditElitismPercentage, 3);
+    gc.appendRow(btnRandomizeParameters, 4);
+    // Defaults / options
+    cmbSelectionMethod.addItem("Roulette");
+    cmbSelectionMethod.addItem("Tournament");
+    cmbSelectionMethod.addItem("Rank");
+    cmbMutationCrossoverOperator.addItem("Swap");
+    cmbMutationCrossoverOperator.addItem("Inversion");
+    cmbMutationCrossoverOperator.addItem("OX");
 
 
     btnStartPause.setType(gui::Button::Type::Default);
@@ -171,6 +216,8 @@ SidePanelView::SidePanelView()
     
 
     gc.appendRow(showSolution);
+    gc.appendRow(lblAnimationSpeed);
+    gc.appendCol(sliderAnimationSpeed,3);
 
     setLayout(&gl);
     
@@ -238,13 +285,51 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         int algoIdx = pCB->getSelectedIndex();
         bool nearestNeighborSelected = (algoIdx == 0);
         bool simulatedAnnealingSelected = (algoIdx == 1);
+        bool geneticAlgorithmSelected = (algoIdx == 2);
 
+        // -------------------------
+        // NN (label + inputs)
+        // -------------------------
         checkBoxEnable2opt.hide(!nearestNeighborSelected, true);
+        lblImprovementCycles.hide(!nearestNeighborSelected, true);
         txtEditImprovementCycles.hide(!nearestNeighborSelected, true);
 
+        // -------------------------
+        // SA (labels + inputs)
+        // -------------------------
+        lblInitialTemperature.hide(!simulatedAnnealingSelected, true);
         txtEditInitialTemperature.hide(!simulatedAnnealingSelected, true);
+
+        lblCoolingRateAlpha.hide(!simulatedAnnealingSelected, true);
         sliderCoolingRateAlpha.hide(!simulatedAnnealingSelected, true);
+
+        lblIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, true);
         txtEditIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, true);
+
+        cmbSAInitialSolution.hide(!simulatedAnnealingSelected, true);
+
+        // -------------------------
+        // GA (labels + inputs)
+        // -------------------------
+        lblPopulationSize.hide(!geneticAlgorithmSelected, true);
+        txtEditPopulationSize.hide(!geneticAlgorithmSelected, true);
+
+        lblNumberOfGenerations.hide(!geneticAlgorithmSelected, true);
+        txtEditNumberOfGenerations.hide(!geneticAlgorithmSelected, true);
+
+        lblMutationRate.hide(!geneticAlgorithmSelected, true);
+        txtEditMutationRate.hide(!geneticAlgorithmSelected, true);
+
+        lblCrossoverRate.hide(!geneticAlgorithmSelected, true);
+        txtEditCrossoverRate.hide(!geneticAlgorithmSelected, true);
+
+        cmbSelectionMethod.hide(!geneticAlgorithmSelected, true);
+        cmbMutationCrossoverOperator.hide(!geneticAlgorithmSelected, true);
+
+        lblElitismPercentage.hide(!geneticAlgorithmSelected, true);
+        txtEditElitismPercentage.hide(!geneticAlgorithmSelected, true);
+
+        btnRandomizeParameters.hide(!geneticAlgorithmSelected, true);
         
         reDraw();
         // Notify that algorithm selection changed (action code 2)
