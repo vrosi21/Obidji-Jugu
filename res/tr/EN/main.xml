@@ -30,5 +30,76 @@
 		<Res id="errNoPoints" tr="No points provided"/>
 		<Res id="errSolveFail" tr="Computation failed: "/>
 		<Res id="errUnknownAlgo" tr="Unknown algorithm"/>
+
+		<!-- ============================= -->
+		<!-- SidePanelView translations -->
+		<!-- ============================= -->
+
+		<!-- Section headers -->
+		<Res id="Add New Point" tr="Add New Point"/>
+		<Res id="Edit Selected Point" tr="Edit Selected Point"/>
+		<Res id="Connections" tr="Connections"/>
+		<Res id="Solve" tr="Solve"/>
+
+		<!-- Add Point -->
+		<Res id="City Name:" tr="City Name:"/>
+		<Res id="X:" tr="X:"/>
+		<Res id="Y:" tr="Y:"/>
+		<Res id="Add Point" tr="Add Point"/>
+
+		<!-- Edit Point -->
+		<Res id="Select:" tr="Select:"/>
+		<Res id="Name:" tr="Name:"/>
+		<Res id="Weight:" tr="Weight:"/>
+		<Res id="Status:" tr="Status:"/>
+		<Res id="Update" tr="Update"/>
+		<Res id="Delete" tr="Delete"/>
+
+		<!-- Status values -->
+		<Res id="Blocked" tr="Blocked"/>
+		<Res id="Open" tr="Open"/>
+		<Res id="Goal" tr="Goal"/>
+		<Res id="Start" tr="Start"/>
+
+		<!-- Connections -->
+		<Res id="Connected to:" tr="Connected to:"/>
+		<Res id="Connect to:" tr="Connect to:"/>
+		<Res id="Toggle" tr="Toggle"/>
+		<Res id="None" tr="None"/>
+
+		<!-- Solving -->
+		<Res id="Algorithm:" tr="Algorithm:"/>
+		<Res id="Start/Pause" tr="Start/Pause"/>
+		<Res id="Step >" tr="Step >"/>
+		<Res id="< Step" tr="< Step"/>
+		<Res id="Show Solution" tr="Show Solution"/>
+		<!-- NN / SA / GA extra controls -->
+		<Res id="Improvement cycles:" tr="Improvement cycles:"/>
+		<Res id="2-opt optimization" tr="2-opt optimization"/>
+
+		<Res id="Initial temperature:" tr="Initial temperature:"/>
+		<Res id="Cooling rate (alpha):" tr="Cooling rate (alpha):"/>
+		<Res id="Iterations per temperature:" tr="Iterations per temperature:"/>
+
+		<Res id="Population size:" tr="Population size:"/>
+		<Res id="Generations:" tr="Generations:"/>
+		<Res id="Mutation rate:" tr="Mutation rate:"/>
+		<Res id="Crossover rate:" tr="Crossover rate:"/>
+		<Res id="Elitism (%):" tr="Elitism (%):"/>
+
+		<Res id="Randomize parameters" tr="Randomize parameters"/>
+
+		<Res id="Animation speed" tr="Animation speed"/>
+
+		<!-- Combo items used in code -->
+		<Res id="Random" tr="Random"/>
+		<Res id="Nearest Neighbor" tr="Nearest Neighbor"/>
+		<Res id="Roulette" tr="Roulette"/>
+		<Res id="Tournament" tr="Tournament"/>
+		<Res id="Rank" tr="Rank"/>
+		<Res id="Swap" tr="Swap"/>
+		<Res id="Inversion" tr="Inversion"/>
+		<Res id="OX" tr="OX"/>
+
 	</Translations>
 </DevRes>

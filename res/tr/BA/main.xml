@@ -30,5 +30,77 @@
 		<Res id="errNoPoints" tr="Nema dostupnih tačaka"/>
 		<Res id="errSolveFail" tr="Računanje neuspješno: "/>
 		<Res id="errUnknownAlgo" tr="Nepoznat algoritam"/>
+
+		<!-- ============================= -->
+		<!-- SidePanelView translations -->
+		<!-- ============================= -->
+
+		<!-- Section headers -->
+		<Res id="Add New Point" tr="Dodaj novu tačku"/>
+		<Res id="Edit Selected Point" tr="Uredi odabranu tačku"/>
+		<Res id="Connections" tr="Veze"/>
+		<Res id="Solve" tr="Rješavanje"/>
+
+		<!-- Add Point -->
+		<Res id="City Name:" tr="Naziv grada:"/>
+		<Res id="X:" tr="X:"/>
+		<Res id="Y:" tr="Y:"/>
+		<Res id="Add Point" tr="Dodaj tačku"/>
+
+		<!-- Edit Point -->
+		<Res id="Select:" tr="Odaberi:"/>
+		<Res id="Name:" tr="Naziv:"/>
+		<Res id="Weight:" tr="Težina:"/>
+		<Res id="Status:" tr="Status:"/>
+		<Res id="Update" tr="Ažuriraj"/>
+		<Res id="Delete" tr="Obriši"/>
+
+		<!-- Status values -->
+		<Res id="Blocked" tr="Blokirano"/>
+		<Res id="Open" tr="Otvoreno"/>
+		<Res id="Goal" tr="Cilj"/>
+		<Res id="Start" tr="Početak"/>
+
+		<!-- Connections -->
+		<Res id="Connected to:" tr="Povezano sa:"/>
+		<Res id="Connect to:" tr="Poveži sa:"/>
+		<Res id="Toggle" tr="Uključi/isključi"/>
+		<Res id="None" tr="Nema"/>
+
+		<!-- Solving -->
+		<Res id="Algorithm:" tr="Algoritam:"/>
+		<Res id="Start/Pause" tr="Pokreni/Pauziraj"/>
+		<Res id="Step >" tr="Korak >"/>
+		<Res id="< Step" tr="< Korak"/>
+		<Res id="Show Solution" tr="Prikaži rješenje"/>
+		<!-- NN / SA / GA extra controls -->
+		<Res id="Improvement cycles:" tr="Ciklusi poboljšanja:"/>
+		<Res id="2-opt optimization" tr="2-opt optimizacija"/>
+
+		<Res id="Initial temperature:" tr="Početna temperatura:"/>
+		<Res id="Cooling rate (alpha):" tr="Faktor hlađenja (alpha):"/>
+		<Res id="Iterations per temperature:" tr="Iteracije po temperaturi:"/>
+
+		<Res id="Population size:" tr="Veličina populacije:"/>
+		<Res id="Generations:" tr="Generacije:"/>
+		<Res id="Mutation rate:" tr="Stopa mutacije:"/>
+		<Res id="Crossover rate:" tr="Stopa ukrštanja:"/>
+		<Res id="Elitism (%):" tr="Elitizam (%):"/>
+
+		<Res id="Randomize parameters" tr="Nasumično parametri"/>
+
+		<Res id="Animation speed" tr="Brzina animacije"/>
+
+		<!-- Combo items used in code -->
+		<Res id="Random" tr="Nasumično"/>
+		<Res id="Nearest Neighbor" tr="Najbliži susjed"/>
+		<Res id="Roulette" tr="Rulet"/>
+		<Res id="Tournament" tr="Turnir"/>
+		<Res id="Rank" tr="Rangiranje"/>
+		<Res id="Swap" tr="Zamjena"/>
+		<Res id="Inversion" tr="Inverzija"/>
+		<Res id="OX" tr="OX"/>
+
+		
 	</Translations>
 </DevRes>

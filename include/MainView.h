@@ -144,24 +144,10 @@ private:
 
         // Create new solver based on selection
         switch (algorithmIdx) {
-            case 0:
-                _solver = std::make_unique<BFSAlgorithm>();
-                break;
-            case 1:
-                _solver = std::make_unique<DFSAlgorithm>();
-                break;
-            case 2:
-                _solver = std::make_unique<NearestNeighborAlgorithm>();
-                break;
-            case 3:
-                _solver = std::make_unique<SimulatedAnnealingAlgorithm>();
-                break;
-            case 4:
-                _solver = std::make_unique<GeneticAlgorithmTSP>();
-                break;
-            default:
-                _solver = std::make_unique<BFSAlgorithm>();
-                break;
+            case 0: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;
+            case 1: _solver = std::make_unique<SimulatedAnnealingAlgorithm>(); break;
+            case 2: _solver = std::make_unique<GeneticAlgorithmTSP>(); break;
+            default: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;
         }
 
         // Initialize solver with current data

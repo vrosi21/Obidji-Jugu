@@ -8,6 +8,10 @@
 #include <gui/NumericEdit.h>
 #include <gui/ComboBox.h>
 #include <gui/HorizontalLayout.h>
+#include <gui/CheckBox.h>
+#include <gui/VerticalLayout.h>
+#include <gui/Slider.h>
+
 
 #include <vector>
 #include <string>
@@ -60,6 +64,16 @@ public:
     gui::Label lblConnectTo;
     gui::ComboBox cmbConnectTo;
     gui::Button btnToggleConnection;
+
+
+    // --- Randomize Section ---
+    gui::Label lblRandomize;
+    gui::HorizontalLayout hlRandomizeBtns;
+    gui::Button btnRandomizePosition;
+    gui::Button btnRandomizeWeight;
+    gui::Button btnRandomizeStatus;
+    gui::Button btnRandomizeAll;
+
     
     // --- Solve Section ---
     gui::Label lblAlgorithm;
@@ -71,7 +85,63 @@ public:
     
     gui::GridLayout gl;
 
+    
+
+    // --- Algorithm Specific Buttons ---
+    // -- Nearest Neighbor --
+    gui::CheckBox checkBoxEnable2opt;
+
+    gui::Label lblImprovementCycles;
+    gui::NumericEdit txtEditImprovementCycles;
+
+
+    // -- Simulated Annealing --
+    gui::Label lblInitialTemperature;
+    gui::NumericEdit txtEditInitialTemperature;
+
+    gui::Label lblCoolingRateAlpha;
+    gui::Slider sliderCoolingRateAlpha;
+
+    gui::Label lblIterationsPerTemperatureLevel;
+    gui::NumericEdit txtEditIterationsPerTemperatureLevel;
+
+    gui::ComboBox cmbSAInitialSolution;
+
+
+    // -- Genetic Algorithm --
+    gui::Label lblPopulationSize;
+    gui::NumericEdit txtEditPopulationSize;
+
+    gui::Label lblNumberOfGenerations;
+    gui::NumericEdit txtEditNumberOfGenerations;
+
+    gui::Label lblMutationRate;
+    gui::NumericEdit txtEditMutationRate;
+
+    gui::Label lblCrossoverRate;
+    gui::NumericEdit txtEditCrossoverRate;
+
+    gui::ComboBox cmbSelectionMethod;
+
+    gui::ComboBox cmbMutationCrossoverOperator;
+
+    gui::Label lblElitismPercentage;
+    gui::NumericEdit txtEditElitismPercentage;
+
+    gui::Button btnRandomizeParameters;
+
+
+
+
     gui::Button showSolution;
+    gui::Label lblAnimationSpeed;
+    gui::Slider sliderAnimationSpeed;
+
+
+
+
+
+
 
     SidePanelView();
     ~SidePanelView() = default;
@@ -98,7 +168,7 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
-    std::vector<std::string> _algorithmNames = {"BFS", "DFS", "Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm"};
+    std::vector<std::string> _algorithmNames = {"Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm"}; // "BFS" and "DFS" exist but are not rendered in the combobox
     DataRepository* _repo = nullptr;
     SolverCallback _solverCallback;
 
