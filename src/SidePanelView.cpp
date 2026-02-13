@@ -37,14 +37,28 @@ SidePanelView::SidePanelView()
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle")),
+    // Randomize Section
+    lblRandomize(tr("Randomize")),
+    hlRandomizeBtns(4),
+    btnRandomizePosition(tr("Positions")),
+    btnRandomizeWeight(tr("Weights")),
+    btnRandomizeStatus(tr("Status")),
+    btnRandomizeAll(tr("All")),
     // Solve Section
     lblAlgorithm(tr("Algorithm:")),
     btnStartPause(tr("Start/Pause")),
     btnStepFwd(tr("Step >")),
     btnStepBwd(tr("< Step")),
+    checkBoxEnable2opt(tr("2-opt optimization")),
+    txtEditImprovementCycles(td::DataType::decimal1),
+    txtEditInitialTemperature(td::DataType::decimal1),
+    sliderCoolingRateAlpha(tr("Cooling rate - alpha")),
+    txtEditIterationsPerTemperatureLevel(td::DataType::decimal1),
+    cmbSAInitialSolution(),
+
     // Layout (24 rows, 4 columns)
     showSolution(tr("Show Solution")),
-    gl(25, 4)
+    gl(31, 4)
 {
     gui::GridComposer gc(gl);
 
@@ -89,6 +103,7 @@ SidePanelView::SidePanelView()
     gc.appendCol(cmbStatus, 3);
     
     btnUpdatePoint.setType(gui::Button::Type::Default);
+    //btnUpdatePoint.hide(true, false);
     btnDeletePoint.setType(gui::Button::Type::Default);
     gc.appendRow(btnUpdatePoint, 2);
     gc.appendCol(btnDeletePoint, 2);
@@ -109,7 +124,18 @@ SidePanelView::SidePanelView()
     gc.appendRow(btnToggleConnection, 2);
 
     // ========================================
-    // SECTION 4: Solve
+    // SECTION 4: Randomize
+    // ========================================
+    lblRandomize.setFont(gui::Font::ID::SystemLargerBold);
+    gc.appendRow(lblRandomize, 1);
+    gc.appendRow(btnRandomizePosition, 1, td::HAlignment::Left);
+    gc.appendCol(btnRandomizeWeight, 1, td::HAlignment::Center);
+    gc.appendCol(btnRandomizeStatus, 1, td::HAlignment::Center);
+    gc.appendCol(btnRandomizeAll, 1, td::HAlignment::Center);
+
+
+    // ========================================
+    // SECTION 5: Solve
     // ========================================
     lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
     gc.appendRow(lblSolvingSection, 4);
@@ -117,12 +143,32 @@ SidePanelView::SidePanelView()
     gc.appendRow(lblAlgorithm);
     gc.appendCol(cmbSolvingAlgorithm, 3);
     
+
+    //NN inputs (Shows only when NN selected)
+    gc.appendRow(checkBoxEnable2opt, 4);
+    gc.appendRow(txtEditImprovementCycles, 4);
+
+    //SA inputs (Shows only when SA selected)
+    gc.appendRow(txtEditInitialTemperature, 4);
+    sliderCoolingRateAlpha.setRange(0.90, 0.99);
+    gc.appendRow(sliderCoolingRateAlpha, 4);
+    gc.appendRow(txtEditIterationsPerTemperatureLevel, 4);
+    cmbSAInitialSolution.addItem("Random");
+    cmbSAInitialSolution.addItem("Nearest Neighbor");
+    gc.appendRow(cmbSAInitialSolution, 4);
+    
+    //GA inputs (Shows only when GA selected)
+
+
+
     btnStartPause.setType(gui::Button::Type::Default);
     btnStepBwd.setType(gui::Button::Type::Default);
     btnStepFwd.setType(gui::Button::Type::Default);
     gc.appendRow(btnStartPause, 2);
     gc.appendCol(btnStepBwd);
     gc.appendCol(btnStepFwd);
+
+    
 
     gc.appendRow(showSolution);
 
@@ -189,6 +235,18 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
     }
     if (pCB == &cmbSolvingAlgorithm)
     {
+        int algoIdx = pCB->getSelectedIndex();
+        bool nearestNeighborSelected = (algoIdx == 0);
+        bool simulatedAnnealingSelected = (algoIdx == 1);
+
+        checkBoxEnable2opt.hide(!nearestNeighborSelected, true);
+        txtEditImprovementCycles.hide(!nearestNeighborSelected, true);
+
+        txtEditInitialTemperature.hide(!simulatedAnnealingSelected, true);
+        sliderCoolingRateAlpha.hide(!simulatedAnnealingSelected, true);
+        txtEditIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, true);
+        
+        reDraw();
         // Notify that algorithm selection changed (action code 2)
         if (_solverCallback) {
             _solverCallback(2, pCB->getSelectedIndex());
@@ -218,6 +276,26 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &btnToggleConnection)
     {
         handleToggleConnection();
+        return true;
+    }
+    if (pBtn == &btnRandomizePosition)
+    {
+        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING POSITIONS
+        return true;
+    }
+    if (pBtn == &btnRandomizeWeight)
+    {
+        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING WEIGHTS
+        return true;
+    }
+    if (pBtn == &btnRandomizeStatus)
+    {
+        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING STATUS
+        return true;
+    }
+    if (pBtn == &btnRandomizeAll)
+    {
+        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING ALL ATTRIBUTES
         return true;
     }
     if (pBtn == &btnStartPause) {

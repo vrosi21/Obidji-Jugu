@@ -8,6 +8,10 @@
 #include <gui/NumericEdit.h>
 #include <gui/ComboBox.h>
 #include <gui/HorizontalLayout.h>
+#include <gui/CheckBox.h>
+#include <gui/VerticalLayout.h>
+#include <gui/Slider.h>
+
 
 #include <vector>
 #include <string>
@@ -60,6 +64,16 @@ public:
     gui::Label lblConnectTo;
     gui::ComboBox cmbConnectTo;
     gui::Button btnToggleConnection;
+
+
+    // --- Randomize Section ---
+    gui::Label lblRandomize;
+    gui::HorizontalLayout hlRandomizeBtns;
+    gui::Button btnRandomizePosition;
+    gui::Button btnRandomizeWeight;
+    gui::Button btnRandomizeStatus;
+    gui::Button btnRandomizeAll;
+
     
     // --- Solve Section ---
     gui::Label lblAlgorithm;
@@ -72,6 +86,23 @@ public:
     gui::GridLayout gl;
 
     gui::Button showSolution;
+
+    // --- Algorithm Specific Buttons ---
+    // -- Nearest Neighbor --
+    gui::CheckBox checkBoxEnable2opt;
+    gui::NumericEdit txtEditImprovementCycles;
+
+    // -- Simulated Annealing --
+    gui::NumericEdit txtEditInitialTemperature;
+    gui::Slider sliderCoolingRateAlpha;
+    gui::NumericEdit txtEditIterationsPerTemperatureLevel;
+    gui::ComboBox cmbSAInitialSolution;
+
+    // -- Genetic Algorithm
+
+
+
+
 
     SidePanelView();
     ~SidePanelView() = default;
