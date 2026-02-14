@@ -19,7 +19,8 @@ namespace {
 
 }
 MapView::MapView()
-    : _currentSize(ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT)
+    : gui::Canvas({ gui::InputDevice::Event::PrimaryClicks, gui::InputDevice::Event::SecondaryClicks })
+    , _currentSize(ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT)
     , _solutionTimer(this, SOLUTION_ANIM_INTERVAL_SEC, false)
 {
     enableResizeEvent(true);
@@ -45,6 +46,47 @@ void MapView::setSolver(SearchAlgorithm* solver)
 void MapView::onResize(const gui::Size& newSize)
 {
     _currentSize = newSize;
+}
+
+void MapView::onPrimaryButtonPressed(const gui::InputDevice& inputDevice)
+{
+    int idx = hitTestCity(inputDevice.getFramePoint());
+    if (idx >= 0 && _onPrimaryCityClick) {
+        _onPrimaryCityClick(idx);
+    }
+}
+
+void MapView::onSecondaryButtonPressed(const gui::InputDevice& inputDevice)
+{
+    int idx = hitTestCity(inputDevice.getFramePoint());
+    if (idx >= 0 && _onSecondaryCityClick) {
+        _onSecondaryCityClick(idx);
+    }
+}
+
+int MapView::hitTestCity(const gui::Point& p) const
+{
+    if (!_repo) return -1;
+    const auto& cities = _repo->cities();
+
+    const float scaledSize = MapPointStyle::Size * _scaleX;
+    const float scaledBorder = MapPointStyle::BorderOffset * _scaleX;
+
+    for (int i = static_cast<int>(cities.size()) - 1; i >= 0; --i) {
+        const auto& c = cities[i];
+        float sx = _offsetX + static_cast<float>(c.x) * _scaleX;
+        float sy = _offsetY + static_cast<float>(c.y) * _scaleY;
+
+        float left = sx - scaledBorder;
+        float top = sy - scaledBorder;
+        float right = sx + scaledSize + scaledBorder;
+        float bottom = sy + scaledSize + scaledBorder;
+
+        if (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void MapView::onDraw(const gui::Rect& rect)

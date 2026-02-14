@@ -59,6 +59,38 @@ public:
         _sidePanel.populatePointNames(_repo.getCityNames());
         _sidePanel.syncSelectionDetails();
 
+        // Map interactions:
+        // - left click city: select it in side panel
+        // - right click another city: toggle connection from currently selected city to clicked city
+        _mapView.setOnPrimaryCityClick([this](int cityIdx) {
+            _sidePanel.selectPointIndex(cityIdx);
+            _mapView.refresh();
+        });
+        _mapView.setOnSecondaryCityClick([this](int cityIdx) {
+            int selectedIdx = _sidePanel.getSelectedPointIndex();
+
+            // If nothing is selected yet, pick the clicked city as selection
+            if (selectedIdx < 0) {
+                _sidePanel.selectPointIndex(cityIdx);
+                _mapView.refresh();
+                return;
+            }
+
+            // Right click on non-selected city toggles connection selected <-> clicked
+            if (selectedIdx == cityIdx) {
+                return;
+            }
+
+            if (_repo.hasConnection(selectedIdx, cityIdx)) {
+                _repo.removeConnection(selectedIdx, cityIdx);
+            } else {
+                _repo.addConnection(selectedIdx, cityIdx);
+            }
+
+            _sidePanel.syncSelectionDetails();
+            _mapView.refresh();
+        });
+
         // Wire up solver callback from side panel
         _sidePanel.setSolverCallback([this](int action, int algorithmIdx) {
             handleSolverAction(action, algorithmIdx);

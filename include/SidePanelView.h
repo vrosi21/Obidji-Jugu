@@ -161,6 +161,10 @@ public:
     // Get currently selected algorithm index
     int getSelectedAlgorithmIndex() const;
 
+    // Get / set currently selected city index
+    int getSelectedPointIndex() const;
+    void selectPointIndex(int idx);
+
     // Update step button enabled state
     // running: solver is auto-stepping
     // canFwd: solver can step forward (not complete)

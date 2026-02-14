@@ -1021,6 +1021,18 @@ int SidePanelView::getSelectedAlgorithmIndex() const
     return cmbSolvingAlgorithm.getSelectedIndex();
 }
 
+int SidePanelView::getSelectedPointIndex() const
+{
+    return cmbPoints.getSelectedIndex();
+}
+
+void SidePanelView::selectPointIndex(int idx)
+{
+    if (idx < 0 || idx >= static_cast<int>(_pointNames.size())) return;
+    selectIndexAndUpdate(idx);
+    reDraw();
+}
+
 void SidePanelView::updateStepButtons(bool running, bool canFwd, bool canBwd)
 {
     if (running) {

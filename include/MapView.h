@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <functional>
 #include <gui/Timer.h>
 
 
@@ -22,6 +23,8 @@ constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
 class MapView : public gui::Canvas
 {
 public:
+    using CityClickCallback = std::function<void(int cityIdx)>;
+
     MapView();
     ~MapView() = default;
 
@@ -48,10 +51,16 @@ public:
     // returns true if still animating, false if finished
     bool advanceSolutionAnimation(size_t edgesPerTick);
 
+    // Click callbacks for city interactions
+    void setOnPrimaryCityClick(CityClickCallback cb) { _onPrimaryCityClick = std::move(cb); }
+    void setOnSecondaryCityClick(CityClickCallback cb) { _onSecondaryCityClick = std::move(cb); }
+
 
 
 protected:
     bool onTimer(gui::Timer* pTimer) override;
+    void onPrimaryButtonPressed(const gui::InputDevice& inputDevice) override;
+    void onSecondaryButtonPressed(const gui::InputDevice& inputDevice) override;
 
     void onDraw(const gui::Rect& rect) override;
     void onResize(const gui::Size& newSize) override;
@@ -67,6 +76,7 @@ private:
     // Animation helpers (main)
     bool buildExpandedTourPath(const std::vector<int>& tour, std::vector<int>& outPath) const;
     void drawAnimatedSolution();
+    int hitTestCity(const gui::Point& p) const;
 
     // Transform original coordinates to current view coordinates (responsiveness)
     float scaleX(float x) const { return x * _scaleX + _offsetX; }
@@ -90,6 +100,9 @@ private:
     bool _solutionAnimating = false;
     std::vector<int> _solutionExpandedPath;
     size_t _solutionAnimEdgeCount = 0;
+
+    CityClickCallback _onPrimaryCityClick;
+    CityClickCallback _onSecondaryCityClick;
 
     
 
