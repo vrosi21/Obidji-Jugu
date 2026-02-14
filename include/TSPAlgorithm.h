@@ -16,38 +16,55 @@ struct TSPState {
 };
 
 // Abstract base class for TSP optimization algorithms
-// These algorithms find a tour visiting ALL cities (not just start-to-goal path)
+// These algorithms optimize a tour over required cities:
+// - Goal cities MUST be visited
+// - Start city is included as anchor if present
+// - Open cities are optional transit nodes via shortest-road paths
 class TSPAlgorithm : public SearchAlgorithm {
 public:
     TSPAlgorithm() : _rng(std::random_device{}()) {}
     ~TSPAlgorithm() override = default;
 
-    // Override reset to initialize for TSP (all cities, not start/goal)
+    // Override reset to initialize required city set for TSP
     void reset(DataRepository* repo) override {
         _repo = repo;
         _tspState = TSPState();
         _tspHistory.clear();
         _path.clear();
         _cityCount = 0;
-        _eligibleCities.clear();
+        _requiredCities.clear();
         _startCityIdx = -1;
         _goalIndices.clear();
 
         if (!_repo) return;
 
-        // Build list of eligible cities (exclude Blocked)
+        // Build required set:
+        // - collect all non-blocked Goal cities
+        // - include non-blocked Start city as anchor
         const auto& cities = _repo->cities();
         for (size_t i = 0; i < cities.size(); ++i) {
             if (cities[i].visitation_status == VisitationStatus::Blocked)
                 continue;
-            _eligibleCities.push_back(static_cast<int>(i));
+
             if (cities[i].visitation_status == VisitationStatus::Start)
                 _startCityIdx = static_cast<int>(i);
             if (cities[i].visitation_status == VisitationStatus::Goal)
                 _goalIndices.push_back(static_cast<int>(i));
         }
 
-        _cityCount = static_cast<int>(_eligibleCities.size());
+        // Start (if exists) is anchor city in the required tour
+        if (_startCityIdx >= 0) {
+            _requiredCities.push_back(_startCityIdx);
+        }
+
+        // Add all goals, avoiding duplicate if Start is also Goal
+        for (int g : _goalIndices) {
+            if (g != _startCityIdx) {
+                _requiredCities.push_back(g);
+            }
+        }
+
+        _cityCount = static_cast<int>(_requiredCities.size());
         
         // Initialize TSP-specific state
         initializeTSP();
@@ -151,11 +168,11 @@ protected:
         return length;
     }
 
-    // Generate a random tour of eligible cities only
-    // Start city is pinned at position 0, Goal cities are guaranteed included
+    // Generate a random tour of required cities only
+    // Start city is pinned at position 0 if present
     std::vector<int> generateRandomTour() {
-        // Start with eligible cities
-        std::vector<int> tour = _eligibleCities;
+        // Start with required cities
+        std::vector<int> tour = _requiredCities;
         if (tour.empty()) return tour;
 
         std::shuffle(tour.begin(), tour.end(), _rng);
@@ -184,7 +201,7 @@ protected:
     TSPState _tspState;
     std::vector<TSPState> _tspHistory;
     int _cityCount = 0;
-    std::vector<int> _eligibleCities;  // indices of non-Blocked cities
+    std::vector<int> _requiredCities;  // Start + Goal indices that must be in the tour
     int _startCityIdx = -1;            // index of Start city (-1 if none)
     std::vector<int> _goalIndices;     // indices of Goal cities (must visit)
     std::mt19937 _rng;

@@ -37,7 +37,7 @@ protected:
     }
 
     bool performStep() override {
-        if (_temperature <= _minTemp || _cityCount < 4) {
+        if (_temperature <= _minTemp || _cityCount < 2) {
             _tspState.finished = true;
             return false;
         }
@@ -46,6 +46,8 @@ protected:
         std::vector<int> newTour = _tspState.tour;
         int tourSize = static_cast<int>(newTour.size());
         if (tourSize < 4) {
+            // With fewer than 4 required nodes, 2-opt is not meaningful.
+            // Keep current valid tour as final.
             _tspState.finished = true;
             return false;
         }

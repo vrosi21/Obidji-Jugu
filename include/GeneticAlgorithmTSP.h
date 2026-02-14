@@ -43,7 +43,7 @@ protected:
     }
 
     bool performStep() override {
-        if (_generation >= _maxGenerations || _cityCount < 4) {
+        if (_generation >= _maxGenerations || _cityCount < 2) {
             _tspState.finished = true;
             return false;
         }

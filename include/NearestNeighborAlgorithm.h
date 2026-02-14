@@ -17,16 +17,16 @@ protected:
     void initializeTSP() override {
         _unvisited.clear();
         
-        // Initialize unvisited set with only eligible (non-Blocked) cities
-        for (int idx : _eligibleCities) {
+        // Initialize unvisited set with required cities only (Goals + Start anchor)
+        for (int idx : _requiredCities) {
             _unvisited.insert(idx);
         }
 
-        // Start from Start city if set, otherwise first eligible city
+        // Start from Start city if set, otherwise first required city
         int startCity = (_startCityIdx >= 0) ? _startCityIdx
-                      : (_eligibleCities.empty() ? 0 : _eligibleCities.front());
+                      : (_requiredCities.empty() ? 0 : _requiredCities.front());
 
-        if (!_eligibleCities.empty()) {
+        if (!_requiredCities.empty()) {
             _tspState.tour.clear();
             _tspState.tour.push_back(startCity);
             _unvisited.erase(startCity);
