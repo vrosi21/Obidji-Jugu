@@ -103,6 +103,11 @@ public:
         return true;
     }
 
+    // Check if we can step back (have history)
+    virtual bool canStepBack() const {
+        return !_history.empty();
+    }
+
     // Check if algorithm has finished
     virtual bool isComplete() const {
         return _state.finished;

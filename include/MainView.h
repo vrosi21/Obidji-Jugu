@@ -66,6 +66,9 @@ public:
 
         // Initialize solver with default algorithm (BFS)
         selectAlgorithm(0);
+
+        // Initial button state
+        refreshStepButtons();
     }
 
 protected:
@@ -76,6 +79,7 @@ protected:
             if (!_solver->step()) stopSolver();
             _mapView.refresh();
             if (_running) _timer.start();
+            refreshStepButtons();
             return true;
         }
 
@@ -160,8 +164,16 @@ private:
         _solutionTimer.stop();
         _mapView.stopSolutionAnimation();
 
-
+        refreshStepButtons();
         _mapView.refresh();
+    }
+
+    // Update step button enable/disable state based on current solver state
+    void refreshStepButtons()
+    {
+        bool canFwd = _solver && !_solver->isComplete();
+        bool canBwd = _solver && _solver->canStepBack();
+        _sidePanel.updateStepButtons(_running, canFwd, canBwd);
     }
 
     void startSolver()
@@ -181,12 +193,14 @@ private:
         
         _running = true;
         _timer.start();
+        refreshStepButtons();
     }
 
     void stopSolver()
     {
         _running = false;
         _timer.stop();
+        refreshStepButtons();
     }
 
     void stepForward()
@@ -205,6 +219,7 @@ private:
 
         _solver->step();
         _mapView.refresh();
+        refreshStepButtons();
     }
 
     void stepBackward()
@@ -218,5 +233,6 @@ private:
 
         _solver->stepBack();
         _mapView.refresh();
+        refreshStepButtons();
     }
 };

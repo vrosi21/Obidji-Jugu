@@ -220,6 +220,10 @@ SidePanelView::SidePanelView()
     gc.appendCol(sliderAnimationSpeed,3);
 
     setLayout(&gl);
+
+    // Initial button state: not started, only forward enabled
+    btnStepBwd.enable(false);
+    btnStepFwd.enable(true);
     
     // Populate dropdowns
     populateStatusCombo();
@@ -654,4 +658,17 @@ void SidePanelView::setSolverCallback(SolverCallback callback)
 int SidePanelView::getSelectedAlgorithmIndex() const
 {
     return cmbSolvingAlgorithm.getSelectedIndex();
+}
+
+void SidePanelView::updateStepButtons(bool running, bool canFwd, bool canBwd)
+{
+    if (running) {
+        // While auto-running, disable both step buttons
+        btnStepFwd.enable(false);
+        btnStepBwd.enable(false);
+    } else {
+        // Paused or not started: enable based on state
+        btnStepFwd.enable(canFwd);
+        btnStepBwd.enable(canBwd);
+    }
 }

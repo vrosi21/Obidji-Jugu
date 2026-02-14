@@ -84,6 +84,11 @@ public:
         return _tspState.bestTour;
     }
 
+    // Override canStepBack for TSP history
+    bool canStepBack() const override {
+        return !_tspHistory.empty();
+    }
+
     // Override isComplete
     bool isComplete() const override {
         return _tspState.finished;

@@ -158,6 +158,12 @@ public:
     
     // Get currently selected algorithm index
     int getSelectedAlgorithmIndex() const;
+
+    // Update step button enabled state
+    // running: solver is auto-stepping
+    // canFwd: solver can step forward (not complete)
+    // canBwd: solver can step backward (has history)
+    void updateStepButtons(bool running, bool canFwd, bool canBwd);
     
     // Sync current selection fields with selected dropdown item
     void syncSelectionDetails();
