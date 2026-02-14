@@ -49,6 +49,7 @@ SidePanelView::SidePanelView()
     btnStartPause(tr("Start/Pause")),
     btnStepFwd(tr("Step >")),
     btnStepBwd(tr("< Step")),
+    btnResetSolution(tr("Reset")),
     // --- NN inputs
     lblImprovementCycles(tr("Improvement cycles:")),
     checkBoxEnable2opt(tr("2-opt optimization")),
@@ -209,13 +210,13 @@ SidePanelView::SidePanelView()
     btnStartPause.setType(gui::Button::Type::Default);
     btnStepBwd.setType(gui::Button::Type::Default);
     btnStepFwd.setType(gui::Button::Type::Default);
+    btnResetSolution.setType(gui::Button::Type::Default);
     gc.appendRow(btnStartPause, 2);
     gc.appendCol(btnStepBwd);
     gc.appendCol(btnStepFwd);
 
-    
-
-    gc.appendRow(showSolution);
+    gc.appendRow(showSolution, 2);
+    gc.appendCol(btnResetSolution, 2);
     gc.appendRow(lblAnimationSpeed);
     gc.appendCol(sliderAnimationSpeed,3);
 
@@ -224,6 +225,7 @@ SidePanelView::SidePanelView()
     // Initial button state: not started, only forward enabled
     btnStepBwd.enable(false);
     btnStepFwd.enable(true);
+    btnResetSolution.enable(true);
     
     // Populate dropdowns
     populateStatusCombo();
@@ -408,6 +410,12 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &showSolution) {
         if (_solverCallback) {
             _solverCallback(3, cmbSolvingAlgorithm.getSelectedIndex()); // 3 = show solution
+        }
+        return true;
+    }
+    if (pBtn == &btnResetSolution) {
+        if (_solverCallback) {
+            _solverCallback(4, cmbSolvingAlgorithm.getSelectedIndex()); // 4 = reset solver state/visualization
         }
         return true;
     }
@@ -671,4 +679,14 @@ void SidePanelView::updateStepButtons(bool running, bool canFwd, bool canBwd)
         btnStepFwd.enable(canFwd);
         btnStepBwd.enable(canBwd);
     }
+}
+
+void SidePanelView::updateExecutionState(bool running)
+{
+    // Lock algorithm selection while executing
+    cmbSolvingAlgorithm.enable(!running);
+
+    // Keep solution/reset disabled while running to avoid conflicting states
+    showSolution.enable(!running);
+    btnResetSolution.enable(!running);
 }

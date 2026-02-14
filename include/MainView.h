@@ -115,8 +115,18 @@ protected:
 
 
 private:
+    // Stop both solve execution and final-solution animation
+    void stopAllExecution()
+    {
+        _running = false;
+        _timer.stop();
+        _solutionRunning = false;
+        _solutionTimer.stop();
+        _mapView.stopSolutionAnimation();
+    }
+
     // Handle solver control actions from SidePanelView
-    // action: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed
+    // action: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed, 3=show final solution, 4=reset
     void handleSolverAction(int action, int algorithmIdx)
     {
         switch (action) {
@@ -139,6 +149,13 @@ private:
             case 3: // Show Solution (animated)
                 if (_running) stopSolver();
 
+                // Build final solution first (run remaining iterations immediately)
+                if (_solver) {
+                    while (!_solver->isComplete()) {
+                        if (!_solver->step()) break;
+                    }
+                }
+
                 _solutionRunning = false;
                 _solutionTimer.stop();
 
@@ -147,6 +164,16 @@ private:
                     _solutionRunning = true;
                     _solutionTimer.start();
                 }
+                _mapView.refresh();
+                refreshStepButtons();
+                break;
+            case 4: // Reset solver state + clear drawn algorithm paths/animation
+                stopAllExecution();
+                if (_solver) {
+                    _solver->reset(&_repo);
+                }
+                _mapView.refresh();
+                refreshStepButtons();
                 break;
 
         }
@@ -189,6 +216,7 @@ private:
         bool canFwd = _solver && !_solver->isComplete();
         bool canBwd = _solver && _solver->canStepBack();
         _sidePanel.updateStepButtons(_running, canFwd, canBwd);
+        _sidePanel.updateExecutionState(_running);
     }
 
     void startSolver()

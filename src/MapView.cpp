@@ -309,12 +309,6 @@ void MapView::drawTSPState()
         drawTour(currentTour, td::ColorID::Cyan, 2.0f * avgScale);
     }
 
-    // Draw best tour in green (if different and exists)
-    const auto& bestTour = tspSolver->getBestTour();
-    if (!bestTour.empty() && bestTour != currentTour) {
-        drawTour(bestTour, td::ColorID::Green, 3.0f * avgScale);
-    }
-
     // Highlight cities in the current tour
     for (size_t i = 0; i < currentTour.size(); ++i) {
         int idx = currentTour[i];
@@ -344,7 +338,6 @@ void MapView::drawTSPState()
 
     // Display tour length info - scaled position
     double currentLength = tspSolver->getTourLength();
-    double bestLength = tspSolver->getBestLength();
     int step = tspSolver->getCurrentStep();
 
     std::ostringstream info;
@@ -352,9 +345,6 @@ void MapView::drawTSPState()
     info << "Step: " << step;
     if (currentLength < std::numeric_limits<double>::max()) {
         info << "  Current: " << currentLength;
-    }
-    if (bestLength < std::numeric_limits<double>::max()) {
-        info << "  Best: " << bestLength;
     }
 
     gui::DrawableString infoStr(info.str().c_str());

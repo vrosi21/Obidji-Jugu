@@ -20,7 +20,7 @@
 class DataRepository;
 enum class VisitationStatus : int;
 
-// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed
+// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed, 3=show solution, 4=reset solver view/state
 using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 
 // Side panel for city/road CRUD operations and algorithm control
@@ -82,6 +82,7 @@ public:
     gui::Button btnStartPause;
     gui::Button btnStepFwd;
     gui::Button btnStepBwd;
+    gui::Button btnResetSolution;
     
     gui::GridLayout gl;
 
@@ -164,6 +165,9 @@ public:
     // canFwd: solver can step forward (not complete)
     // canBwd: solver can step backward (has history)
     void updateStepButtons(bool running, bool canFwd, bool canBwd);
+
+    // Lock/unlock controls based on execution state
+    void updateExecutionState(bool running);
     
     // Sync current selection fields with selected dropdown item
     void syncSelectionDetails();
