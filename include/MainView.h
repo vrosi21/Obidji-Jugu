@@ -4,6 +4,7 @@
 #include <gui/SplitterLayout.h>
 #include <gui/Timer.h>
 #include <memory>
+#include <cmath>
 #include "DataRepository.h"
 #include "MapView.h"
 #include "SidePanelView.h"
@@ -147,6 +148,32 @@ protected:
 
 
 private:
+    bool canExecuteAlgorithms() const
+    {
+        const auto& cities = _repo.cities();
+        int startIdx = -1;
+        std::vector<int> goals;
+
+        for (int i = 0; i < static_cast<int>(cities.size()); ++i) {
+            if (cities[i].visitation_status == VisitationStatus::Start) {
+                startIdx = i;
+            }
+            if (cities[i].visitation_status == VisitationStatus::Goal) {
+                goals.push_back(i);
+            }
+        }
+
+        if (startIdx < 0 || goals.empty()) return false;
+
+        for (int g : goals) {
+            double d = _repo.getMetricDistance(startIdx, g);
+            if (std::isfinite(d)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Stop both solve execution and final-solution animation
     void stopAllExecution()
     {
@@ -180,6 +207,12 @@ private:
                 break;
             case 3: // Show Solution (animated)
                 if (_running) stopSolver();
+
+                if (!canExecuteAlgorithms()) {
+                    _mapView.refresh();
+                    refreshStepButtons();
+                    break;
+                }
 
                 // Build final solution first (run remaining iterations immediately)
                 if (_solver) {
@@ -249,8 +282,9 @@ private:
     // Update step button enable/disable state based on current solver state
     void refreshStepButtons()
     {
-        bool canFwd = _solver && !_solver->isComplete();
-        bool canBwd = _solver && _solver->canStepBack();
+        bool canRun = canExecuteAlgorithms();
+        bool canFwd = _solver && !_solver->isComplete() && canRun;
+        bool canBwd = _solver && _solver->canStepBack() && canRun;
         _sidePanel.updateStepButtons(_running, canFwd, canBwd);
         _sidePanel.updateExecutionState(_running);
     }
@@ -258,6 +292,12 @@ private:
     void startSolver()
     {
         if (!_solver) return;
+        if (!canExecuteAlgorithms()) {
+            stopAllExecution();
+            _mapView.refresh();
+            refreshStepButtons();
+            return;
+        }
 
         // Reset solver if it was completed
         if (_solver->isComplete()) {
@@ -285,6 +325,12 @@ private:
     void stepForward()
     {
         if (!_solver) return;
+        if (!canExecuteAlgorithms()) {
+            stopAllExecution();
+            _mapView.refresh();
+            refreshStepButtons();
+            return;
+        }
 
         // Stop auto-run if active
         if (_running) {

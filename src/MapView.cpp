@@ -187,25 +187,45 @@ bool MapView::getUnreachableGoalsMessage(std::string& outMessage) const
         }
     }
 
-    if (goals.empty()) return false;
+    std::vector<std::string> issues;
 
-    int anchor = (startIdx >= 0) ? startIdx : goals.front();
-    int unreachableCount = 0;
-    for (int g : goals) {
-        double d = _repo->getMetricDistance(anchor, g);
-        if (!std::isfinite(d)) {
-            unreachableCount++;
+    if (startIdx < 0) {
+        issues.push_back("No Start selected");
+    }
+    if (goals.empty()) {
+        issues.push_back("No Goal selected");
+    }
+
+    if (startIdx >= 0 && !goals.empty()) {
+        int unreachableCount = 0;
+        int reachableCount = 0;
+        for (int g : goals) {
+            double d = _repo->getMetricDistance(startIdx, g);
+            if (std::isfinite(d)) {
+                reachableCount++;
+            } else {
+                unreachableCount++;
+            }
+        }
+
+        if (reachableCount == 0) {
+            issues.push_back("No goals reachable");
+        } else if (unreachableCount > 0) {
+            std::ostringstream oss;
+            oss << "Unreachable goals: " << unreachableCount;
+            issues.push_back(oss.str());
         }
     }
 
-    if (unreachableCount > 0) {
-        std::ostringstream oss;
-        oss << "Unreachable goals: " << unreachableCount;
-        outMessage = oss.str();
-        return true;
-    }
+    if (issues.empty()) return false;
 
-    return false;
+    std::ostringstream joined;
+    for (size_t i = 0; i < issues.size(); ++i) {
+        if (i > 0) joined << " | ";
+        joined << issues[i];
+    }
+    outMessage = joined.str();
+    return true;
 }
 
 void MapView::loadBackground()
