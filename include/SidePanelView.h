@@ -20,7 +20,7 @@
 class DataRepository;
 enum class VisitationStatus : int;
 
-// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed
+// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed, 3=show solution, 4=reset solver view/state
 using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 
 // Side panel for city/road CRUD operations and algorithm control
@@ -70,6 +70,7 @@ public:
     gui::Label lblRandomize;
     gui::HorizontalLayout hlRandomizeBtns;
     gui::Button btnRandomizePosition;
+    gui::Button btnRandomizeConnections;
     gui::Button btnRandomizeWeight;
     gui::Button btnRandomizeStatus;
     gui::Button btnRandomizeAll;
@@ -82,6 +83,7 @@ public:
     gui::Button btnStartPause;
     gui::Button btnStepFwd;
     gui::Button btnStepBwd;
+    gui::Button btnResetSolution;
     
     gui::GridLayout gl;
 
@@ -158,6 +160,41 @@ public:
     
     // Get currently selected algorithm index
     int getSelectedAlgorithmIndex() const;
+
+    // NN settings
+    bool isNN2OptEnabled() const;
+    int getNNImprovementCycles() const;
+
+    // SA settings
+    double getSAInitialTemperature() const;
+    double getSACoolingRateAlpha() const;
+    int getSAIterationsPerTemperature() const;
+    bool useNearestNeighborAsSAInitialSolution() const;
+
+    // GA settings
+    int getGAPopulationSize() const;
+    int getGANumberOfGenerations() const;
+    double getGAMutationRate() const;
+    double getGACrossoverRate() const;
+    int getGASelectionMethodIndex() const;
+    int getGAMutationOperatorIndex() const;
+    double getGAElitismPercentage() const;
+
+    // Shared execution speed for auto-step and solution animation
+    int getExecutionSpeedLevel() const;
+
+    // Get / set currently selected city index
+    int getSelectedPointIndex() const;
+    void selectPointIndex(int idx);
+
+    // Update step button enabled state
+    // running: solver is auto-stepping
+    // canFwd: solver can step forward (not complete)
+    // canBwd: solver can step backward (has history)
+    void updateStepButtons(bool running, bool canFwd, bool canBwd);
+
+    // Lock/unlock controls based on execution state
+    void updateExecutionState(bool running);
     
     // Sync current selection fields with selected dropdown item
     void syncSelectionDetails();
@@ -176,6 +213,12 @@ private:
     void handleUpdatePoint();
     void handleDeletePoint();
     void handleToggleConnection();
+    void handleRandomizePositions();
+    void handleRandomizeConnections();
+    void handleRandomizeWeights();
+    void handleRandomizeStatus();
+    void handleRandomizeAll();
+    void handleRandomizeGAParameters();
     void selectIndexAndUpdate(int idx);
     void updateCurrentNameFromSelection();
     void updateCurrentCoordsFromSelection();

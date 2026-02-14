@@ -6,6 +6,8 @@
 #include "DataRepository.h"
 #include <vector>
 #include <set>
+#include <string>
+#include <functional>
 #include <gui/Timer.h>
 
 
@@ -21,6 +23,8 @@ constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
 class MapView : public gui::Canvas
 {
 public:
+    using CityClickCallback = std::function<void(int cityIdx)>;
+
     MapView();
     ~MapView() = default;
 
@@ -47,10 +51,28 @@ public:
     // returns true if still animating, false if finished
     bool advanceSolutionAnimation(size_t edgesPerTick);
 
+    // Step-tour animation: animates the current tour edge-by-edge between solver steps
+    // For SA: animates the single current tour after each step
+    // For GA: queues all population tours and shows each member as a full path per frame
+    void startStepTourAnimation(const std::vector<int>& tour);
+    void queueStepTourAnimations(const std::vector<std::vector<int>>& tours);
+    void queueStepTourFrames(const std::vector<std::vector<int>>& tours);
+    bool advanceStepTourAnimation(size_t edgesPerTick);
+    bool isStepTourAnimating() const { return _stepTourAnimating; }
+    void stopStepTourAnimation();
+    size_t getStepTourQueueIndex() const { return _stepTourQueueIdx; }
+    size_t getStepTourQueueTotal() const { return _stepTourQueueTotal; }
+
+    // Click callbacks for city interactions
+    void setOnPrimaryCityClick(CityClickCallback cb) { _onPrimaryCityClick = std::move(cb); }
+    void setOnSecondaryCityClick(CityClickCallback cb) { _onSecondaryCityClick = std::move(cb); }
+
 
 
 protected:
     bool onTimer(gui::Timer* pTimer) override;
+    void onPrimaryButtonPressed(const gui::InputDevice& inputDevice) override;
+    void onSecondaryButtonPressed(const gui::InputDevice& inputDevice) override;
 
     void onDraw(const gui::Rect& rect) override;
     void onResize(const gui::Size& newSize) override;
@@ -61,10 +83,16 @@ private:
     void drawPath(const std::vector<int>& path);
     void drawTSPState();
     void drawTour(const std::vector<int>& tour, td::ColorID color, float lineWidth);
+    void drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID color, float lineWidth, td::ColorID orderColor);
+    void drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines) const;
+    bool getUnreachableGoalsMessage(std::string& outMessage) const;
 
     // Animation helpers (main)
     bool buildExpandedTourPath(const std::vector<int>& tour, std::vector<int>& outPath) const;
     void drawAnimatedSolution();
+    void drawStepTourAnimation();
+    bool startNextQueuedTour();
+    int hitTestCity(const gui::Point& p) const;
 
     // Transform original coordinates to current view coordinates (responsiveness)
     float scaleX(float x) const { return x * _scaleX + _offsetX; }
@@ -88,6 +116,18 @@ private:
     bool _solutionAnimating = false;
     std::vector<int> _solutionExpandedPath;
     size_t _solutionAnimEdgeCount = 0;
+
+    // Step-tour animation state (per-step path replay for SA/GA)
+    bool _stepTourAnimating = false;
+    std::vector<int> _stepTourExpandedPath;
+    size_t _stepTourEdgeCount = 0;
+    std::vector<std::vector<int>> _stepTourQueue;  // remaining tours (GA population)
+    size_t _stepTourQueueIdx = 0;   // current tour index (for display)
+    size_t _stepTourQueueTotal = 0; // total tours queued (for display)
+    bool _stepTourStaticPerMember = false; // GA mode: each member shown as full path
+
+    CityClickCallback _onPrimaryCityClick;
+    CityClickCallback _onSecondaryCityClick;
 
     
 
