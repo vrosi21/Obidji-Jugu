@@ -277,6 +277,9 @@ SidePanelView::SidePanelView()
     // Populate dropdowns
     populateStatusCombo();
     populateSolvingAlgorithms(_algorithmNames);
+
+    // NN defaults
+    txtEditImprovementCycles.setText("20");
 }
 
 void SidePanelView::populateStatusCombo()
@@ -1021,6 +1024,18 @@ int SidePanelView::getSelectedAlgorithmIndex() const
     return cmbSolvingAlgorithm.getSelectedIndex();
 }
 
+bool SidePanelView::isNN2OptEnabled() const
+{
+    return checkBoxEnable2opt.isChecked();
+}
+
+int SidePanelView::getNNImprovementCycles() const
+{
+    int cycles = std::atoi(txtEditImprovementCycles.getText().c_str());
+    if (cycles < 0) cycles = 0;
+    return cycles;
+}
+
 int SidePanelView::getSelectedPointIndex() const
 {
     return cmbPoints.getSelectedIndex();
@@ -1054,4 +1069,8 @@ void SidePanelView::updateExecutionState(bool running)
     // Keep solution/reset disabled while running to avoid conflicting states
     showSolution.enable(!running);
     btnResetSolution.enable(!running);
+
+    // Lock NN 2-opt controls while running
+    checkBoxEnable2opt.enable(!running);
+    txtEditImprovementCycles.enable(!running);
 }

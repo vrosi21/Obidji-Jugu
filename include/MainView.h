@@ -222,7 +222,11 @@ private:
 
         // Create new solver based on selection
         switch (algorithmIdx) {
-            case 0: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;
+            case 0:
+                _solver = std::make_unique<NearestNeighborAlgorithm>(
+                    _sidePanel.isNN2OptEnabled(),
+                    _sidePanel.getNNImprovementCycles());
+                break;
             case 1: _solver = std::make_unique<SimulatedAnnealingAlgorithm>(); break;
             case 2: _solver = std::make_unique<GeneticAlgorithmTSP>(); break;
             default: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;

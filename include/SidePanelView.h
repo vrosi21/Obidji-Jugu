@@ -161,6 +161,10 @@ public:
     // Get currently selected algorithm index
     int getSelectedAlgorithmIndex() const;
 
+    // NN settings
+    bool isNN2OptEnabled() const;
+    int getNNImprovementCycles() const;
+
     // Get / set currently selected city index
     int getSelectedPointIndex() const;
     void selectPointIndex(int idx);
