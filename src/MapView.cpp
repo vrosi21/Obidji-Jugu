@@ -109,10 +109,61 @@ void MapView::onDraw(const gui::Rect& rect)
         drawAlgorithmState();
     }
 
+    // Draw warning if not all goals are reachable
+    std::string unreachableMsg;
+    if (getUnreachableGoalsMessage(unreachableMsg)) {
+        gui::DrawableString msg(unreachableMsg.c_str());
+        gui::Point pos(static_cast<gui::CoordType>(_offsetX + 10.0f), static_cast<gui::CoordType>(_offsetY + 20.0f));
+        msg.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::Red);
+    }
+
     // Draw cities on top using scaled MapPointRenderer
     for (const auto& city : cities) {
         MapPointRenderer::drawScaled(city, _scaleX, _offsetX, _offsetY);
     }
+}
+
+bool MapView::getUnreachableGoalsMessage(std::string& outMessage) const
+{
+    outMessage.clear();
+    if (!_repo) return false;
+
+    const auto& cities = _repo->cities();
+    if (cities.empty()) return false;
+
+    std::vector<int> goals;
+    goals.reserve(cities.size());
+
+    int startIdx = -1;
+    for (int i = 0; i < static_cast<int>(cities.size()); ++i) {
+        if (cities[i].visitation_status == VisitationStatus::Blocked) continue;
+        if (cities[i].visitation_status == VisitationStatus::Start) {
+            startIdx = i;
+        }
+        if (cities[i].visitation_status == VisitationStatus::Goal) {
+            goals.push_back(i);
+        }
+    }
+
+    if (goals.empty()) return false;
+
+    int anchor = (startIdx >= 0) ? startIdx : goals.front();
+    int unreachableCount = 0;
+    for (int g : goals) {
+        double d = _repo->getMetricDistance(anchor, g);
+        if (!std::isfinite(d)) {
+            unreachableCount++;
+        }
+    }
+
+    if (unreachableCount > 0) {
+        std::ostringstream oss;
+        oss << "Unreachable goals: " << unreachableCount;
+        outMessage = oss.str();
+        return true;
+    }
+
+    return false;
 }
 
 void MapView::loadBackground()

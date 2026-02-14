@@ -6,6 +6,7 @@
 #include "DataRepository.h"
 #include <vector>
 #include <set>
+#include <string>
 #include <gui/Timer.h>
 
 
@@ -61,6 +62,7 @@ private:
     void drawPath(const std::vector<int>& path);
     void drawTSPState();
     void drawTour(const std::vector<int>& tour, td::ColorID color, float lineWidth);
+    bool getUnreachableGoalsMessage(std::string& outMessage) const;
 
     // Animation helpers (main)
     bool buildExpandedTourPath(const std::vector<int>& tour, std::vector<int>& outPath) const;
