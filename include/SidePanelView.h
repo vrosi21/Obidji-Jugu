@@ -70,6 +70,7 @@ public:
     gui::Label lblRandomize;
     gui::HorizontalLayout hlRandomizeBtns;
     gui::Button btnRandomizePosition;
+    gui::Button btnRandomizeConnections;
     gui::Button btnRandomizeWeight;
     gui::Button btnRandomizeStatus;
     gui::Button btnRandomizeAll;
@@ -186,6 +187,11 @@ private:
     void handleUpdatePoint();
     void handleDeletePoint();
     void handleToggleConnection();
+    void handleRandomizePositions();
+    void handleRandomizeConnections();
+    void handleRandomizeWeights();
+    void handleRandomizeStatus();
+    void handleRandomizeAll();
     void selectIndexAndUpdate(int idx);
     void updateCurrentNameFromSelection();
     void updateCurrentCoordsFromSelection();

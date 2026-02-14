@@ -4,7 +4,52 @@
 #include <cstdlib>
 #include <sstream>
 #include <iomanip>
+#include <random>
+#include <algorithm>
+#include <cmath>
 #include <gui/GridComposer.h>
+
+namespace {
+    struct CandidateEdge {
+        int a = -1;
+        int b = -1;
+        double dist = 0.0;
+    };
+
+    static double orient(double ax, double ay, double bx, double by, double cx, double cy)
+    {
+        return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    }
+
+    static bool onSeg(double ax, double ay, double bx, double by, double px, double py)
+    {
+        const double eps = 1e-9;
+        return px <= std::max(ax, bx) + eps && px + eps >= std::min(ax, bx) &&
+               py <= std::max(ay, by) + eps && py + eps >= std::min(ay, by);
+    }
+
+    static bool segmentsIntersect(
+        double ax, double ay, double bx, double by,
+        double cx, double cy, double dx, double dy)
+    {
+        double o1 = orient(ax, ay, bx, by, cx, cy);
+        double o2 = orient(ax, ay, bx, by, dx, dy);
+        double o3 = orient(cx, cy, dx, dy, ax, ay);
+        double o4 = orient(cx, cy, dx, dy, bx, by);
+
+        const double eps = 1e-9;
+        if ((o1 > eps && o2 < -eps || o1 < -eps && o2 > eps) &&
+            (o3 > eps && o4 < -eps || o3 < -eps && o4 > eps)) {
+            return true;
+        }
+
+        if (std::abs(o1) <= eps && onSeg(ax, ay, bx, by, cx, cy)) return true;
+        if (std::abs(o2) <= eps && onSeg(ax, ay, bx, by, dx, dy)) return true;
+        if (std::abs(o3) <= eps && onSeg(cx, cy, dx, dy, ax, ay)) return true;
+        if (std::abs(o4) <= eps && onSeg(cx, cy, dx, dy, bx, by)) return true;
+        return false;
+    }
+}
 
 SidePanelView::SidePanelView()
     : // Section Headers
@@ -41,6 +86,7 @@ SidePanelView::SidePanelView()
     lblRandomize(tr("Randomize")),
     hlRandomizeBtns(4),
     btnRandomizePosition(tr("Positions")),
+    btnRandomizeConnections(tr("Connections")),
     btnRandomizeWeight(tr("Weights")),
     btnRandomizeStatus(tr("Status")),
     btnRandomizeAll(tr("All")),
@@ -81,7 +127,7 @@ SidePanelView::SidePanelView()
     showSolution(tr("Show Solution")),
     lblAnimationSpeed(tr("Animation speed")),
     sliderAnimationSpeed(),
-    gl(36, 4)
+    gl(36, 5)
 {
     gui::GridComposer gc(gl);
 
@@ -152,6 +198,7 @@ SidePanelView::SidePanelView()
     lblRandomize.setFont(gui::Font::ID::SystemLargerBold);
     gc.appendRow(lblRandomize, 1);
     gc.appendRow(btnRandomizePosition, 1, td::HAlignment::Left);
+    gc.appendCol(btnRandomizeConnections, 1, td::HAlignment::Center);
     gc.appendCol(btnRandomizeWeight, 1, td::HAlignment::Center);
     gc.appendCol(btnRandomizeStatus, 1, td::HAlignment::Center);
     gc.appendCol(btnRandomizeAll, 1, td::HAlignment::Center);
@@ -371,22 +418,27 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     }
     if (pBtn == &btnRandomizePosition)
     {
-        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING POSITIONS
+        handleRandomizePositions();
         return true;
     }
     if (pBtn == &btnRandomizeWeight)
     {
-        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING WEIGHTS
+        handleRandomizeWeights();
+        return true;
+    }
+    if (pBtn == &btnRandomizeConnections)
+    {
+        handleRandomizeConnections();
         return true;
     }
     if (pBtn == &btnRandomizeStatus)
     {
-        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING STATUS
+        handleRandomizeStatus();
         return true;
     }
     if (pBtn == &btnRandomizeAll)
     {
-        // TO DO: IMPLEMENT LOGIC FOR RANDOMIZING ALL ATTRIBUTES
+        handleRandomizeAll();
         return true;
     }
     if (pBtn == &btnStartPause) {
@@ -645,6 +697,307 @@ void SidePanelView::handleToggleConnection()
         _repo->addConnection(fromIdx, actualTo);
     }
     updateConnectionsLabel();
+}
+
+void SidePanelView::handleRandomizePositions()
+{
+    if (!_repo) return;
+    const size_t n = _repo->cityCount();
+    if (n == 0) return;
+
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<double> xDist(20.0, 980.0);
+    std::uniform_real_distribution<double> yDist(20.0, 846.0);
+
+    for (size_t i = 0; i < n; ++i) {
+        CityPoint cp;
+        if (!_repo->getCity(static_cast<int>(i), cp)) continue;
+        const double nx = xDist(rng);
+        const double ny = yDist(rng);
+        _repo->updateCity(static_cast<int>(i), cp.name, nx, ny, cp.weight);
+    }
+
+    syncSelectionDetails();
+    reDraw();
+}
+
+void SidePanelView::handleRandomizeWeights()
+{
+    if (!_repo) return;
+    const size_t n = _repo->cityCount();
+    if (n == 0) return;
+
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<double> wDist(0.0, 100.0);
+
+    for (size_t i = 0; i < n; ++i) {
+        CityPoint cp;
+        if (!_repo->getCity(static_cast<int>(i), cp)) continue;
+        const double nw = wDist(rng);
+        _repo->updateCity(static_cast<int>(i), cp.name, cp.x, cp.y, nw);
+    }
+
+    syncSelectionDetails();
+    reDraw();
+}
+
+void SidePanelView::handleRandomizeConnections()
+{
+    if (!_repo) return;
+    const int n = static_cast<int>(_repo->cityCount());
+    if (n < 2) return;
+
+    const int minDegree = std::min(3, n - 1);
+    const int maxDegree = std::min(5, n - 1);
+
+    // 1) Clear all existing connections
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            if (_repo->hasConnection(i, j)) {
+                _repo->removeConnection(i, j);
+            }
+        }
+    }
+
+    const auto& cities = _repo->cities();
+    std::vector<CandidateEdge> edges;
+    edges.reserve((n * (n - 1)) / 2);
+
+    // 2) Build candidate edges sorted by distance (nearest-neighbor preference)
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            double dx = cities[i].x - cities[j].x;
+            double dy = cities[i].y - cities[j].y;
+            edges.push_back({i, j, std::sqrt(dx * dx + dy * dy)});
+        }
+    }
+    std::sort(edges.begin(), edges.end(), [](const CandidateEdge& l, const CandidateEdge& r) {
+        return l.dist < r.dist;
+    });
+
+    std::vector<std::pair<int, int>> chosen;
+    std::vector<int> degree(n, 0);
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_int_distribution<int> targetDist(minDegree, maxDegree);
+    std::vector<int> targetDegree(n, minDegree);
+    for (int i = 0; i < n; ++i) {
+        targetDegree[i] = targetDist(rng);
+    }
+
+    // DSU for connectivity tracking
+    std::vector<int> parent(n), rank(n, 0);
+    for (int i = 0; i < n; ++i) parent[i] = i;
+    auto findSet = [&](int x) {
+        while (parent[x] != x) {
+            parent[x] = parent[parent[x]];
+            x = parent[x];
+        }
+        return x;
+    };
+    auto unionSet = [&](int a, int b) {
+        int ra = findSet(a), rb = findSet(b);
+        if (ra == rb) return;
+        if (rank[ra] < rank[rb]) std::swap(ra, rb);
+        parent[rb] = ra;
+        if (rank[ra] == rank[rb]) rank[ra]++;
+    };
+    auto isConnectedAll = [&]() {
+        int root = findSet(0);
+        for (int i = 1; i < n; ++i) {
+            if (findSet(i) != root) return false;
+        }
+        return true;
+    };
+
+    auto intersectsExisting = [&](int a, int b) {
+        const auto& A = cities[a];
+        const auto& B = cities[b];
+        for (const auto& e : chosen) {
+            int c = e.first;
+            int d = e.second;
+
+            // sharing endpoints is allowed
+            if (a == c || a == d || b == c || b == d) continue;
+
+            const auto& C = cities[c];
+            const auto& D = cities[d];
+            if (segmentsIntersect(A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto tryAddEdge = [&](int a, int b, bool allowCrossing) {
+        if (a == b) return false;
+        if (_repo->hasConnection(a, b)) return false;
+        if (degree[a] >= maxDegree || degree[b] >= maxDegree) return false;
+        if (!allowCrossing && intersectsExisting(a, b)) return false;
+
+        if (_repo->addConnection(a, b)) {
+            chosen.push_back({a, b});
+            degree[a]++;
+            degree[b]++;
+            unionSet(a, b);
+            return true;
+        }
+        return false;
+    };
+
+    // 3) Build a connected backbone (prefer non-crossing + short edges)
+    for (const auto& e : edges) {
+        if (findSet(e.a) != findSet(e.b)) {
+            tryAddEdge(e.a, e.b, false);
+        }
+        if (isConnectedAll()) break;
+    }
+
+    // Fallback: allow crossings if needed to guarantee one connected bundle
+    if (!isConnectedAll()) {
+        for (const auto& e : edges) {
+            if (findSet(e.a) != findSet(e.b)) {
+                tryAddEdge(e.a, e.b, true);
+            }
+            if (isConnectedAll()) break;
+        }
+    }
+
+    // 4) Raise degree toward target [3..5] while still preferring minimal crossings
+    auto hasBelowTarget = [&]() {
+        for (int i = 0; i < n; ++i) {
+            if (degree[i] < targetDegree[i]) return true;
+        }
+        return false;
+    };
+
+    // Pass A: non-crossing additions
+    bool progress = true;
+    while (hasBelowTarget() && progress) {
+        progress = false;
+        for (const auto& e : edges) {
+            int a = e.a;
+            int b = e.b;
+
+            if (degree[a] >= targetDegree[a] && degree[b] >= targetDegree[b]) continue;
+            if (tryAddEdge(a, b, false)) {
+                progress = true;
+            }
+        }
+    }
+
+    // Pass B: allow crossings only if necessary to satisfy degree constraints
+    progress = true;
+    while (hasBelowTarget() && progress) {
+        progress = false;
+        for (const auto& e : edges) {
+            int a = e.a;
+            int b = e.b;
+
+            if (degree[a] >= targetDegree[a] && degree[b] >= targetDegree[b]) continue;
+            if (tryAddEdge(a, b, true)) {
+                progress = true;
+            }
+        }
+    }
+
+    updateConnectionsLabel();
+    syncSelectionDetails();
+    reDraw();
+}
+
+void SidePanelView::handleRandomizeStatus()
+{
+    if (!_repo) return;
+    const size_t n = _repo->cityCount();
+    if (n == 0) return;
+
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_int_distribution<int> statusDist(0, 2); // Blocked, Open, Goal
+    std::uniform_int_distribution<int> idxDist(0, static_cast<int>(n) - 1);
+
+    // First assign random statuses excluding Start
+    for (size_t i = 0; i < n; ++i) {
+        VisitationStatus s = static_cast<VisitationStatus>(statusDist(rng));
+        _repo->updateCityStatus(static_cast<int>(i), s);
+    }
+
+    // Ensure exactly one Start (side-panel invariant)
+    int startIdx = idxDist(rng);
+    _repo->updateCityStatus(startIdx, VisitationStatus::Start);
+
+    // Ensure at least one Goal (when possible, different from Start)
+    bool hasGoal = false;
+    for (size_t i = 0; i < n; ++i) {
+        CityPoint cp;
+        if (_repo->getCity(static_cast<int>(i), cp) && cp.visitation_status == VisitationStatus::Goal) {
+            hasGoal = true;
+            break;
+        }
+    }
+    if (!hasGoal && n > 1) {
+        int goalIdx = startIdx;
+        while (goalIdx == startIdx) goalIdx = idxDist(rng);
+        _repo->updateCityStatus(goalIdx, VisitationStatus::Goal);
+    }
+
+    syncSelectionDetails();
+    reDraw();
+}
+
+void SidePanelView::handleRandomizeAll()
+{
+    if (!_repo) return;
+    const size_t n = _repo->cityCount();
+    if (n == 0) return;
+
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<double> xDist(20.0, 980.0);
+    std::uniform_real_distribution<double> yDist(20.0, 846.0);
+    std::uniform_int_distribution<int> statusDist(0, 2); // Blocked, Open, Goal
+    std::uniform_int_distribution<int> idxDist(0, static_cast<int>(n) - 1);
+
+    for (size_t i = 0; i < n; ++i) {
+        CityPoint cp;
+        if (!_repo->getCity(static_cast<int>(i), cp)) continue;
+
+        const double nx = xDist(rng);
+        const double ny = yDist(rng);
+        _repo->updateCity(static_cast<int>(i), cp.name, nx, ny, cp.weight);
+    }
+
+    // After positions are randomized, regenerate nearest-neighbor style connections
+    handleRandomizeConnections();
+
+    // Only then randomize weights
+    handleRandomizeWeights();
+
+    // Finally randomize statuses
+    for (size_t i = 0; i < n; ++i) {
+        VisitationStatus s = static_cast<VisitationStatus>(statusDist(rng));
+        _repo->updateCityStatus(static_cast<int>(i), s);
+    }
+
+    // Ensure exactly one Start
+    int startIdx = idxDist(rng);
+    _repo->updateCityStatus(startIdx, VisitationStatus::Start);
+
+    // Ensure at least one Goal if possible
+    bool hasGoal = false;
+    for (size_t i = 0; i < n; ++i) {
+        CityPoint cp;
+        if (_repo->getCity(static_cast<int>(i), cp) && cp.visitation_status == VisitationStatus::Goal) {
+            hasGoal = true;
+            break;
+        }
+    }
+    if (!hasGoal && n > 1) {
+        int goalIdx = startIdx;
+        while (goalIdx == startIdx) goalIdx = idxDist(rng);
+        _repo->updateCityStatus(goalIdx, VisitationStatus::Goal);
+    }
+
+    syncSelectionDetails();
+    reDraw();
 }
 
 void SidePanelView::selectIndexAndUpdate(int idx)
