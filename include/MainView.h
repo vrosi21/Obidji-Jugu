@@ -268,6 +268,33 @@ protected:
             return true;
         }
 
+        // Manual step forward/back playback for SA/GA:
+        // reuse solution timer to advance one-step path visualization
+        if (pTimer == &_solutionTimer && !_running && _stepAnimRunning && _mapView.isStepTourAnimating()) {
+            _stepAnimTickCounter++;
+            int ticksNeeded = getTicksPerAdvanceFromSpeed();
+
+            if (_stepAnimTickCounter < ticksNeeded) {
+                _solutionTimer.start();
+                return true;
+            }
+
+            _stepAnimTickCounter = 0;
+            size_t edges = getStepAnimEdgesPerTick();
+
+            if (!_mapView.advanceStepTourAnimation(edges)) {
+                _stepAnimRunning = false;
+                _mapView.stopStepTourAnimation();
+                _solutionTimer.stop();
+            } else {
+                _solutionTimer.start();
+            }
+
+            _mapView.refresh();
+            refreshStepButtons();
+            return true;
+        }
+
         return true;
     }
 
@@ -469,7 +496,10 @@ private:
         _solutionRunning = false;
         _solutionTimer.stop();
         _solutionTickCounter = 0;
+        _stepAnimRunning = false;
+        _stepAnimTickCounter = 0;
         _mapView.stopSolutionAnimation();
+        _mapView.stopStepTourAnimation();
 
         
         _running = true;
@@ -501,6 +531,19 @@ private:
             stopSolver();
         }
 
+        if (_solutionRunning) {
+            _solutionRunning = false;
+            _solutionTimer.stop();
+            _mapView.stopSolutionAnimation();
+        }
+
+        if (_stepAnimRunning) {
+            _stepAnimRunning = false;
+            _stepAnimTickCounter = 0;
+            _solutionTimer.stop();
+            _mapView.stopStepTourAnimation();
+        }
+
         // Reset if complete
         if (_solver->isComplete()) {
             _solver->reset(&_repo);
@@ -509,6 +552,13 @@ private:
         ensureMapSolverAttached();
 
         _solver->step();
+
+        // Match Start/Pause one-step behavior for SA/GA
+        if (beginStepTourAnimationForCurrentAlgo()) {
+            _stepAnimTickCounter = 0;
+            _solutionTimer.start();
+        }
+
         _mapView.refresh();
         refreshStepButtons();
     }
@@ -522,9 +572,29 @@ private:
             stopSolver();
         }
 
+        if (_solutionRunning) {
+            _solutionRunning = false;
+            _solutionTimer.stop();
+            _mapView.stopSolutionAnimation();
+        }
+
+        if (_stepAnimRunning) {
+            _stepAnimRunning = false;
+            _stepAnimTickCounter = 0;
+            _solutionTimer.stop();
+            _mapView.stopStepTourAnimation();
+        }
+
         ensureMapSolverAttached();
 
         _solver->stepBack();
+
+        // Match Start/Pause one-step behavior for SA/GA on step-back snapshots too
+        if (beginStepTourAnimationForCurrentAlgo()) {
+            _stepAnimTickCounter = 0;
+            _solutionTimer.start();
+        }
+
         _mapView.refresh();
         refreshStepButtons();
     }
