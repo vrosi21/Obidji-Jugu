@@ -17,17 +17,20 @@ protected:
     void initializeTSP() override {
         _unvisited.clear();
         
-        // Initialize unvisited set with all cities
-        for (int i = 0; i < _cityCount; ++i) {
-            _unvisited.insert(i);
+        // Initialize unvisited set with only eligible (non-Blocked) cities
+        for (int idx : _eligibleCities) {
+            _unvisited.insert(idx);
         }
 
-        // Start from city 0
-        if (_cityCount > 0) {
+        // Start from Start city if set, otherwise first eligible city
+        int startCity = (_startCityIdx >= 0) ? _startCityIdx
+                      : (_eligibleCities.empty() ? 0 : _eligibleCities.front());
+
+        if (!_eligibleCities.empty()) {
             _tspState.tour.clear();
-            _tspState.tour.push_back(0);
-            _unvisited.erase(0);
-            _currentCity = 0;
+            _tspState.tour.push_back(startCity);
+            _unvisited.erase(startCity);
+            _currentCity = startCity;
         }
 
         _tspState.tourLength = 0.0;

@@ -29,10 +29,25 @@ public:
         _tspHistory.clear();
         _path.clear();
         _cityCount = 0;
+        _eligibleCities.clear();
+        _startCityIdx = -1;
+        _goalIndices.clear();
 
         if (!_repo) return;
 
-        _cityCount = static_cast<int>(_repo->cities().size());
+        // Build list of eligible cities (exclude Blocked)
+        const auto& cities = _repo->cities();
+        for (size_t i = 0; i < cities.size(); ++i) {
+            if (cities[i].visitation_status == VisitationStatus::Blocked)
+                continue;
+            _eligibleCities.push_back(static_cast<int>(i));
+            if (cities[i].visitation_status == VisitationStatus::Start)
+                _startCityIdx = static_cast<int>(i);
+            if (cities[i].visitation_status == VisitationStatus::Goal)
+                _goalIndices.push_back(static_cast<int>(i));
+        }
+
+        _cityCount = static_cast<int>(_eligibleCities.size());
         
         // Initialize TSP-specific state
         initializeTSP();
@@ -136,19 +151,23 @@ protected:
         return length;
     }
 
-    // Generate a random tour (permutation of all city indices)
+    // Generate a random tour of eligible cities only
+    // Start city is pinned at position 0, Goal cities are guaranteed included
     std::vector<int> generateRandomTour() {
-        std::vector<int> component = _repo ? _repo->getLargestConnectedComponent() : std::vector<int>();
-        if (!component.empty()) {
-            std::shuffle(component.begin(), component.end(), _rng);
-            return component;
-        }
-        std::vector<int> tour;
-        tour.reserve(_cityCount);
-        for (int i = 0; i < _cityCount; ++i) {
-            tour.push_back(i);
-        }
+        // Start with eligible cities
+        std::vector<int> tour = _eligibleCities;
+        if (tour.empty()) return tour;
+
         std::shuffle(tour.begin(), tour.end(), _rng);
+
+        // If there's a Start city, move it to the front
+        if (_startCityIdx >= 0) {
+            auto it = std::find(tour.begin(), tour.end(), _startCityIdx);
+            if (it != tour.end() && it != tour.begin()) {
+                std::iter_swap(tour.begin(), it);
+            }
+        }
+
         return tour;
     }
 
@@ -165,5 +184,8 @@ protected:
     TSPState _tspState;
     std::vector<TSPState> _tspHistory;
     int _cityCount = 0;
+    std::vector<int> _eligibleCities;  // indices of non-Blocked cities
+    int _startCityIdx = -1;            // index of Start city (-1 if none)
+    std::vector<int> _goalIndices;     // indices of Goal cities (must visit)
     std::mt19937 _rng;
 };

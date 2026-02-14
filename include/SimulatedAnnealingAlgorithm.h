@@ -44,17 +44,27 @@ protected:
 
         // Generate neighbor solution using 2-opt swap
         std::vector<int> newTour = _tspState.tour;
+        int tourSize = static_cast<int>(newTour.size());
+        if (tourSize < 4) {
+            _tspState.finished = true;
+            return false;
+        }
         
-        // Select two random positions to swap
-        std::uniform_int_distribution<int> posDist(0, _cityCount - 1);
+        // Select two random positions to swap (preserve Start at index 0)
+        int lo = (_startCityIdx >= 0) ? 1 : 0; // don't move the Start city
+        std::uniform_int_distribution<int> posDist(lo, tourSize - 1);
         int i = posDist(_rng);
         int j = posDist(_rng);
         
         // Ensure i < j and they're not adjacent
         if (i > j) std::swap(i, j);
         if (j - i < 2) {
-            j = (i + 2) % _cityCount;
-            if (j < i) std::swap(i, j);
+            j = std::min(i + 2, tourSize - 1);
+            if (j - i < 2) {
+                // Tour segment too small to swap
+                _temperature *= _coolingRate;
+                return _temperature > _minTemp;
+            }
         }
 
         // Perform 2-opt swap

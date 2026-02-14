@@ -138,18 +138,28 @@ private:
     }
 
     // Order Crossover (OX) - preserves relative order of cities
+    // If a Start city is set it is kept at position 0
     std::vector<int> orderCrossover(const std::vector<int>& parent1, const std::vector<int>& parent2) {
         int n = static_cast<int>(parent1.size());
         std::vector<int> child(n, -1);
 
-        // Select random segment from parent1
-        std::uniform_int_distribution<int> dist(0, n - 1);
+        // Pin Start city at position 0 if present
+        int lo = (_startCityIdx >= 0) ? 1 : 0;
+        if (_startCityIdx >= 0 && n > 0) {
+            child[0] = _startCityIdx;
+        }
+
+        if (n - lo < 2) return (n > 0 && _startCityIdx >= 0) ? child : parent1;
+
+        // Select random segment from parent1 (only among non-start positions)
+        std::uniform_int_distribution<int> dist(lo, n - 1);
         int start = dist(_rng);
         int end = dist(_rng);
         if (start > end) std::swap(start, end);
 
         // Copy segment from parent1
         std::set<int> usedCities;
+        if (_startCityIdx >= 0) usedCities.insert(_startCityIdx);
         for (int i = start; i <= end; ++i) {
             child[i] = parent1[i];
             usedCities.insert(parent1[i]);
@@ -157,11 +167,16 @@ private:
 
         // Fill remaining positions with cities from parent2 in order
         int childPos = (end + 1) % n;
+        if (childPos < lo) childPos = lo; // skip position 0 if pinned
         for (int i = 0; i < n; ++i) {
             int parent2Pos = (end + 1 + i) % n;
             int city = parent2[parent2Pos];
             
             if (usedCities.find(city) == usedCities.end()) {
+                // Skip position 0 if it's reserved for Start
+                while (childPos < lo || child[childPos] != -1) {
+                    childPos = (childPos + 1) % n;
+                }
                 child[childPos] = city;
                 usedCities.insert(city);
                 childPos = (childPos + 1) % n;
@@ -171,11 +186,15 @@ private:
         return child;
     }
 
-    // Swap mutation - swap two random cities
+    // Swap mutation - swap two random cities (preserve Start at position 0)
     void swapMutation(std::vector<int>& tour) {
         if (tour.size() < 2) return;
         
-        std::uniform_int_distribution<int> dist(0, static_cast<int>(tour.size()) - 1);
+        // Don't swap the start city (index 0) if Start is set
+        int lo = (_startCityIdx >= 0) ? 1 : 0;
+        if (lo >= static_cast<int>(tour.size())) return;
+        
+        std::uniform_int_distribution<int> dist(lo, static_cast<int>(tour.size()) - 1);
         int i = dist(_rng);
         int j = dist(_rng);
         std::swap(tour[i], tour[j]);

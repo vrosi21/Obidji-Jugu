@@ -64,6 +64,21 @@ public:
             handleSolverAction(action, algorithmIdx);
         });
 
+        // When data changes (city added/deleted/status changed), reset the solver
+        _repo.setOnDataChanged([this]() {
+            if (_running) stopSolver();
+
+            _solutionRunning = false;
+            _solutionTimer.stop();
+            _mapView.stopSolutionAnimation();
+
+            if (_solver) {
+                _solver->reset(&_repo);
+                _mapView.refresh();
+                refreshStepButtons();
+            }
+        });
+
         // Initialize solver with default algorithm (BFS)
         selectAlgorithm(0);
 

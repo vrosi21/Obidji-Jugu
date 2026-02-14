@@ -94,7 +94,7 @@ void MapView::onDraw(const gui::Rect& rect)
         int a = std::min(e.fromId, e.toId);
         int b = std::max(e.fromId, e.toId);
         if (drawn.insert({ a, b }).second) {
-            if (a >= 0 && b >= 0 && a < (int)cities.size() && b < (int)cities.size()) {
+            if (a >= 0 && b >= 0 && a < static_cast<int>(cities.size()) && b < static_cast<int>(cities.size())) {
                 auto c1 = MapPointStyle::getScaledCenter(cities[a].x, cities[a].y, _scaleX, _offsetX, _offsetY);
                 auto c2 = MapPointStyle::getScaledCenter(cities[b].x, cities[b].y, _scaleX, _offsetX, _offsetY);
                 bezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
@@ -257,6 +257,10 @@ void MapView::drawPath(const std::vector<int>& path)
     if (path.size() < 2 || !_repo) return;
 
     const auto& cities = _repo->cities();
+    auto isBlocked = [&](int idx) {
+        return idx < 0 || idx >= static_cast<int>(cities.size()) ||
+               cities[idx].visitation_status == VisitationStatus::Blocked;
+    };
 
     // Draw path edges in blue - scaled
     float avgScale = _scaleX;
@@ -270,7 +274,7 @@ void MapView::drawPath(const std::vector<int>& path)
         int a = path[i];
         int b = path[i + 1];
         
-        if (a >= 0 && b >= 0 && a < static_cast<int>(cities.size()) && b < static_cast<int>(cities.size())) {
+        if (!isBlocked(a) && !isBlocked(b)) {
             auto c1 = MapPointStyle::getScaledCenter(cities[a].x, cities[a].y, _scaleX, _offsetX, _offsetY);
             auto c2 = MapPointStyle::getScaledCenter(cities[b].x, cities[b].y, _scaleX, _offsetX, _offsetY);
             pathBezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
@@ -363,6 +367,10 @@ void MapView::drawTour(const std::vector<int>& tour, td::ColorID color, float li
     if (tour.size() < 2 || !_repo) return;
 
     const auto& cities = _repo->cities();
+    auto isBlocked = [&](int idx) {
+        return idx < 0 || idx >= static_cast<int>(cities.size()) ||
+               cities[idx].visitation_status == VisitationStatus::Blocked;
+    };
 
     // Scale the line width appropriately
     float scaledLineWidth = lineWidth;
@@ -375,13 +383,14 @@ void MapView::drawTour(const std::vector<int>& tour, td::ColorID color, float li
     for (size_t i = 0; i < tour.size(); ++i) {
         int a = tour[i];
         int b = tour[(i + 1) % tour.size()];  // Wrap around to close the tour
-        if (a < 0 || b < 0 || a >= static_cast<int>(cities.size()) || b >= static_cast<int>(cities.size())) continue;
+        if (isBlocked(a) || isBlocked(b)) continue;
 
         std::vector<int> path;
         if (_repo->getShortestRoadPath(a, b, path) && path.size() >= 2) {
             for (size_t k = 0; k + 1 < path.size(); ++k) {
                 int u = path[k];
                 int v = path[k + 1];
+                if (isBlocked(u) || isBlocked(v)) continue;
                 auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
                 auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
                 tourBezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
@@ -472,12 +481,23 @@ bool MapView::buildExpandedTourPath(const std::vector<int>& tour, std::vector<in
     outPath.clear();
     if (!_repo || tour.size() < 2) return false;
 
+    const auto& cities = _repo->cities();
+    auto isBlocked = [&](int idx) {
+        return idx < 0 || idx >= static_cast<int>(cities.size()) ||
+               cities[idx].visitation_status == VisitationStatus::Blocked;
+    };
+
     for (size_t i = 0; i < tour.size(); ++i) {
         int a = tour[i];
         int b = tour[(i + 1) % tour.size()];
+        if (isBlocked(a) || isBlocked(b)) return false;
 
         std::vector<int> leg;
         if (!_repo->getShortestRoadPath(a, b, leg) || leg.size() < 2) return false;
+
+        for (int idx : leg) {
+            if (isBlocked(idx)) return false;
+        }
 
         if (outPath.empty()) outPath.insert(outPath.end(), leg.begin(), leg.end());
         else outPath.insert(outPath.end(), leg.begin() + 1, leg.end()); 
@@ -491,6 +511,10 @@ void MapView::drawAnimatedSolution()
     if (!_solutionAnimating || _solutionExpandedPath.size() < 2 || !_repo) return;
 
     const auto& cities = _repo->cities();
+    auto isBlocked = [&](int idx) {
+        return idx < 0 || idx >= static_cast<int>(cities.size()) ||
+               cities[idx].visitation_status == VisitationStatus::Blocked;
+    };
     const size_t maxEdges = _solutionExpandedPath.size() - 1;
     const size_t edgeCount = (_solutionAnimEdgeCount > maxEdges) ? maxEdges : _solutionAnimEdgeCount;
     if (edgeCount == 0) return;
@@ -504,7 +528,7 @@ void MapView::drawAnimatedSolution()
         for (size_t i = 0; i < currentEdgeIdx; ++i) {
             int u = _solutionExpandedPath[i];
             int v = _solutionExpandedPath[i + 1];
-            if (u < 0 || v < 0 || u >= (int)cities.size() || v >= (int)cities.size()) continue;
+            if (isBlocked(u) || isBlocked(v)) continue;
 
             auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
             auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
@@ -517,7 +541,7 @@ void MapView::drawAnimatedSolution()
     {
         int u = _solutionExpandedPath[currentEdgeIdx];
         int v = _solutionExpandedPath[currentEdgeIdx + 1];
-        if (u >= 0 && v >= 0 && u < (int)cities.size() && v < (int)cities.size()) {
+        if (!isBlocked(u) && !isBlocked(v)) {
             gui::Shape currentShape;
             auto curr = currentShape.createBezier(6, td::LinePattern::Solid);
 

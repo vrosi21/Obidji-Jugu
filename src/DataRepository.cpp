@@ -284,6 +284,10 @@ std::vector<std::string> DataRepository::getConnectionNames(int index) const
 double DataRepository::getMetricDistance(int i, int j) const
 {
     if (!isValidIndex(i) || !isValidIndex(j)) return std::numeric_limits<double>::infinity();
+    if (_cities[i].visitation_status == VisitationStatus::Blocked ||
+        _cities[j].visitation_status == VisitationStatus::Blocked) {
+        return std::numeric_limits<double>::infinity();
+    }
     if (i >= static_cast<int>(_metricDist.size()) || j >= static_cast<int>(_metricDist.size())) return std::numeric_limits<double>::infinity();
     return _metricDist[i][j];
 }
@@ -292,6 +296,10 @@ bool DataRepository::getShortestRoadPath(int i, int j, std::vector<int>& outPath
 {
     outPath.clear();
     if (!isValidIndex(i) || !isValidIndex(j)) return false;
+    if (_cities[i].visitation_status == VisitationStatus::Blocked ||
+        _cities[j].visitation_status == VisitationStatus::Blocked) {
+        return false;
+    }
     if (i >= static_cast<int>(_metricPrev.size()) || j >= static_cast<int>(_metricPrev.size())) return false;
     if (!std::isfinite(_metricDist[i][j])) return false;
 
@@ -316,6 +324,7 @@ std::vector<int> DataRepository::getLargestConnectedComponent() const
     int comp = 0;
 
     for (int s = 0; s < n; ++s) {
+        if (_cities[s].visitation_status == VisitationStatus::Blocked) continue;
         if (compIds[s] != -1) continue;
         std::vector<int> q;
         q.push_back(s);
@@ -323,6 +332,7 @@ std::vector<int> DataRepository::getLargestConnectedComponent() const
         for (size_t qi = 0; qi < q.size(); ++qi) {
             int u = q[qi];
             for (int v : getConnections(u)) {
+                if (_cities[v].visitation_status == VisitationStatus::Blocked) continue;
                 if (compIds[v] == -1) { compIds[v] = comp; q.push_back(v); }
             }
         }
@@ -348,13 +358,17 @@ void DataRepository::recomputeMetricClosure()
     _metricPrev.assign(n, std::vector<int>(n, -1));
     if (n == 0) return;
 
+    auto isPassable = [&](int idx) {
+        return isValidIndex(idx) && _cities[idx].visitation_status != VisitationStatus::Blocked;
+    };
+
     // Build adjacency list with Euclidean edge weights for each road
     std::vector<std::vector<std::pair<int,double>>> adj(n);
     auto euclid = [&](int a, int b){
         double dx = _cities[a].x - _cities[b].x; double dy = _cities[a].y - _cities[b].y; return std::sqrt(dx*dx + dy*dy);
     };
     for (const auto& r : _roads) {
-        if (!isValidIndex(r.fromId) || !isValidIndex(r.toId)) continue;
+        if (!isPassable(r.fromId) || !isPassable(r.toId)) continue;
         double w = euclid(r.fromId, r.toId);
         adj[r.fromId].push_back({r.toId, w});
         adj[r.toId].push_back({r.fromId, w});
@@ -362,6 +376,8 @@ void DataRepository::recomputeMetricClosure()
 
     // Dijkstra from every source
     for (int s = 0; s < n; ++s) {
+        if (!isPassable(s)) continue;
+
         std::vector<double> dist(n, std::numeric_limits<double>::infinity());
         std::vector<int> prev(n, -1);
         struct Node { double d; int v; };
@@ -375,6 +391,7 @@ void DataRepository::recomputeMetricClosure()
             if (d != dist[u]) continue;
             for (auto& e : adj[u]) {
                 int v = e.first; double w = e.second;
+                if (!isPassable(v)) continue;
                 if (dist[u] + w < dist[v]) {
                     dist[v] = dist[u] + w;
                     prev[v] = u;
