@@ -426,12 +426,18 @@ void MapView::startSolutionAnimation()
 
     const auto& bestTour = tsp->getBestTour();
     const auto& curTour = tsp->getTour();
-    const auto& tourToUse = (!bestTour.empty()) ? bestTour : curTour;
 
-    if (tourToUse.size() < 2) return;
+    const std::vector<int>* tourToUse = nullptr;
+    if (bestTour.size() >= 2) {
+        tourToUse = &bestTour;
+    } else if (curTour.size() >= 2) {
+        tourToUse = &curTour;
+    } else {
+        return;
+    }
 
     std::vector<int> expanded;
-    if (!buildExpandedTourPath(tourToUse, expanded)) return;
+    if (!buildExpandedTourPath(*tourToUse, expanded)) return;
 
     _solutionExpandedPath = std::move(expanded);
     _solutionAnimEdgeCount = 1;     

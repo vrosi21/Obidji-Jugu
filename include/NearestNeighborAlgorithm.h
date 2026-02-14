@@ -34,6 +34,7 @@ protected:
         }
 
         _tspState.tourLength = 0.0;
+        _tspState.bestTour.clear();
         _tspState.bestLength = std::numeric_limits<double>::max();
     }
 
@@ -64,9 +65,19 @@ protected:
             _unvisited.erase(nearestCity);
             _currentCity = nearestCity;
 
+            // If this was the last remaining city, finalize now so Show Solution
+            // has a completed tour immediately.
+            if (_unvisited.empty()) {
+                _tspState.tourLength = calculateTourLength(_tspState.tour);
+                _tspState.bestTour = _tspState.tour;
+                _tspState.bestLength = _tspState.tourLength;
+                _tspState.finished = true;
+                return false;
+            }
+
             // Update partial tour length
             _tspState.tourLength = calculateTourLength(_tspState.tour);
-            return !_unvisited.empty();
+            return true;
         } else {
             // No reachable city remains; terminate as infeasible to complete
             _tspState.finished = true;
