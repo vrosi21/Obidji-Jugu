@@ -43,6 +43,8 @@ public:
 
     int getGeneration() const { return _generation; }
     int getPopulationSize() const { return _populationSize; }
+    int getMaxGenerations() const { return _maxGenerations; }
+    const std::vector<std::vector<int>>& getPopulation() const { return _population; }
 
 protected:
     void initializeTSP() override {

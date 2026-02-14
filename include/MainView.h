@@ -35,6 +35,8 @@ private:
     bool _solutionRunning = false;
     int _solveTickCounter = 0;
     int _solutionTickCounter = 0;
+    bool _stepAnimRunning = false;   // step-tour animation in progress (SA/GA per-step replay)
+    int _stepAnimTickCounter = 0;
 
 
 public:
@@ -132,10 +134,78 @@ protected:
         return ticks;
     }
 
+    // How many expanded-path edges to advance per animation tick.
+    // Higher speed => more edges per tick => faster path draw.
+    size_t getStepAnimEdgesPerTick() const
+    {
+        int speed = _sidePanel.getExecutionSpeedLevel();
+        // speed 1 => 1 edge/tick, speed 10 => 10 edges/tick
+        return static_cast<size_t>(speed < 1 ? 1 : speed);
+    }
+
+    // Start step-tour animation for the current solver state (SA or GA).
+    // Returns true if animation was started.
+    bool beginStepTourAnimationForCurrentAlgo()
+    {
+        if (!_solver) return false;
+
+        auto* ga = dynamic_cast<GeneticAlgorithmTSP*>(_solver.get());
+        if (ga) {
+            const auto& pop = ga->getPopulation();
+            if (!pop.empty()) {
+                _mapView.queueStepTourFrames(pop);
+                if (_mapView.isStepTourAnimating()) {
+                    _stepAnimRunning = true;
+                    _stepAnimTickCounter = 0;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        auto* sa = dynamic_cast<SimulatedAnnealingAlgorithm*>(_solver.get());
+        if (sa) {
+            const auto& tour = sa->getTour();
+            if (tour.size() >= 2) {
+                _mapView.startStepTourAnimation(tour);
+                if (_mapView.isStepTourAnimating()) {
+                    _stepAnimRunning = true;
+                    _stepAnimTickCounter = 0;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        return false;
+    }
+
     // Timer callback for auto-stepping
     bool onTimer(gui::Timer* pTimer) override
     {
         if (pTimer == &_timer && _running && _solver) {
+            // ---  Step-tour animation in progress: drive it instead of stepping solver ---
+            if (_stepAnimRunning && _mapView.isStepTourAnimating()) {
+                _stepAnimTickCounter++;
+                int ticksNeeded = getTicksPerAdvanceFromSpeed();
+                if (_stepAnimTickCounter < ticksNeeded) {
+                    _timer.start();
+                    return true;
+                }
+                _stepAnimTickCounter = 0;
+
+                size_t edges = getStepAnimEdgesPerTick();
+                if (!_mapView.advanceStepTourAnimation(edges)) {
+                    // Animation finished for this step; proceed to next solver step
+                    _stepAnimRunning = false;
+                    _mapView.stopStepTourAnimation();
+                }
+                _mapView.refresh();
+                if (_running) _timer.start();
+                return true;
+            }
+
+            // --- Normal solver stepping ---
             int ticksPerAdvance = getTicksPerAdvanceFromSpeed();
             _solveTickCounter++;
 
@@ -154,10 +224,20 @@ protected:
             // When auto-solving is finished, clear current step-path visualization,
             // then run Show Solution flow automatically.
             if (finishedThisTick && _solver) {
+                _mapView.stopStepTourAnimation();
+                _stepAnimRunning = false;
                 _mapView.setSolver(nullptr);
                 _mapView.refresh();
                 _mapView.setSolver(_solver.get());
                 handleSolverAction(3, _currentAlgorithmIdx);
+                return true;
+            }
+
+            // For SA / GA: start step-tour animation before next step
+            if (!finishedThisTick && beginStepTourAnimationForCurrentAlgo()) {
+                _mapView.refresh();
+                if (_running) _timer.start();
+                refreshStepButtons();
                 return true;
             }
 
@@ -228,7 +308,10 @@ private:
         _solutionRunning = false;
         _solutionTimer.stop();
         _solutionTickCounter = 0;
+        _stepAnimRunning = false;
+        _stepAnimTickCounter = 0;
         _mapView.stopSolutionAnimation();
+        _mapView.stopStepTourAnimation();
     }
 
     void ensureMapSolverAttached()

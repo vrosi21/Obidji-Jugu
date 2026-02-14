@@ -43,6 +43,7 @@ void MapView::setSolver(SearchAlgorithm* solver)
 {
     _solver = solver;
     stopSolutionAnimation();
+    stopStepTourAnimation();
 }
 
 void MapView::onResize(const gui::Size& newSize)
@@ -406,92 +407,185 @@ void MapView::drawTSPState()
         return;
     }
 
+    if (_stepTourAnimating) {
+        drawStepTourAnimation();
+        return;
+    }
+
     TSPAlgorithm* tspSolver = dynamic_cast<TSPAlgorithm*>(_solver);
     if (!tspSolver || !_repo) return;
 
     const auto& cities = _repo->cities();
-    
-    // Calculate scaled sizes
     float avgScale = _scaleX;
     float scaledSize = MapPointStyle::Size * avgScale;
     float scaledBorder = MapPointStyle::BorderOffset * avgScale;
-    float scaledLineWidth = 2.0f * avgScale;
-    if (scaledLineWidth < 1.0f) scaledLineWidth = 1.0f;
 
-    // Draw current tour in cyan
     const auto& currentTour = tspSolver->getTour();
-    if (!currentTour.empty()) {
-        drawTour(currentTour, td::ColorID::Cyan, 2.0f * avgScale);
+    const auto& bestTour = tspSolver->getBestTour();
+    double currentLength = tspSolver->getTourLength();
+    double bestLength = tspSolver->getBestLength();
+
+    // --- Determine algorithm type for specialised rendering ---
+    auto* nn = dynamic_cast<NearestNeighborAlgorithm*>(tspSolver);
+    auto* sa = dynamic_cast<SimulatedAnnealingAlgorithm*>(tspSolver);
+    auto* ga = dynamic_cast<GeneticAlgorithmTSP*>(tspSolver);
+
+    // ============================================================
+    //  TOUR LINES
+    // ============================================================
+    if (nn) {
+        // NN: single constructive path in vivid blue with visit-order labels
+        if (!currentTour.empty()) {
+            drawTourWithVisitOrder(currentTour, td::ColorID::DodgerBlue, 3.0f * avgScale, td::ColorID::DodgerBlue);
+        }
+    } else {
+        // SA / GA: show best-so-far as thin dashed reference, current as thick orange
+        if (bestTour.size() >= 2 && bestTour != currentTour) {
+            drawTour(bestTour, td::ColorID::SteelBlue, 1.5f * avgScale);
+        }
+        if (!currentTour.empty()) {
+            drawTour(currentTour, td::ColorID::DarkOrange, 2.5f * avgScale);
+        }
     }
 
-    // Highlight cities in the current tour
+    // ============================================================
+    //  CITY HIGHLIGHTS
+    // ============================================================
     for (size_t i = 0; i < currentTour.size(); ++i) {
         int idx = currentTour[i];
-        if (idx >= 0 && idx < static_cast<int>(cities.size())) {
-            const auto& city = cities[idx];
-            float sx = _offsetX + static_cast<float>(city.x) * _scaleX;
-            float sy = _offsetY + static_cast<float>(city.y) * _scaleY;
+        if (idx < 0 || idx >= static_cast<int>(cities.size())) continue;
+        const auto& city = cities[idx];
+        float sx = _offsetX + static_cast<float>(city.x) * _scaleX;
+        float sy = _offsetY + static_cast<float>(city.y) * _scaleY;
 
-            
-            gui::Rect overlayRect(
-                sx - scaledBorder - 2 * avgScale,
-                sy - scaledBorder - 2 * avgScale,
-                sx + scaledSize + scaledBorder + 2 * avgScale,
-                sy + scaledSize + scaledBorder + 2 * avgScale
-            );
-            gui::Shape overlay;
-            overlay.createRect(overlayRect);
-            
-            // First city in tour gets special color
-            if (i == 0) {
-                overlay.drawFillAndWire(td::ColorID::Cyan, td::ColorID::DarkBlue, scaledLineWidth);
+        float pad = 2.0f * avgScale;
+        gui::Rect overlayRect(
+            sx - scaledBorder - pad,
+            sy - scaledBorder - pad,
+            sx + scaledSize + scaledBorder + pad,
+            sy + scaledSize + scaledBorder + pad
+        );
+        gui::Shape overlay;
+        overlay.createRect(overlayRect);
+
+        if (nn) {
+            // NN head (last city added) gets bright highlight
+            if (i == currentTour.size() - 1 && !tspSolver->isComplete()) {
+                overlay.drawFillAndWire(td::ColorID::Gold, td::ColorID::OrangeRed, 2.5f * avgScale);
+            } else if (i == 0) {
+                overlay.drawFillAndWire(td::ColorID::LightSkyBlue, td::ColorID::DarkBlue, 1.5f * avgScale);
             } else {
-                overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, scaledLineWidth * 0.75f);
+                overlay.drawWire(td::ColorID::DodgerBlue, 1.2f * avgScale);
+            }
+        } else {
+            // SA/GA: subtle ring around tour members
+            if (i == 0) {
+                overlay.drawFillAndWire(td::ColorID::LightSalmon, td::ColorID::DarkOrange, 1.5f * avgScale);
+            } else {
+                overlay.drawWire(td::ColorID::DarkOrange, 1.0f * avgScale);
             }
         }
     }
 
-    // Display algorithm-specific info
-    double currentLength = tspSolver->getTourLength();
-    std::ostringstream info;
-    info << std::fixed << std::setprecision(1);
+    // ============================================================
+    //  INFO PANEL  (multi-line with background)
+    // ============================================================
+    std::vector<std::pair<std::string, std::string>> infoLines;
 
-    if (auto* ga = dynamic_cast<GeneticAlgorithmTSP*>(tspSolver)) {
-        info << "GA Generation: " << ga->getGeneration();
-        if (currentLength < std::numeric_limits<double>::max()) {
-            info << "  Best: " << currentLength;
-        }
-    }
-    else if (auto* sa = dynamic_cast<SimulatedAnnealingAlgorithm*>(tspSolver)) {
-        info << "SA Iteration: " << tspSolver->getCurrentStep();
-        info << "  Temp: " << std::setprecision(3) << sa->getTemperature() << std::setprecision(1);
-        if (currentLength < std::numeric_limits<double>::max()) {
-            info << "  Current: " << currentLength;
-        }
-    }
-    else if (auto* nn = dynamic_cast<NearestNeighborAlgorithm*>(tspSolver)) {
-        info << "NN Step: " << tspSolver->getCurrentStep();
-        if (currentLength < std::numeric_limits<double>::max()) {
-            info << "  Current: " << currentLength;
-        }
+    auto fmtCost = [](double v) -> std::string {
+        if (v >= std::numeric_limits<double>::max() || !std::isfinite(v)) return "--";
+        std::ostringstream o; o << std::fixed << std::setprecision(1) << v; return o.str();
+    };
+
+    if (ga) {
+        infoLines.push_back({"Algorithm", "Genetic Algorithm"});
+        infoLines.push_back({"Generation", std::to_string(ga->getGeneration()) + " / " + std::to_string(ga->getMaxGenerations())});
+        infoLines.push_back({"Best cost", fmtCost(bestLength)});
+        infoLines.push_back({"Current cost", fmtCost(currentLength)});
+    } else if (sa) {
+        infoLines.push_back({"Algorithm", "Simulated Annealing"});
+        infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
+        std::ostringstream ts; ts << std::fixed << std::setprecision(2) << sa->getTemperature();
+        infoLines.push_back({"Temperature", ts.str()});
+        infoLines.push_back({"Best cost", fmtCost(bestLength)});
+        infoLines.push_back({"Current cost", fmtCost(currentLength)});
+    } else if (nn) {
+        infoLines.push_back({"Algorithm", "Nearest Neighbor"});
+        infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
+        infoLines.push_back({"Tour cost", fmtCost(currentLength)});
         if (nn->is2OptEnabled()) {
             if (nn->isIn2OptPhase()) {
-                info << "  2-opt cycles left: " << nn->getRemaining2OptCycles();
+                infoLines.push_back({"2-opt", "improving (" + std::to_string(nn->getRemaining2OptCycles()) + " left)"});
             } else {
-                info << "  2-opt: ON";
+                infoLines.push_back({"2-opt", "enabled"});
             }
         }
-    }
-    else {
-        info << "Step: " << tspSolver->getCurrentStep();
-        if (currentLength < std::numeric_limits<double>::max()) {
-            info << "  Current: " << currentLength;
-        }
+    } else {
+        infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
+        infoLines.push_back({"Cost", fmtCost(currentLength)});
     }
 
-    gui::DrawableString infoStr(info.str().c_str());
-    gui::Point textPos(static_cast<gui::CoordType>(_offsetX + 10 * _scaleX), static_cast<gui::CoordType>(_offsetY + 10 * _scaleX));
-    infoStr.draw(textPos, gui::Font::ID::SystemNormal, td::ColorID::Black);
+    drawInfoPanel(infoLines);
+}
+
+void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines) const
+{
+    if (lines.empty()) return;
+
+    // Panel position: top-left corner, offset from map edge
+    float panelX = _offsetX + 8.0f;
+    float panelY = _offsetY + 8.0f;
+    float lineH = 18.0f;
+    float panelW = 260.0f;
+    float panelH = lineH * static_cast<float>(lines.size()) + 12.0f;
+
+    // Draw semi-transparent background panel
+    gui::Rect bgRect(
+        static_cast<gui::CoordType>(panelX),
+        static_cast<gui::CoordType>(panelY),
+        static_cast<gui::CoordType>(panelX + panelW),
+        static_cast<gui::CoordType>(panelY + panelH)
+    );
+    gui::Shape bgShape;
+    bgShape.createRect(bgRect);
+    bgShape.drawFillAndWire(td::ColorID::WhiteSmoke, td::ColorID::Silver, 1.0f);
+
+    // Draw each line as "Label:  Value"
+    float textX = panelX + 8.0f;
+    float textY = panelY + 6.0f;
+    for (const auto& kv : lines) {
+        std::string txt = kv.first + ":  " + kv.second;
+        gui::DrawableString ds(txt.c_str());
+        gui::Point pos(static_cast<gui::CoordType>(textX), static_cast<gui::CoordType>(textY));
+        ds.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::DarkSlateGray);
+        textY += lineH;
+    }
+}
+
+void MapView::drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID color, float lineWidth, td::ColorID orderColor)
+{
+    // Draw the tour edges
+    drawTour(tour, color, lineWidth);
+
+    if (!_repo || tour.empty()) return;
+    const auto& cities = _repo->cities();
+
+    // Draw visit-order numbers near each city
+    float avgScale = _scaleX;
+    float scaledSize = MapPointStyle::Size * avgScale;
+    for (size_t i = 0; i < tour.size(); ++i) {
+        int idx = tour[i];
+        if (idx < 0 || idx >= static_cast<int>(cities.size())) continue;
+
+        auto cc = MapPointStyle::getScaledCenter(cities[idx].x, cities[idx].y, _scaleX, _offsetX, _offsetY);
+        std::string numStr = std::to_string(i + 1);
+        gui::DrawableString ds(numStr.c_str());
+        gui::Point pos(
+            static_cast<gui::CoordType>(cc.first + scaledSize * 0.5f + 2.0f),
+            static_cast<gui::CoordType>(cc.second - scaledSize * 0.6f)
+        );
+        ds.draw(pos, gui::Font::ID::SystemNormal, orderColor);
+    }
 }
 
 void MapView::drawTour(const std::vector<int>& tour, td::ColorID color, float lineWidth)
@@ -657,11 +751,17 @@ void MapView::drawAnimatedSolution()
     const size_t edgeCount = (_solutionAnimEdgeCount > maxEdges) ? maxEdges : _solutionAnimEdgeCount;
     if (edgeCount == 0) return;
 
+    float avgScale = _scaleX;
+    float scaledSize = MapPointStyle::Size * avgScale;
+    float scaledBorder = MapPointStyle::BorderOffset * avgScale;
     const size_t currentEdgeIdx = edgeCount - 1;
 
+    // --- Completed trail: thick forest green ---
     if (currentEdgeIdx > 0) {
+        float trailWidth = 4.0f * avgScale;
+        if (trailWidth < 2.0f) trailWidth = 2.0f;
         gui::Shape completedShape;
-        auto completed = completedShape.createBezier(4, td::LinePattern::Solid);
+        auto completed = completedShape.createBezier(static_cast<gui::CoordType>(trailWidth), td::LinePattern::Solid);
 
         for (size_t i = 0; i < currentEdgeIdx; ++i) {
             int u = _solutionExpandedPath[i];
@@ -673,40 +773,267 @@ void MapView::drawAnimatedSolution()
             completed.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
             completed.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
         }
-        completedShape.drawWire(td::ColorID::Red);
+        completedShape.drawWire(td::ColorID::ForestGreen);
     }
 
+    // --- Leading edge: thicker gold line ---
     {
         int u = _solutionExpandedPath[currentEdgeIdx];
         int v = _solutionExpandedPath[currentEdgeIdx + 1];
         if (!isBlocked(u) && !isBlocked(v)) {
+            float headWidth = 5.0f * avgScale;
+            if (headWidth < 3.0f) headWidth = 3.0f;
             gui::Shape currentShape;
-            auto curr = currentShape.createBezier(6, td::LinePattern::Solid);
+            auto curr = currentShape.createBezier(static_cast<gui::CoordType>(headWidth), td::LinePattern::Solid);
 
             auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
             auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
             curr.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
             curr.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
-            currentShape.drawWire(td::ColorID::Green);
+            currentShape.drawWire(td::ColorID::Gold);
 
-            float avgScale = _scaleX;
-            float scaledSize = MapPointStyle::Size * avgScale;
-            float scaledBorder = MapPointStyle::BorderOffset * avgScale;
-
+            // Leading-city highlight in gold
             auto cc = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
-            float ix = cc.first - (scaledSize * 0.5f);   // ili koristi tačno kako ti je MapPointStyle centar definisan
-            float iy = cc.second - (scaledSize * 0.5f);
+            float ix = static_cast<float>(cc.first) - (scaledSize * 0.5f);
+            float iy = static_cast<float>(cc.second) - (scaledSize * 0.5f);
 
+            float pad = 4.0f * avgScale;
             gui::Rect overlayRect(
-                ix - scaledBorder - 4 * avgScale,
-                iy - scaledBorder - 4 * avgScale,
-                ix + scaledSize + scaledBorder + 4 * avgScale,
-                iy + scaledSize + scaledBorder + 4 * avgScale
+                ix - scaledBorder - pad,
+                iy - scaledBorder - pad,
+                ix + scaledSize + scaledBorder + pad,
+                iy + scaledSize + scaledBorder + pad
             );
 
             gui::Shape overlay;
             overlay.createRect(overlayRect);
-            overlay.drawFillAndWire(td::ColorID::LightGreen, td::ColorID::DarkGreen, 2.0f);
+            overlay.drawFillAndWire(td::ColorID::Gold, td::ColorID::DarkOrange, 2.0f * avgScale);
         }
+    }
+
+    // --- Progress label ---
+    {
+        int pct = static_cast<int>((100.0 * edgeCount) / maxEdges);
+        std::string progress = "Solution: " + std::to_string(pct) + "%";
+        gui::DrawableString ds(progress.c_str());
+        gui::Point pos(static_cast<gui::CoordType>(_offsetX + 10.0f), static_cast<gui::CoordType>(_offsetY + 20.0f));
+        ds.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::ForestGreen);
+    }
+}
+
+// ================================================================
+//  Step-Tour Animation (per-step path replay for SA / GA)
+// ================================================================
+
+void MapView::startStepTourAnimation(const std::vector<int>& tour)
+{
+    stopStepTourAnimation();
+    _stepTourStaticPerMember = false;
+    if (!_repo || tour.size() < 2) return;
+
+    std::vector<int> expanded;
+    if (!buildExpandedTourPath(tour, expanded)) return;
+
+    _stepTourExpandedPath = std::move(expanded);
+    _stepTourEdgeCount = 1;
+    _stepTourAnimating = true;
+    _stepTourQueue.clear();
+    _stepTourQueueIdx = 1;
+    _stepTourQueueTotal = 1;
+}
+
+void MapView::queueStepTourAnimations(const std::vector<std::vector<int>>& tours)
+{
+    stopStepTourAnimation();
+    _stepTourStaticPerMember = false;
+    if (!_repo || tours.empty()) return;
+
+    _stepTourQueue.clear();
+    _stepTourQueueTotal = tours.size();
+    _stepTourQueueIdx = 0;
+
+    // Put all tours in the queue, start the first one
+    for (auto& t : tours) {
+        _stepTourQueue.push_back(t);
+    }
+
+    startNextQueuedTour();
+}
+
+void MapView::queueStepTourFrames(const std::vector<std::vector<int>>& tours)
+{
+    stopStepTourAnimation();
+    _stepTourStaticPerMember = true;
+    if (!_repo || tours.empty()) return;
+
+    _stepTourQueue.clear();
+    _stepTourQueueTotal = tours.size();
+    _stepTourQueueIdx = 0;
+
+    for (const auto& t : tours) {
+        _stepTourQueue.push_back(t);
+    }
+
+    startNextQueuedTour();
+}
+
+bool MapView::startNextQueuedTour()
+{
+    while (!_stepTourQueue.empty()) {
+        std::vector<int> tour = _stepTourQueue.front();
+        _stepTourQueue.erase(_stepTourQueue.begin());
+        _stepTourQueueIdx = _stepTourQueueTotal - _stepTourQueue.size();
+
+        if (tour.size() < 2) continue;
+
+        std::vector<int> expanded;
+        if (!buildExpandedTourPath(tour, expanded)) continue;
+
+        _stepTourExpandedPath = std::move(expanded);
+        _stepTourEdgeCount = _stepTourStaticPerMember
+            ? (_stepTourExpandedPath.size() > 1 ? _stepTourExpandedPath.size() - 1 : 0)
+            : 1;
+        _stepTourAnimating = true;
+        return true;
+    }
+
+    // No more tours
+    _stepTourAnimating = false;
+    _stepTourExpandedPath.clear();
+    _stepTourEdgeCount = 0;
+    return false;
+}
+
+bool MapView::advanceStepTourAnimation(size_t edgesPerTick)
+{
+    if (!_stepTourAnimating) return false;
+
+    // GA mode: each queued member is shown as a complete path for one frame period,
+    // then we switch to the next member.
+    if (_stepTourStaticPerMember) {
+        return startNextQueuedTour();
+    }
+
+    if (_stepTourExpandedPath.size() < 2) {
+        // Try next queued tour
+        return startNextQueuedTour();
+    }
+
+    const size_t maxEdges = _stepTourExpandedPath.size() - 1;
+    if (_stepTourEdgeCount >= maxEdges) {
+        // Current tour animation done, try next
+        return startNextQueuedTour();
+    }
+
+    size_t next = _stepTourEdgeCount + edgesPerTick;
+    _stepTourEdgeCount = (next > maxEdges) ? maxEdges : next;
+
+    if (_stepTourEdgeCount >= maxEdges) {
+        // Current tour fully drawn, try next
+        return startNextQueuedTour();
+    }
+    return true;
+}
+
+void MapView::stopStepTourAnimation()
+{
+    _stepTourAnimating = false;
+    _stepTourExpandedPath.clear();
+    _stepTourEdgeCount = 0;
+    _stepTourQueue.clear();
+    _stepTourQueueIdx = 0;
+    _stepTourQueueTotal = 0;
+    _stepTourStaticPerMember = false;
+}
+
+void MapView::drawStepTourAnimation()
+{
+    if (!_stepTourAnimating || _stepTourExpandedPath.size() < 2 || !_repo) return;
+
+    const auto& cities = _repo->cities();
+    auto isBlocked = [&](int idx) {
+        return idx < 0 || idx >= static_cast<int>(cities.size()) ||
+               cities[idx].visitation_status == VisitationStatus::Blocked;
+    };
+    const size_t maxEdges = _stepTourExpandedPath.size() - 1;
+    const size_t edgeCount = (_stepTourEdgeCount > maxEdges) ? maxEdges : _stepTourEdgeCount;
+    if (edgeCount == 0) return;
+
+    float avgScale = _scaleX;
+    float scaledSize = MapPointStyle::Size * avgScale;
+    float scaledBorder = MapPointStyle::BorderOffset * avgScale;
+    const size_t currentEdgeIdx = edgeCount - 1;
+
+    // --- Completed trail: dark orange ---
+    if (currentEdgeIdx > 0) {
+        float trailWidth = 3.0f * avgScale;
+        if (trailWidth < 1.5f) trailWidth = 1.5f;
+        gui::Shape completedShape;
+        auto completed = completedShape.createBezier(static_cast<gui::CoordType>(trailWidth), td::LinePattern::Solid);
+
+        for (size_t i = 0; i < currentEdgeIdx; ++i) {
+            int u = _stepTourExpandedPath[i];
+            int v = _stepTourExpandedPath[i + 1];
+            if (isBlocked(u) || isBlocked(v)) continue;
+
+            auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
+            auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
+            completed.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
+            completed.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
+        }
+        completedShape.drawWire(td::ColorID::DarkOrange);
+    }
+
+    // --- Leading edge: thicker gold ---
+    {
+        int u = _stepTourExpandedPath[currentEdgeIdx];
+        int v = _stepTourExpandedPath[currentEdgeIdx + 1];
+        if (!isBlocked(u) && !isBlocked(v)) {
+            float headWidth = 4.0f * avgScale;
+            if (headWidth < 2.0f) headWidth = 2.0f;
+            gui::Shape currentShape;
+            auto curr = currentShape.createBezier(static_cast<gui::CoordType>(headWidth), td::LinePattern::Solid);
+
+            auto c1 = MapPointStyle::getScaledCenter(cities[u].x, cities[u].y, _scaleX, _offsetX, _offsetY);
+            auto c2 = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
+            curr.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
+            curr.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
+            currentShape.drawWire(td::ColorID::Gold);
+
+            // Leading-city highlight
+            auto cc = MapPointStyle::getScaledCenter(cities[v].x, cities[v].y, _scaleX, _offsetX, _offsetY);
+            float ix = static_cast<float>(cc.first) - (scaledSize * 0.5f);
+            float iy = static_cast<float>(cc.second) - (scaledSize * 0.5f);
+
+            float pad = 3.0f * avgScale;
+            gui::Rect overlayRect(
+                ix - scaledBorder - pad,
+                iy - scaledBorder - pad,
+                ix + scaledSize + scaledBorder + pad,
+                iy + scaledSize + scaledBorder + pad
+            );
+            gui::Shape overlay;
+            overlay.createRect(overlayRect);
+            overlay.drawFillAndWire(td::ColorID::Gold, td::ColorID::DarkOrange, 1.5f * avgScale);
+        }
+    }
+
+    // --- Info panel ---
+    {
+        std::vector<std::pair<std::string, std::string>> infoLines;
+        int pct = static_cast<int>((100.0 * edgeCount) / maxEdges);
+
+        if (_stepTourQueueTotal > 1) {
+            // GA mode: show member index
+            infoLines.push_back({"Member", std::to_string(_stepTourQueueIdx) + " / " + std::to_string(_stepTourQueueTotal)});
+
+            if (_solver) {
+                if (auto* ga = dynamic_cast<GeneticAlgorithmTSP*>(_solver)) {
+                    infoLines.push_back({"Generation", std::to_string(ga->getGeneration()) + " / " + std::to_string(ga->getMaxGenerations())});
+                }
+            }
+        }
+        infoLines.push_back({"Path", std::to_string(pct) + "%"});
+        drawInfoPanel(infoLines);
     }
 }
