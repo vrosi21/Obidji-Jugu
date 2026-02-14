@@ -165,6 +165,24 @@ public:
     bool isNN2OptEnabled() const;
     int getNNImprovementCycles() const;
 
+    // SA settings
+    double getSAInitialTemperature() const;
+    double getSACoolingRateAlpha() const;
+    int getSAIterationsPerTemperature() const;
+    bool useNearestNeighborAsSAInitialSolution() const;
+
+    // GA settings
+    int getGAPopulationSize() const;
+    int getGANumberOfGenerations() const;
+    double getGAMutationRate() const;
+    double getGACrossoverRate() const;
+    int getGASelectionMethodIndex() const;
+    int getGAMutationOperatorIndex() const;
+    double getGAElitismPercentage() const;
+
+    // Shared execution speed for auto-step and solution animation
+    int getExecutionSpeedLevel() const;
+
     // Get / set currently selected city index
     int getSelectedPointIndex() const;
     void selectPointIndex(int idx);
@@ -200,6 +218,7 @@ private:
     void handleRandomizeWeights();
     void handleRandomizeStatus();
     void handleRandomizeAll();
+    void handleRandomizeGAParameters();
     void selectIndexAndUpdate(int idx);
     void updateCurrentNameFromSelection();
     void updateCurrentCoordsFromSelection();

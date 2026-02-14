@@ -1,18 +1,39 @@
 #pragma once
 #include "TSPAlgorithm.h"
 #include <algorithm>
+#include <cmath>
 
 // Genetic Algorithm for TSP
 // Evolutionary optimization using selection, crossover, and mutation
 class GeneticAlgorithmTSP : public TSPAlgorithm {
 public:
+    enum class SelectionMethod {
+        Roulette = 0,
+        Tournament = 1,
+        Rank = 2
+    };
+
+    enum class MutationOperator {
+        Swap = 0,
+        Inversion = 1,
+        OXLike = 2
+    };
+
     GeneticAlgorithmTSP(
         int populationSize = 50,
         double mutationRate = 0.02,
-        int maxGenerations = 1000
+        int maxGenerations = 1000,
+        double crossoverRate = 0.8,
+        SelectionMethod selectionMethod = SelectionMethod::Roulette,
+        MutationOperator mutationOperator = MutationOperator::Swap,
+        double elitismPercent = 10.0
     ) : _populationSize(populationSize),
         _mutationRate(mutationRate),
-        _maxGenerations(maxGenerations) {}
+        _maxGenerations(maxGenerations),
+        _crossoverRate(crossoverRate),
+        _selectionMethod(selectionMethod),
+        _mutationOperator(mutationOperator),
+        _elitismPercent(elitismPercent) {}
 
     ~GeneticAlgorithmTSP() override = default;
 
@@ -52,22 +73,32 @@ protected:
         std::vector<std::vector<int>> newPopulation;
         newPopulation.reserve(_populationSize);
 
-        // Elitism: keep the best individual
-        int bestIdx = findBestIndex();
-        newPopulation.push_back(_population[bestIdx]);
+        // Elitism: keep top-N individuals
+        int eliteCount = static_cast<int>(std::round((_elitismPercent / 100.0) * _populationSize));
+        if (eliteCount < 1) eliteCount = 1;
+        if (eliteCount > _populationSize) eliteCount = _populationSize;
+
+        std::vector<int> sorted = sortIndicesByFitnessDesc();
+        for (int i = 0; i < eliteCount; ++i) {
+            newPopulation.push_back(_population[sorted[i]]);
+        }
 
         // Generate rest of population through selection, crossover, mutation
         while (static_cast<int>(newPopulation.size()) < _populationSize) {
-            // Tournament selection for two parents
-            int parent1Idx = tournamentSelect();
-            int parent2Idx = tournamentSelect();
+            int parent1Idx = selectParent();
+            int parent2Idx = selectParent();
 
-            // Order Crossover (OX)
-            std::vector<int> child = orderCrossover(_population[parent1Idx], _population[parent2Idx]);
+            std::vector<int> child;
+            if (_realDist(_rng) < _crossoverRate) {
+                // Order Crossover (OX)
+                child = orderCrossover(_population[parent1Idx], _population[parent2Idx]);
+            } else {
+                child = _population[parent1Idx];
+            }
 
             // Mutation
             if (_realDist(_rng) < _mutationRate) {
-                swapMutation(child);
+                applyMutation(child);
             }
 
             newPopulation.push_back(child);
@@ -86,6 +117,27 @@ protected:
 
         _generation++;
         return _generation < _maxGenerations;
+    }
+
+    std::vector<int> sortIndicesByFitnessDesc() const {
+        std::vector<int> idx(_populationSize);
+        for (int i = 0; i < _populationSize; ++i) idx[i] = i;
+        std::sort(idx.begin(), idx.end(), [&](int a, int b) {
+            return _fitness[a] > _fitness[b];
+        });
+        return idx;
+    }
+
+    int selectParent() {
+        switch (_selectionMethod) {
+            case SelectionMethod::Tournament:
+                return tournamentSelect();
+            case SelectionMethod::Rank:
+                return rankSelect();
+            case SelectionMethod::Roulette:
+            default:
+                return rouletteSelect();
+        }
     }
 
 private:
@@ -135,6 +187,40 @@ private:
             }
         }
         return best;
+    }
+
+    int rouletteSelect() {
+        double totalFitness = 0.0;
+        for (double f : _fitness) totalFitness += f;
+        if (totalFitness <= 0.0) {
+            std::uniform_int_distribution<int> dist(0, _populationSize - 1);
+            return dist(_rng);
+        }
+
+        double r = _realDist(_rng) * totalFitness;
+        double acc = 0.0;
+        for (int i = 0; i < _populationSize; ++i) {
+            acc += _fitness[i];
+            if (acc >= r) return i;
+        }
+        return _populationSize - 1;
+    }
+
+    int rankSelect() {
+        std::vector<int> ranked = sortIndicesByFitnessDesc();
+        // Linear ranking probabilities: N..1
+        int n = static_cast<int>(ranked.size());
+        int sumRanks = n * (n + 1) / 2;
+        std::uniform_int_distribution<int> pick(1, sumRanks);
+        int r = pick(_rng);
+
+        int acc = 0;
+        for (int pos = 0; pos < n; ++pos) {
+            int rankWeight = n - pos;
+            acc += rankWeight;
+            if (acc >= r) return ranked[pos];
+        }
+        return ranked.back();
     }
 
     // Order Crossover (OX) - preserves relative order of cities
@@ -200,9 +286,42 @@ private:
         std::swap(tour[i], tour[j]);
     }
 
+    void inversionMutation(std::vector<int>& tour) {
+        if (tour.size() < 3) return;
+        int lo = (_startCityIdx >= 0) ? 1 : 0;
+        if (lo >= static_cast<int>(tour.size()) - 1) return;
+
+        std::uniform_int_distribution<int> dist(lo, static_cast<int>(tour.size()) - 1);
+        int i = dist(_rng);
+        int j = dist(_rng);
+        if (i > j) std::swap(i, j);
+        if (i == j) return;
+        std::reverse(tour.begin() + i, tour.begin() + j + 1);
+    }
+
+    void applyMutation(std::vector<int>& tour) {
+        switch (_mutationOperator) {
+            case MutationOperator::Inversion:
+                inversionMutation(tour);
+                break;
+            case MutationOperator::OXLike:
+                // keep behavior deterministic and simple: use inversion as stronger operator
+                inversionMutation(tour);
+                break;
+            case MutationOperator::Swap:
+            default:
+                swapMutation(tour);
+                break;
+        }
+    }
+
     int _populationSize;
     double _mutationRate;
     int _maxGenerations;
+    double _crossoverRate;
+    SelectionMethod _selectionMethod;
+    MutationOperator _mutationOperator;
+    double _elitismPercent;
     int _generation = 0;
     
     std::vector<std::vector<int>> _population;

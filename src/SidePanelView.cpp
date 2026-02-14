@@ -265,6 +265,7 @@ SidePanelView::SidePanelView()
     gc.appendRow(showSolution, 2);
     gc.appendCol(btnResetSolution, 2);
     gc.appendRow(lblAnimationSpeed);
+    sliderAnimationSpeed.setRange(1.0, 10.0);
     gc.appendCol(sliderAnimationSpeed,3);
 
     setLayout(&gl);
@@ -279,7 +280,25 @@ SidePanelView::SidePanelView()
     populateSolvingAlgorithms(_algorithmNames);
 
     // NN defaults
+    checkBoxEnable2opt.setChecked(false);
     txtEditImprovementCycles.setText("20");
+
+    // SA defaults
+    txtEditInitialTemperature.setText("10000");
+    txtEditIterationsPerTemperatureLevel.setText("25");
+    cmbSAInitialSolution.selectIndex(0); // Random
+
+    // GA defaults
+    txtEditPopulationSize.setText("50");
+    txtEditNumberOfGenerations.setText("1000");
+    txtEditMutationRate.setText("0.02");
+    txtEditCrossoverRate.setText("0.80");
+    txtEditElitismPercentage.setText("10");
+    cmbSelectionMethod.selectIndex(0); // Roulette
+    cmbMutationCrossoverOperator.selectIndex(0); // Swap
+
+    // Shared speed default
+    sliderAnimationSpeed.setValue(1.0);
 }
 
 void SidePanelView::populateStatusCombo()
@@ -442,6 +461,11 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &btnRandomizeAll)
     {
         handleRandomizeAll();
+        return true;
+    }
+    if (pBtn == &btnRandomizeParameters)
+    {
+        handleRandomizeGAParameters();
         return true;
     }
     if (pBtn == &btnStartPause) {
@@ -1003,6 +1027,41 @@ void SidePanelView::handleRandomizeAll()
     reDraw();
 }
 
+void SidePanelView::handleRandomizeGAParameters()
+{
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_int_distribution<int> popDist(20, 200);
+    std::uniform_int_distribution<int> genDist(100, 3000);
+    std::uniform_real_distribution<double> mutDist(0.005, 0.20);
+    std::uniform_real_distribution<double> crossDist(0.50, 0.95);
+    std::uniform_real_distribution<double> elitDist(2.0, 30.0);
+    std::uniform_int_distribution<int> selDist(0, 2);
+    std::uniform_int_distribution<int> opDist(0, 2);
+
+    txtEditPopulationSize.setText(std::to_string(popDist(rng)).c_str());
+    txtEditNumberOfGenerations.setText(std::to_string(genDist(rng)).c_str());
+
+    {
+        std::ostringstream os;
+        os << std::fixed << std::setprecision(3) << mutDist(rng);
+        txtEditMutationRate.setText(os.str().c_str());
+    }
+    {
+        std::ostringstream os;
+        os << std::fixed << std::setprecision(3) << crossDist(rng);
+        txtEditCrossoverRate.setText(os.str().c_str());
+    }
+    {
+        std::ostringstream os;
+        os << std::fixed << std::setprecision(1) << elitDist(rng);
+        txtEditElitismPercentage.setText(os.str().c_str());
+    }
+
+    cmbSelectionMethod.selectIndex(selDist(rng));
+    cmbMutationCrossoverOperator.selectIndex(opDist(rng));
+    reDraw();
+}
+
 void SidePanelView::selectIndexAndUpdate(int idx)
 {
     if (idx < 0 || idx >= (int)_pointNames.size()) return;
@@ -1034,6 +1093,87 @@ int SidePanelView::getNNImprovementCycles() const
     int cycles = std::atoi(txtEditImprovementCycles.getText().c_str());
     if (cycles < 0) cycles = 0;
     return cycles;
+}
+
+double SidePanelView::getSAInitialTemperature() const
+{
+    double t = std::atof(txtEditInitialTemperature.getText().c_str());
+    return (t > 0.0) ? t : 10000.0;
+}
+
+double SidePanelView::getSACoolingRateAlpha() const
+{
+    double a = sliderCoolingRateAlpha.getValue();
+    if (a < 0.90) a = 0.90;
+    if (a > 0.99) a = 0.99;
+    return a;
+}
+
+int SidePanelView::getSAIterationsPerTemperature() const
+{
+    int it = std::atoi(txtEditIterationsPerTemperatureLevel.getText().c_str());
+    return (it > 0) ? it : 25;
+}
+
+bool SidePanelView::useNearestNeighborAsSAInitialSolution() const
+{
+    return cmbSAInitialSolution.getSelectedIndex() == 1;
+}
+
+int SidePanelView::getGAPopulationSize() const
+{
+    int v = std::atoi(txtEditPopulationSize.getText().c_str());
+    return (v >= 2) ? v : 50;
+}
+
+int SidePanelView::getGANumberOfGenerations() const
+{
+    int v = std::atoi(txtEditNumberOfGenerations.getText().c_str());
+    return (v >= 1) ? v : 1000;
+}
+
+double SidePanelView::getGAMutationRate() const
+{
+    double v = std::atof(txtEditMutationRate.getText().c_str());
+    if (v < 0.0) v = 0.0;
+    if (v > 1.0) v = 1.0;
+    return v;
+}
+
+double SidePanelView::getGACrossoverRate() const
+{
+    double v = std::atof(txtEditCrossoverRate.getText().c_str());
+    if (v < 0.0) v = 0.0;
+    if (v > 1.0) v = 1.0;
+    return v;
+}
+
+int SidePanelView::getGASelectionMethodIndex() const
+{
+    int idx = cmbSelectionMethod.getSelectedIndex();
+    return (idx >= 0) ? idx : 0;
+}
+
+int SidePanelView::getGAMutationOperatorIndex() const
+{
+    int idx = cmbMutationCrossoverOperator.getSelectedIndex();
+    return (idx >= 0) ? idx : 0;
+}
+
+double SidePanelView::getGAElitismPercentage() const
+{
+    double v = std::atof(txtEditElitismPercentage.getText().c_str());
+    if (v < 0.0) v = 0.0;
+    if (v > 100.0) v = 100.0;
+    return v;
+}
+
+int SidePanelView::getExecutionSpeedLevel() const
+{
+    int speed = static_cast<int>(sliderAnimationSpeed.getValue() + 0.5);
+    if (speed < 1) speed = 1;
+    if (speed > 10) speed = 10;
+    return speed;
 }
 
 int SidePanelView::getSelectedPointIndex() const

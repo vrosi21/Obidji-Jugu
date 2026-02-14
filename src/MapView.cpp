@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <filesystem>
 #include "SimulatedAnnealingAlgorithm.h"
+#include "GeneticAlgorithmTSP.h"
+#include "NearestNeighborAlgorithm.h"
 #include <algorithm>
 #include <limits>
 
@@ -449,15 +451,42 @@ void MapView::drawTSPState()
         }
     }
 
-    // Display tour length info - scaled position
+    // Display algorithm-specific info
     double currentLength = tspSolver->getTourLength();
-    int step = tspSolver->getCurrentStep();
-
     std::ostringstream info;
     info << std::fixed << std::setprecision(1);
-    info << "Step: " << step;
-    if (currentLength < std::numeric_limits<double>::max()) {
-        info << "  Current: " << currentLength;
+
+    if (auto* ga = dynamic_cast<GeneticAlgorithmTSP*>(tspSolver)) {
+        info << "GA Generation: " << ga->getGeneration();
+        if (currentLength < std::numeric_limits<double>::max()) {
+            info << "  Best: " << currentLength;
+        }
+    }
+    else if (auto* sa = dynamic_cast<SimulatedAnnealingAlgorithm*>(tspSolver)) {
+        info << "SA Iteration: " << tspSolver->getCurrentStep();
+        info << "  Temp: " << std::setprecision(3) << sa->getTemperature() << std::setprecision(1);
+        if (currentLength < std::numeric_limits<double>::max()) {
+            info << "  Current: " << currentLength;
+        }
+    }
+    else if (auto* nn = dynamic_cast<NearestNeighborAlgorithm*>(tspSolver)) {
+        info << "NN Step: " << tspSolver->getCurrentStep();
+        if (currentLength < std::numeric_limits<double>::max()) {
+            info << "  Current: " << currentLength;
+        }
+        if (nn->is2OptEnabled()) {
+            if (nn->isIn2OptPhase()) {
+                info << "  2-opt cycles left: " << nn->getRemaining2OptCycles();
+            } else {
+                info << "  2-opt: ON";
+            }
+        }
+    }
+    else {
+        info << "Step: " << tspSolver->getCurrentStep();
+        if (currentLength < std::numeric_limits<double>::max()) {
+            info << "  Current: " << currentLength;
+        }
     }
 
     gui::DrawableString infoStr(info.str().c_str());

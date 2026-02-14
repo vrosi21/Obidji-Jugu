@@ -1,17 +1,27 @@
 #pragma once
 #include "TSPAlgorithm.h"
+#include <set>
 
 // Simulated Annealing algorithm for TSP
 // Metaheuristic that uses temperature-based acceptance to escape local minima
 class SimulatedAnnealingAlgorithm : public TSPAlgorithm {
 public:
+    enum class InitialSolutionMode {
+        Random = 0,
+        NearestNeighbor = 1
+    };
+
     SimulatedAnnealingAlgorithm(
         double initialTemp = 10000.0,
         double minTemp = 0.001,
-        double coolingRate = 0.995
+        double coolingRate = 0.995,
+        int iterationsPerTemperature = 25,
+        InitialSolutionMode initialMode = InitialSolutionMode::Random
     ) : _initialTemp(initialTemp),
         _minTemp(minTemp),
-        _coolingRate(coolingRate) {}
+        _coolingRate(coolingRate),
+        _iterationsPerTemperature(iterationsPerTemperature > 0 ? iterationsPerTemperature : 25),
+        _initialMode(initialMode) {}
 
     ~SimulatedAnnealingAlgorithm() override = default;
 
@@ -25,9 +35,14 @@ public:
 protected:
     void initializeTSP() override {
         _temperature = _initialTemp;
+        _iterAtCurrentTemp = 0;
 
-        // Generate initial random tour
-        _tspState.tour = generateRandomTour();
+        // Generate initial tour (random or NN)
+        if (_initialMode == InitialSolutionMode::NearestNeighbor) {
+            _tspState.tour = buildNearestNeighborInitialTour();
+        } else {
+            _tspState.tour = generateRandomTour();
+        }
         _tspState.tourLength = calculateTourLength(_tspState.tour);
         _tspState.bestTour = _tspState.tour;
         _tspState.bestLength = _tspState.tourLength;
@@ -97,16 +112,60 @@ protected:
             _tspState.tourLength = newLength;
         }
 
-        // Cool down
-        _temperature *= _coolingRate;
+        // Cool down after configured number of iterations on same temperature
+        _iterAtCurrentTemp++;
+        if (_iterAtCurrentTemp >= _iterationsPerTemperature) {
+            _temperature *= _coolingRate;
+            _iterAtCurrentTemp = 0;
+        }
 
         return _temperature > _minTemp;
+    }
+
+    std::vector<int> buildNearestNeighborInitialTour()
+    {
+        std::vector<int> tour;
+        if (_requiredCities.empty()) return tour;
+
+        std::set<int> unvisited(_requiredCities.begin(), _requiredCities.end());
+        int current = (_startCityIdx >= 0) ? _startCityIdx : *unvisited.begin();
+
+        tour.push_back(current);
+        unvisited.erase(current);
+
+        while (!unvisited.empty()) {
+            int bestCity = -1;
+            double bestCost = std::numeric_limits<double>::max();
+
+            for (int c : unvisited) {
+                double cost = calculateTransitionCost(current, c);
+                if (std::isfinite(cost) && cost < bestCost) {
+                    bestCost = cost;
+                    bestCity = c;
+                }
+            }
+
+            if (bestCity < 0) {
+                // fallback: append remaining deterministically
+                for (int c : unvisited) tour.push_back(c);
+                break;
+            }
+
+            tour.push_back(bestCity);
+            unvisited.erase(bestCity);
+            current = bestCity;
+        }
+
+        return tour;
     }
 
 private:
     double _initialTemp;
     double _minTemp;
     double _coolingRate;
+    int _iterationsPerTemperature = 25;
+    int _iterAtCurrentTemp = 0;
+    InitialSolutionMode _initialMode = InitialSolutionMode::Random;
     double _temperature = 0.0;
     std::uniform_real_distribution<double> _realDist;
 };

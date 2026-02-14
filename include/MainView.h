@@ -33,6 +33,8 @@ private:
     int _currentAlgorithmIdx = 0;
     gui::Timer _solutionTimer;
     bool _solutionRunning = false;
+    int _solveTickCounter = 0;
+    int _solutionTickCounter = 0;
 
 
 public:
@@ -99,17 +101,15 @@ public:
 
         // When data changes (city added/deleted/status changed), reset the solver
         _repo.setOnDataChanged([this]() {
-            if (_running) stopSolver();
-
-            _solutionRunning = false;
-            _solutionTimer.stop();
-            _mapView.stopSolutionAnimation();
-
+            stopAllExecution();
             if (_solver) {
                 _solver->reset(&_repo);
-                _mapView.refresh();
-                refreshStepButtons();
             }
+
+            // Clear canvas slate until an explicit execute action (start/step/show).
+            _mapView.setSolver(nullptr);
+            _mapView.refresh();
+            refreshStepButtons();
         });
 
         // Initialize solver with default algorithm (BFS)
@@ -120,11 +120,47 @@ public:
     }
 
 protected:
+    int getTicksPerAdvanceFromSpeed() const
+    {
+        // Speed slider is 1..10.
+        // 1 => advance every 10 timer ticks (slowest)
+        // 10 => advance every 1 timer tick (fastest)
+        int speed = _sidePanel.getExecutionSpeedLevel();
+        int ticks = 11 - speed;
+        if (ticks < 1) ticks = 1;
+        if (ticks > 10) ticks = 10;
+        return ticks;
+    }
+
     // Timer callback for auto-stepping
     bool onTimer(gui::Timer* pTimer) override
     {
         if (pTimer == &_timer && _running && _solver) {
-            if (!_solver->step()) stopSolver();
+            int ticksPerAdvance = getTicksPerAdvanceFromSpeed();
+            _solveTickCounter++;
+
+            if (_solveTickCounter < ticksPerAdvance) {
+                if (_running) _timer.start();
+                return true;
+            }
+
+            _solveTickCounter = 0;
+            bool finishedThisTick = false;
+            if (!_solver->step()) {
+                stopSolver();
+                finishedThisTick = true;
+            }
+
+            // When auto-solving is finished, clear current step-path visualization,
+            // then run Show Solution flow automatically.
+            if (finishedThisTick && _solver) {
+                _mapView.setSolver(nullptr);
+                _mapView.refresh();
+                _mapView.setSolver(_solver.get());
+                handleSolverAction(3, _currentAlgorithmIdx);
+                return true;
+            }
+
             _mapView.refresh();
             if (_running) _timer.start();
             refreshStepButtons();
@@ -132,6 +168,15 @@ protected:
         }
 
         if (pTimer == &_solutionTimer && _solutionRunning) {
+            int ticksPerAdvance = getTicksPerAdvanceFromSpeed();
+            _solutionTickCounter++;
+
+            if (_solutionTickCounter < ticksPerAdvance) {
+                _solutionTimer.start();
+                return true;
+            }
+
+            _solutionTickCounter = 0;
             if (!_mapView.advanceSolutionAnimation(1)) {
                 _solutionRunning = false;
                 _solutionTimer.stop();
@@ -179,9 +224,18 @@ private:
     {
         _running = false;
         _timer.stop();
+        _solveTickCounter = 0;
         _solutionRunning = false;
         _solutionTimer.stop();
+        _solutionTickCounter = 0;
         _mapView.stopSolutionAnimation();
+    }
+
+    void ensureMapSolverAttached()
+    {
+        if (_solver) {
+            _mapView.setSolver(_solver.get());
+        }
     }
 
     // Handle solver control actions from SidePanelView
@@ -216,6 +270,7 @@ private:
 
                 // Build final solution first (run remaining iterations immediately)
                 if (_solver) {
+                    ensureMapSolverAttached();
                     while (!_solver->isComplete()) {
                         if (!_solver->step()) break;
                     }
@@ -223,6 +278,7 @@ private:
 
                 _solutionRunning = false;
                 _solutionTimer.stop();
+                _solutionTickCounter = 0;
 
                 _mapView.startSolutionAnimation();  
                 if (_mapView.isSolutionAnimating()) {
@@ -237,6 +293,9 @@ private:
                 if (_solver) {
                     _solver->reset(&_repo);
                 }
+
+                // Keep map clear until user explicitly executes (start/step/show).
+                _mapView.setSolver(nullptr);
                 _mapView.refresh();
                 refreshStepButtons();
                 break;
@@ -246,10 +305,8 @@ private:
 
     void selectAlgorithm(int algorithmIdx)
     {
-        // Stop any running solver first
-        if (_running) {
-            stopSolver();
-        }
+        // Side-panel change: stop all execution and clear any active animation.
+        stopAllExecution();
 
         _currentAlgorithmIdx = algorithmIdx;
 
@@ -260,19 +317,38 @@ private:
                     _sidePanel.isNN2OptEnabled(),
                     _sidePanel.getNNImprovementCycles());
                 break;
-            case 1: _solver = std::make_unique<SimulatedAnnealingAlgorithm>(); break;
-            case 2: _solver = std::make_unique<GeneticAlgorithmTSP>(); break;
+            case 1:
+                _solver = std::make_unique<SimulatedAnnealingAlgorithm>(
+                    _sidePanel.getSAInitialTemperature(),
+                    0.001,
+                    _sidePanel.getSACoolingRateAlpha(),
+                    _sidePanel.getSAIterationsPerTemperature(),
+                    _sidePanel.useNearestNeighborAsSAInitialSolution()
+                        ? SimulatedAnnealingAlgorithm::InitialSolutionMode::NearestNeighbor
+                        : SimulatedAnnealingAlgorithm::InitialSolutionMode::Random);
+                break;
+            case 2:
+                _solver = std::make_unique<GeneticAlgorithmTSP>(
+                    _sidePanel.getGAPopulationSize(),
+                    _sidePanel.getGAMutationRate(),
+                    _sidePanel.getGANumberOfGenerations(),
+                    _sidePanel.getGACrossoverRate(),
+                    static_cast<GeneticAlgorithmTSP::SelectionMethod>(_sidePanel.getGASelectionMethodIndex()),
+                    static_cast<GeneticAlgorithmTSP::MutationOperator>(_sidePanel.getGAMutationOperatorIndex()),
+                    _sidePanel.getGAElitismPercentage());
+                break;
             default: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;
         }
 
         // Initialize solver with current data
         _solver->reset(&_repo);
-        
-        // Connect solver to MapView for visualization
-        _mapView.setSolver(_solver.get());
+
+        // Keep canvas slate clean until explicit execute action.
+        _mapView.setSolver(nullptr);
 
         _solutionRunning = false;
         _solutionTimer.stop();
+        _solutionTickCounter = 0;
         _mapView.stopSolutionAnimation();
 
         refreshStepButtons();
@@ -304,13 +380,17 @@ private:
             _solver->reset(&_repo);
         }
 
+        ensureMapSolverAttached();
+
 
         _solutionRunning = false;
         _solutionTimer.stop();
+        _solutionTickCounter = 0;
         _mapView.stopSolutionAnimation();
 
         
         _running = true;
+        _solveTickCounter = 0;
         _timer.start();
         refreshStepButtons();
     }
@@ -319,6 +399,7 @@ private:
     {
         _running = false;
         _timer.stop();
+        _solveTickCounter = 0;
         refreshStepButtons();
     }
 
@@ -342,6 +423,8 @@ private:
             _solver->reset(&_repo);
         }
 
+        ensureMapSolverAttached();
+
         _solver->step();
         _mapView.refresh();
         refreshStepButtons();
@@ -355,6 +438,8 @@ private:
         if (_running) {
             stopSolver();
         }
+
+        ensureMapSolverAttached();
 
         _solver->stepBack();
         _mapView.refresh();

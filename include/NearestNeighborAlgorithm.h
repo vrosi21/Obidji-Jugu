@@ -15,6 +15,10 @@ public:
         return "Nearest Neighbor";
     }
 
+    bool is2OptEnabled() const { return _enable2Opt; }
+    int getRemaining2OptCycles() const { return _remaining2OptCycles; }
+    bool isIn2OptPhase() const { return _unvisited.empty() && _enable2Opt && _remaining2OptCycles > 0; }
+
 protected:
     void initializeTSP() override {
         _unvisited.clear();
