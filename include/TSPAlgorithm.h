@@ -154,6 +154,21 @@ protected:
         return _repo->getMetricDistance(i, j);
     }
 
+    // Weighted transition cost:
+    // Cost(A -> B) = Distance(A, B) * Weight(B)
+    double calculateTransitionCost(int a, int b) const {
+        if (!_repo) return std::numeric_limits<double>::infinity();
+        const auto& cities = _repo->cities();
+        if (b < 0 || b >= static_cast<int>(cities.size())) {
+            return std::numeric_limits<double>::infinity();
+        }
+
+        const double d = calculateDistance(a, b);
+        if (!std::isfinite(d)) return std::numeric_limits<double>::infinity();
+
+        return d * cities[b].weight;
+    }
+
     // Calculate total tour length (including return to start)
     double calculateTourLength(const std::vector<int>& tour) const {
         if (tour.size() < 2) return 0.0;
@@ -161,9 +176,9 @@ protected:
         for (size_t i = 0; i < tour.size(); ++i) {
             int a = tour[i];
             int b = tour[(i + 1) % tour.size()];
-            double d = calculateDistance(a, b);
-            if (!std::isfinite(d)) return std::numeric_limits<double>::infinity();
-            length += d;
+            double c = calculateTransitionCost(a, b);
+            if (!std::isfinite(c)) return std::numeric_limits<double>::infinity();
+            length += c;
         }
         return length;
     }

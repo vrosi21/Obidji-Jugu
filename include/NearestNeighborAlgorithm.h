@@ -48,13 +48,13 @@ protected:
 
         // Find nearest unvisited city
         int nearestCity = -1;
-        double nearestDist = std::numeric_limits<double>::max();
+        double bestCost = std::numeric_limits<double>::max();
 
         for (int city : _unvisited) {
-            double dist = calculateDistance(_currentCity, city);
-            if (!std::isfinite(dist)) continue; // skip unreachable
-            if (dist < nearestDist) {
-                nearestDist = dist;
+            double moveCost = calculateTransitionCost(_currentCity, city);
+            if (!std::isfinite(moveCost)) continue; // skip unreachable
+            if (moveCost < bestCost) {
+                bestCost = moveCost;
                 nearestCity = city;
             }
         }
