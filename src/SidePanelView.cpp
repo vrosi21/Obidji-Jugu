@@ -1226,9 +1226,25 @@ void SidePanelView::updateExecutionState(bool running)
     showSolution.enable(!running);
     btnResetSolution.enable(!running);
 
-    // Lock NN 2-opt controls while running
+    // Lock NN controls while running
     checkBoxEnable2opt.enable(!running);
     txtEditImprovementCycles.enable(!running);
+
+    // Lock SA controls while running
+    txtEditInitialTemperature.enable(!running);
+    sliderCoolingRateAlpha.enable(!running);
+    txtEditIterationsPerTemperatureLevel.enable(!running);
+    cmbSAInitialSolution.enable(!running);
+
+    // Lock GA controls while running
+    txtEditPopulationSize.enable(!running);
+    txtEditNumberOfGenerations.enable(!running);
+    txtEditMutationRate.enable(!running);
+    txtEditCrossoverRate.enable(!running);
+    cmbSelectionMethod.enable(!running);
+    cmbMutationCrossoverOperator.enable(!running);
+    txtEditElitismPercentage.enable(!running);
+    btnRandomizeParameters.enable(!running);
 }
 
 

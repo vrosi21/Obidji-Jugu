@@ -378,6 +378,12 @@ private:
                     break;
                 }
 
+                // Re-create solver with latest side-panel parameters
+                // if it hasn't been stepped yet, so parameter edits take effect.
+                if (_solver && !_solver->canStepBack() && !_solver->isComplete()) {
+                    selectAlgorithm(_currentAlgorithmIdx);
+                }
+
                 // Build final solution first (run remaining iterations immediately)
                 if (_solver) {
                     ensureMapSolverAttached();
@@ -400,9 +406,9 @@ private:
                 break;
             case 4: // Reset solver state + clear drawn algorithm paths/animation
                 stopAllExecution();
-                if (_solver) {
-                    _solver->reset(&_repo);
-                }
+
+                // Re-create the solver with latest side-panel parameters
+                selectAlgorithm(_currentAlgorithmIdx);
 
                 // Keep map clear until user explicitly executes (start/step/show).
                 _mapView.setSolver(nullptr);
@@ -477,7 +483,6 @@ private:
 
     void startSolver()
     {
-        if (!_solver) return;
         if (!canExecuteAlgorithms()) {
             stopAllExecution();
             _mapView.refresh();
@@ -485,10 +490,9 @@ private:
             return;
         }
 
-        // Reset solver if it was completed
-        if (_solver->isComplete()) {
-            _solver->reset(&_repo);
-        }
+        // Always re-create the solver with the latest side-panel parameters
+        // so that any control changes are picked up.
+        selectAlgorithm(_currentAlgorithmIdx);
 
         ensureMapSolverAttached();
 
@@ -518,7 +522,6 @@ private:
 
     void stepForward()
     {
-        if (!_solver) return;
         if (!canExecuteAlgorithms()) {
             stopAllExecution();
             _mapView.refresh();
@@ -543,6 +546,14 @@ private:
             _solutionTimer.stop();
             _mapView.stopStepTourAnimation();
         }
+
+        // If solver hasn't started yet (no history), re-create it with
+        // the latest side-panel parameters so manual tweaks are applied.
+        if (_solver && !_solver->canStepBack() && !_solver->isComplete()) {
+            selectAlgorithm(_currentAlgorithmIdx);
+        }
+
+        if (!_solver) return;
 
         // If algorithm is already complete, don't step further
         if (_solver->isComplete()) {
