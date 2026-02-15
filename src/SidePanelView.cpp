@@ -368,6 +368,8 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         checkBoxEnable2opt.hide(!nearestNeighborSelected, true);
         lblImprovementCycles.hide(!nearestNeighborSelected, true);
         txtEditImprovementCycles.hide(!nearestNeighborSelected, true);
+        btnStartPause.hide(nearestNeighborSelected, true);
+
 
         // -------------------------
         // SA (labels + inputs)
@@ -383,6 +385,8 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
 
         cmbSAInitialSolution.hide(!simulatedAnnealingSelected, true);
 
+        btnStepFwd.hide(simulatedAnnealingSelected, true);
+        btnStepBwd.hide(simulatedAnnealingSelected, true);
         // -------------------------
         // GA (labels + inputs)
         // -------------------------
@@ -406,6 +410,9 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
 
         btnRandomizeParameters.hide(!geneticAlgorithmSelected, true);
         
+        btnStepFwd.hide(geneticAlgorithmSelected, true);
+        btnStepBwd.hide(geneticAlgorithmSelected, true);
+
         reDraw();
         // Notify that algorithm selection changed (action code 2)
         if (_solverCallback) {
