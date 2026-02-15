@@ -1,482 +1,689 @@
-# Architecture Documentation
+# Architecture — Obiđi Jugu (The Travelling Salesman)
 
-This document describes the architecture of the Obiđi Jugu (Travelling Salesman) application, including all classes, their purposes, and method descriptions.
+Detailed technical documentation of the project's class hierarchy, data flow, rendering pipeline, algorithm infrastructure and timer/animation state machines.
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Data Layer](#data-layer)
-   - [DataTypes](#datatypes)
-   - [DataRepository](#datarepository)
-   - [JsonService](#jsonservice)
-3. [Rendering Layer](#rendering-layer)
-   - [MapPointStyle](#mappointstyle)
-   - [MapPointRenderer](#mappointrenderer)
-   - [MapView](#mapview)
-4. [UI Layer](#ui-layer)
-   - [SidePanelView](#sidepanelview)
-   - [ToolBar](#toolbar)
-5. [Application Layer](#application-layer)
-   - [MainView](#mainview)
-   - [MainWindow](#mainwindow)
-   - [Application](#application)
+1. [High-Level Architecture](#1-high-level-architecture)
+2. [Layered Dependency Map](#2-layered-dependency-map)
+3. [Class Catalogue](#3-class-catalogue)
+4. [Data Layer](#4-data-layer)
+5. [Algorithm Layer](#5-algorithm-layer)
+6. [UI Layer](#6-ui-layer)
+7. [Rendering Pipeline](#7-rendering-pipeline)
+8. [Timer & Animation State Machine](#8-timer--animation-state-machine)
+9. [Event & Callback Wiring](#9-event--callback-wiring)
+10. [File Index](#10-file-index)
 
 ---
 
-## Overview
+## 1. High-Level Architecture
 
-The application follows a layered architecture with clear separation of concerns:
+The application follows a **Model-View-Controller** pattern layered on top of the natID GUI framework:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Application Layer                        │
-│  (Application, MainWindow, MainView)                        │
-├─────────────────────────────────────────────────────────────┤
-│                       UI Layer                              │
-│  (SidePanelView, ToolBar)                                   │
-├─────────────────────────────────────────────────────────────┤
-│                    Rendering Layer                          │
-│  (MapView, MapPointStyle, MapPointRenderer)                 │
-├─────────────────────────────────────────────────────────────┤
-│                      Data Layer                             │
-│  (DataRepository, JsonService, DataTypes)                   │
-└─────────────────────────────────────────────────────────────┘
+│                        Application                          │
+│  main.cpp → Application → MainWindow → MainView            │
+├────────────────┬────────────────────┬───────────────────────┤
+│    MODEL       │    VIEW            │    CONTROLLER          │
+│                │                    │                        │
+│ DataRepository │ MapView (Canvas)   │ MainView (orchestrator)│
+│ JsonService    │ SidePanelView      │   • timer management   │
+│ DataTypes      │ MapPoint           │   • solver lifecycle   │
+│                │ ToolBar            │   • callback routing   │
+├────────────────┴────────────────────┴───────────────────────┤
+│                     ALGORITHMS                               │
+│                                                              │
+│  SearchAlgorithm (BFS, DFS)                                  │
+│  TSPAlgorithm (NearestNeighbor, SimulatedAnnealing, GA)      │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-**Key Design Patterns:**
-- **Repository Pattern**: `DataRepository` centralizes all data access and persistence
-- **Observer Pattern**: Components subscribe to data changes via callbacks
-- **Service Pattern**: `JsonService` provides stateless I/O operations
-
----
-
-## Data Layer
-
-### DataTypes
-
-**File:** `include/DataTypes.h`
-
-**Purpose:** Defines core domain types used throughout the application.
-
-#### Enum: `VisitationStatus`
-
-Represents the visitation state of a city point.
-
-| Value | Description |
-|-------|-------------|
-| `Blocked = 0` | City cannot be visited |
-| `Open = 1` | City is available for visiting |
-| `Goal = 2` | City is a destination/goal |
-| `Start = 3` | City is the starting point (only one allowed) |
-
-#### Struct: `CityPoint`
-
-Represents a city/point on the map.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `int` | Unique identifier (-1 if unset) |
-| `x` | `double` | X coordinate on map |
-| `y` | `double` | Y coordinate on map |
-| `weight` | `double` | Weight/cost value for algorithms |
-| `name` | `std::string` | Display name of the city |
-| `visitation_status` | `VisitationStatus` | Current visitation state |
-
-#### Struct: `RoadEdge`
-
-Lightweight road connection (for rendering).
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `fromId` | `int` | Source city ID |
-| `toId` | `int` | Destination city ID |
-
-#### Struct: `RoadInfo`
-
-Full road information (for persistence and algorithms).
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `fromId` | `int` | Source city ID |
-| `toId` | `int` | Destination city ID |
-| `length` | `double` | Road length |
-| `travelTimeH` | `double` | Travel time in hours |
-| `type` | `std::string` | Road type (e.g., "local", "highway") |
-| `bidirectional` | `bool` | Whether road can be traversed both ways |
-
----
-
-### DataRepository
-
-**File:** `include/DataRepository.h`, `src/DataRepository.cpp`
-
-**Purpose:** Central data store implementing the Repository pattern. Manages all city and road data with automatic JSON persistence and change notifications.
-
-#### Type Aliases
-
-| Name | Type | Description |
-|------|------|-------------|
-| `ChangeCallback` | `std::function<void()>` | Callback for data change notifications |
-
-#### Constructor/Destructor
-
-| Method | Description |
-|--------|-------------|
-| `DataRepository()` | Initializes repository and loads data from JSON |
-| `~DataRepository()` | Default destructor |
-
-#### City CRUD Operations
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `addCity` | `name`, `x`, `y` | `bool` | Adds a new city with given name and coordinates. Returns false if name is empty or save fails. |
-| `updateCity` | `index`, `name`, `x`, `y`, `weight` | `bool` | Updates city at index with new values. Returns false if index invalid or save fails. |
-| `updateCityStatus` | `index`, `status` | `bool` | Updates visitation status of city at index. Returns false if index invalid or save fails. |
-| `deleteCity` | `index` | `bool` | Deletes city at index and reindexes remaining cities. Also removes associated roads. Returns false if index invalid or save fails. |
-
-#### City Queries
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getCity` | `index`, `out` | `bool` | Retrieves city data at index into `out` parameter. Returns false if index invalid. |
-| `getCityNames` | — | `std::vector<std::string>` | Returns list of all city names in order. |
-| `cityCount` | — | `size_t` | Returns total number of cities. |
-
-#### Road CRUD Operations
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `addConnection` | `fromIndex`, `toIndex` | `bool` | Creates a road between two cities. Calculates length automatically. Returns false if indices invalid or save fails. |
-| `removeConnection` | `fromIndex`, `toIndex` | `bool` | Removes road between two cities. Returns false if indices invalid or save fails. |
-
-#### Road Queries
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `hasConnection` | `fromIndex`, `toIndex` | `bool` | Checks if a road exists between two cities (either direction). |
-| `getConnections` | `index` | `std::vector<int>` | Returns indices of all cities connected to the given city. |
-| `getConnectionNames` | `index` | `std::vector<std::string>` | Returns names of all cities connected to the given city. |
-
-#### Direct Access (Read-Only)
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `cities` | `const std::vector<CityPoint>&` | Direct read-only access to city data for rendering. |
-| `roads` | `const std::vector<RoadEdge>&` | Direct read-only access to road data for rendering. |
-
-#### Change Notifications
-
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `setOnDataChanged` | `callback` | Registers a callback to be invoked when data changes. |
-
-#### Private Methods
-
-| Method | Description |
-|--------|-------------|
-| `load()` | Loads data from JSON file on construction. |
-| `save()` | Persists current data to JSON file. Called after every modification. |
-| `nextCityId()` | Calculates the next available city ID. |
-| `isValidIndex(index)` | Validates that an index is within bounds. |
-| `notifyChange()` | Invokes the registered change callback if set. |
-
----
-
-### JsonService
-
-**File:** `include/JsonService.h`, `src/JsonService.cpp`
-
-**Purpose:** Stateless service class providing JSON file I/O operations. All methods are static; the class cannot be instantiated.
-
-#### Public Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `loadFromJson` | `jsonPath`, `outCities`, `outRoads`, `outRoadsFull` | `bool` | Loads and parses JSON file, populating output vectors. Returns false on failure. |
-| `saveToJson` | `jsonPath`, `cities`, `roadsFull` | `bool` | Writes cities and roads to JSON file. Returns false on failure. |
-| `findJsonFile` | — | `std::filesystem::path` | Searches for JSON data file in standard locations (relative to cwd and exe directory). |
-
-#### Private Helper Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `readFileContent` | `path` | `std::string` | Reads entire file content as string. |
-| `extractNumber` | `obj`, `key` | `double` | Extracts numeric value from JSON object string. |
-| `extractInt` | `obj`, `key` | `int` | Extracts integer value from JSON object string. |
-| `extractString` | `obj`, `key` | `std::string` | Extracts string value from JSON object string. |
-| `extractBool` | `obj`, `key` | `bool` | Extracts boolean value from JSON object string. |
-
----
-
-## Rendering Layer
-
-### MapPointStyle
-
-**File:** `include/MapPoint.h`, `src/MapPoint.cpp`
-
-**Purpose:** Configuration and utility struct for map point visual styling.
-
-#### Constants
-
-| Constant | Value | Description |
-|----------|-------|-------------|
-| `Size` | `10` | Inner rectangle size in pixels |
-| `BorderOffset` | `3` | Border extends this many pixels beyond inner rect |
-
-#### Static Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getColors` | `status`, `borderColor`, `centerColor` | `void` | Sets border and center colors based on visitation status. Colors: Blocked=Red/Yellow, Open=Yellow/Yellow, Goal=Yellow/Violet, Start=Yellow/Cyan |
-| `getCenter` | `x`, `y` | `std::pair<double, double>` | Calculates center point of a map point for road connection drawing. |
-
----
-
-### MapPointRenderer
-
-**File:** `include/MapPoint.h`, `src/MapPoint.cpp`
-
-**Purpose:** Renders individual map points (cities) on the canvas.
-
-#### Static Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `draw` | `mapPoint` | `void` | Draws a complete map point with border rectangle, center rectangle, and name label. Uses `MapPointStyle` for sizing and colors. |
-
----
-
-### MapView
-
-**File:** `include/MapView.h`, `src/MapView.cpp`
-
-**Purpose:** Canvas view responsible for rendering the map, cities, and road connections. Contains no data—delegates all data operations to `DataRepository`.
-
-#### Constructor/Destructor
-
-| Method | Description |
-|--------|-------------|
-| `MapView()` | Initializes canvas and loads background image. |
-| `~MapView()` | Default destructor. |
-
-#### Public Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `setRepository` | `repo` | `void` | Attaches a repository and subscribes to change notifications for automatic redraw. |
-| `repository` | — | `DataRepository*` | Returns pointer to attached repository (for queries). |
-
-#### Protected Methods
-
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `onDraw` | `rect` | Renders background image, road connection lines, and all city points. |
-
-#### Private Methods
-
-| Method | Description |
-|--------|-------------|
-| `loadBackground()` | Attempts to load background map image from standard locations. |
-
----
-
-## UI Layer
-
-### SidePanelView
-
-**File:** `include/SidePanelView.h`, `src/SidePanelView.cpp`
-
-**Purpose:** Side panel containing all UI controls for CRUD operations on cities and roads, status management, and algorithm selection.
-
-#### UI Controls (Public Members)
-
-| Control | Type | Description |
-|---------|------|-------------|
-| `lblXCoord` / `txtEditXCoord` | Label / NumericEdit | X coordinate input for new points |
-| `lblYCoord` / `txtEditYCoord` | Label / NumericEdit | Y coordinate input for new points |
-| `lblName` / `lnEditName` | Label / LineEdit | Name input for new points |
-| `btnAddPt` | Button | Adds a new point with entered values |
-| `lblChoosePoint` / `cmbPoints` | Label / ComboBox | Dropdown to select existing point |
-| `lblCurrentCityName` / `lnEditCurrentCityName` | Label / LineEdit | Current point name (editable) |
-| `lblCurrentX` / `neCurrentX` | Label / NumericEdit | Current point X coordinate (editable) |
-| `lblCurrentY` / `neCurrentY` | Label / NumericEdit | Current point Y coordinate (editable) |
-| `lblCurrentWeight` / `neCurrentWeight` | Label / NumericEdit | Current point weight (editable) |
-| `btnUpdatePoint` | Button | Updates selected point with edited values |
-| `btnDeletePoint` | Button | Deletes selected point |
-| `lblConnections` / `lblConnectionsValue` | Labels | Displays current point's connections |
-| `lblConnectTo` / `cmbConnectTo` | Label / ComboBox | Dropdown to select connection target |
-| `btnToggleConnection` | Button | Adds or removes connection to selected target |
-| `lblStatus` / `cmbStatus` | Label / ComboBox | Visitation status dropdown (Blocked/Open/Goal/Start) |
-| `lblSolvingSection` | Label | Section header for algorithm controls |
-| `cmbSolvingAlgorithm` | ComboBox | Algorithm selection dropdown |
-| `btnStartPause` / `btnStepFwd` / `btnStepBwd` | Buttons | Algorithm playback controls |
-| `gl` | GridLayout | Layout manager for all controls |
-
-#### Constructor/Destructor
-
-| Method | Description |
-|--------|-------------|
-| `SidePanelView()` | Initializes all controls and arranges them in grid layout. |
-| `~SidePanelView()` | Default destructor. |
-
-#### Public Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `populatePointNames` | `names` | `void` | Fills point dropdown with city names. |
-| `populateSolvingAlgorithms` | `names` | `void` | Fills algorithm dropdown with algorithm names. |
-| `setRepository` | `repo` | `void` | Connects panel to data repository for operations. |
-| `syncSelectionDetails` | — | `void` | Synchronizes all fields with currently selected point. |
-
-#### Protected Methods (Event Handlers)
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `onChangedSelection` | `pCB` | `bool` | Handles dropdown selection changes. |
-| `onClick` | `pBtn` | `bool` | Handles button clicks. |
-
-#### Private Methods
-
-| Method | Description |
-|--------|-------------|
-| `handleAddPoint()` | Creates new point from input fields. |
-| `handleUpdatePoint()` | Updates selected point with current field values. |
-| `handleDeletePoint()` | Deletes currently selected point. |
-| `handleToggleConnection()` | Adds or removes road to selected target point. |
-| `handleStatusChange()` | Updates visitation status. Ensures only one Start exists. |
-| `selectIndexAndUpdate(idx)` | Selects point at index and refreshes all related fields. |
-| `updateCurrentNameFromSelection()` | Updates name field from selected point. |
-| `updateCurrentCoordsFromSelection()` | Updates coordinate and weight fields from selected point. |
-| `updateConnectionsLabel()` | Updates connections display label. |
-| `populateConnectToCombo()` | Fills connection target dropdown (excludes current point). |
-| `populateStatusCombo()` | Fills status dropdown with all visitation statuses. |
-| `updateStatusFromSelection()` | Sets status dropdown to match selected point's status. |
-
----
-
-### ToolBar
-
-**File:** `include/ToolBar.h`
-
-**Purpose:** Application toolbar with language selection buttons.
-
-#### Members
-
-| Member | Type | Description |
-|--------|------|-------------|
-| `_imgEN` | gui::Image | English flag icon |
-| `_imgBA` | gui::Image | Bosnian flag icon |
-
-#### Constructor
-
-| Method | Description |
-|--------|-------------|
-| `ToolBar()` | Creates toolbar with EN and BA language buttons. Uses menuID=255, actionIDs 10 (EN) and 20 (BA). |
-
----
-
-## Application Layer
-
-### MainView
-
-**File:** `include/MainView.h`
-
-**Purpose:** Main content view that composes the map view and side panel, and owns the central `DataRepository` instance.
-
-#### Members
-
-| Member | Type | Description |
-|--------|------|-------------|
-| `_hlayout` | gui::HorizontalLayout | Layout arranging map and panel side by side |
-| `_repo` | DataRepository | Central data store (owned by MainView) |
-| `_mapView` | MapView | Map rendering canvas |
-| `_sidePanel` | SidePanelView | CRUD controls panel |
-
-#### Constructor
-
-| Method | Description |
-|--------|-------------|
-| `MainView()` | Initializes layout, sets size limits, arranges views, and wires repository to both MapView and SidePanelView. |
-
----
-
-### MainWindow
-
-**File:** `include/MainWindow.h`
-
-**Purpose:** Top-level application window containing toolbar and main view.
-
-#### Members
-
-| Member | Type | Description |
-|--------|------|-------------|
-| `_toolBar` | ToolBar | Language selection toolbar |
-| `_mainView` | MainView | Main content area |
-| `windowWidth` / `windowHeight` | int | Window dimensions |
-
-#### Constructor/Destructor
-
-| Method | Description |
-|--------|-------------|
-| `MainWindow()` | Creates 1500x866 window with title "Obiđi Jugu", sets toolbar and central view. |
-| `~MainWindow()` | Default destructor. |
-
-#### Protected Methods
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `shouldClose()` | `bool` | Always returns true to allow window closing. |
-| `onActionItem(aiDesc)` | `bool` | Handles toolbar actions for language switching (EN/BA). Persists choice to `lang.cfg` and restarts app. |
-
----
-
-### Application
-
-**File:** `include/Application.h`
-
-**Purpose:** Application entry point wrapper. Creates the initial window.
-
-#### Constructor
-
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `Application` | `argc`, `argv` | Initializes GUI application with command-line arguments. |
-
-#### Protected Methods
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `createInitialWindow()` | `gui::Window*` | Creates and returns new `MainWindow` instance. |
-
----
-
-## Data Flow Diagram
+### Data Flow Summary
 
 ```
-┌─────────────┐     changes      ┌──────────────┐
-│ SidePanelView│ ──────────────> │ DataRepository │
-│  (UI CRUD)   │ <────────────── │  (Data Store) │
-└─────────────┘    callback      └──────────────┘
+exYu.json ──load──► JsonService ──► DataRepository ──► MapView (rendering)
+                                        │              SidePanelView (CRUD)
                                         │
-                                        │ callback
-                                        ▼
-                                 ┌─────────────┐
-                                 │   MapView   │
-                                 │ (Rendering) │
-                                 └─────────────┘
-                                        │
-                                        │ uses
-                                        ▼
-                               ┌────────────────┐
-                               │ MapPointRenderer│
-                               │ MapPointStyle  │
-                               └────────────────┘
+                                        └──► TSPAlgorithm (solver reads cities/roads)
+                                                 │
+                                                 └──► MainView (timer drives steps)
+                                                          │
+                                                          └──► MapView (draws state)
 ```
 
-1. User interacts with **SidePanelView** controls
-2. SidePanelView calls **DataRepository** methods (add/update/delete)
-3. DataRepository persists changes via **JsonService** and notifies listeners
-4. **MapView** receives change notification and redraws
-5. MapView uses **MapPointRenderer** and **MapPointStyle** for city rendering
+---
+
+## 2. Layered Dependency Map
+
+```
+                    ┌──────────────┐
+                    │  Application │  (include/Application.h)
+                    └──────┬───────┘
+                           │ creates
+                    ┌──────▼───────┐
+                    │  MainWindow  │  (include/MainWindow.h)
+                    │  ┌─ToolBar   │  (include/ToolBar.h)
+                    └──┼───────────┘
+                       │ setCentralView
+                    ┌──▼───────────────────────────────────────────┐
+                    │                MainView                       │
+                    │  (include/MainView.h — 611 lines)            │
+                    │                                               │
+                    │  owns:  DataRepository  _repo                 │
+                    │         MapView         _mapView              │
+                    │         SidePanelView   _sidePanel            │
+                    │         Timer           _timer, _solutionTimer│
+                    │         unique_ptr<SearchAlgorithm> _solver   │
+                    └──┬────────────┬────────────┬─────────────────┘
+                       │            │            │
+          ┌────────────▼──┐  ┌─────▼──────┐  ┌──▼───────────────┐
+          │  DataRepository│  │  MapView   │  │  SidePanelView   │
+          │  (71 lines .h) │  │  (136+1040)│  │  (231+1217 lines)│
+          └───┬────────────┘  └────────────┘  └──────────────────┘
+              │ uses
+          ┌───▼──────────┐
+          │  JsonService  │  (38+239 lines)
+          └───┬──────────-┘
+              │ reads/writes
+          ┌───▼──────┐
+          │ exYu.json│
+          └──────────┘
+```
+
+---
+
+## 3. Class Catalogue
+
+### 3.1 Application Bootstrap
+
+| Class | Header | Lines | Role |
+|---|---|---|---|
+| `Application` | `Application.h` | 21 | Subclass of `gui::Application`; creates `MainWindow` |
+| `MainWindow` | `MainWindow.h` | 66 | Top-level window; hosts `ToolBar` + `MainView`; handles language switch actions |
+| `ToolBar` | `ToolBar.h` | 22 | Two flag buttons (EN/BA) wired to `menuID=255` actions |
+
+### 3.2 Data Layer
+
+| Class/Struct | Header | Lines | Role |
+|---|---|---|---|
+| `CityPoint` | `DataTypes.h` | 38 | City record: id, x, y, weight, name, `VisitationStatus` |
+| `RoadEdge` | `DataTypes.h` | — | Lightweight edge (fromId, toId) |
+| `RoadInfo` | `DataTypes.h` | — | Full road info (length, travel time, type, bidirectional) |
+| `VisitationStatus` | `DataTypes.h` | — | Enum: `Blocked(0)`, `Open(1)`, `Goal(2)`, `Start(3)` |
+| `DataRepository` | `DataRepository.h` | 71 | Central data store: CRUD for cities/roads, all-pairs shortest path (metric closure), change notifications |
+| `JsonService` | `JsonService.h` | 38 | Static service: load/save `exYu.json`, find file in search paths |
+
+### 3.3 Algorithm Layer
+
+| Class | Header | Lines | Base | Role |
+|---|---|---|---|---|
+| `SearchAlgorithm` | `SearchAlgorithm.h` | 201 | — | Abstract base: `step()`, `stepBack()`, `reset()`, visited/frontier/path |
+| `BFSAlgorithm` | `BFSAlgorithm.h` | 75 | `SearchAlgorithm` | FIFO queue BFS |
+| `DFSAlgorithm` | `DFSAlgorithm.h` | 77 | `SearchAlgorithm` | LIFO stack DFS |
+| `TSPAlgorithm` | `TSPAlgorithm.h` | 241 | `SearchAlgorithm` | Abstract TSP base: tour state, history snapshots, `saveSubclassState()` / `restoreSubclassState()` |
+| `NearestNeighborAlgorithm` | `NearestNeighborAlgorithm.h` | 173 | `TSPAlgorithm` | Greedy NN + optional 2-opt |
+| `SimulatedAnnealingAlgorithm` | `SimulatedAnnealingAlgorithm.h` | 186 | `TSPAlgorithm` | SA with configurable cooling |
+| `GeneticAlgorithmTSP` | `GeneticAlgorithmTSP.h` | 352 | `TSPAlgorithm` | GA with selection, crossover, mutation, elitism |
+
+### 3.4 UI Layer
+
+| Class | Header | Impl | Lines | Role |
+|---|---|---|---|---|
+| `MainView` | `MainView.h` | (header-only) | 611 | Central orchestrator: wires data↔UI, manages solver lifecycle, drives timers |
+| `MapView` | `MapView.h` | `MapView.cpp` | 136 + 1040 | Canvas: draws map, cities, roads, algorithm state, animations |
+| `SidePanelView` | `SidePanelView.h` | `SidePanelView.cpp` | 231 + 1217 | Side panel: CRUD forms, algorithm parameter inputs, solver control buttons |
+| `MapPointRenderer` | `MapPoint.h` | `MapPoint.cpp` | 32 + 115 | Static helpers for drawing colour-coded city markers |
+
+---
+
+## 4. Data Layer
+
+### 4.1 DataRepository
+
+The repository is the **single source of truth** for all map data. It owns the city and road arrays, provides CRUD operations, and maintains an **all-pairs shortest path matrix** (metric closure) via Floyd-Warshall.
+
+```
+DataRepository
+├── _cities : vector<CityPoint>
+├── _roads  : vector<RoadEdge>         (lightweight edges for rendering)
+├── _roadsFull : vector<RoadInfo>      (full info for serialisation)
+├── _metricDist : vector<vector<double>>   (all-pairs shortest distances)
+├── _metricPrev : vector<vector<int>>      (predecessor matrix for path reconstruction)
+├── _onDataChanged : ChangeCallback
+│
+├── City CRUD: addCity, updateCity, updateCityStatus, deleteCity
+├── Road CRUD: addConnection, removeConnection
+├── Queries:   getMetricDistance(i,j), getShortestRoadPath(i,j,outPath)
+│              getLargestConnectedComponent()
+│              cities(), roads(), getCityNames()
+└── Internal:  load() → JsonService, save() → JsonService
+               recomputeMetricClosure() → Floyd-Warshall
+```
+
+**Change notification flow:**
+
+```
+Any CRUD operation
+    └──► notifyChange()
+           ├──► recomputeMetricClosure()   (updates distance/predecessor matrices)
+           └──► _onDataChanged()           (callback → MainView resets solver, clears canvas)
+```
+
+### 4.2 JsonService
+
+Stateless static class for reading/writing the `exYu.json` file. Contains hand-rolled JSON parsing (no external library dependency). Searches multiple candidate paths (CWD, exe directory) to locate the data file.
+
+### 4.3 Metric Closure
+
+`DataRepository::recomputeMetricClosure()` runs **Floyd-Warshall** on the road graph to compute:
+- `_metricDist[i][j]` — shortest weighted distance between cities `i` and `j`
+- `_metricPrev[i][j]` — predecessor on the shortest path from `i` to `j`
+
+This lets TSP algorithms treat the city graph as a **complete weighted graph** where edge costs reflect shortest road paths, not just Euclidean distance.
+
+`getShortestRoadPath(a, b, outPath)` reconstructs the actual road-hop sequence, which is used to render tour edges along the road network rather than as straight lines.
+
+---
+
+## 5. Algorithm Layer
+
+### 5.1 Class Hierarchy
+
+```
+SearchAlgorithm (abstract)
+├── BFSAlgorithm        ← FIFO queue, level-by-level
+├── DFSAlgorithm        ← LIFO stack, depth-first
+│
+└── TSPAlgorithm (abstract)
+    ├── NearestNeighborAlgorithm
+    ├── SimulatedAnnealingAlgorithm
+    └── GeneticAlgorithmTSP
+```
+
+### 5.2 SearchAlgorithm Base
+
+Provides the generic graph-search lifecycle:
+
+```
+reset(repo)          → find Start/Goal, clear state
+step()               → save snapshot, get next node, check goal, mark visited, expand frontier
+stepBack()           → pop last snapshot from history
+canStepBack()        → !history.empty()
+isComplete()         → state.finished
+getVisited()         → set of visited node indices
+getFrontier()        → current frontier for visualisation
+getPath()            → path from start to goal (after goal found)
+```
+
+**State snapshot:** `AlgorithmState` captures `visited`, `frontier`, `parent` map, `currentIdx`, `finished`, `foundGoal`.
+
+### 5.3 TSPAlgorithm Base
+
+Extends `SearchAlgorithm` with TSP-specific concepts:
+
+```
+TSPState
+├── tour : vector<int>          (current tour — indices of required cities)
+├── bestTour : vector<int>      (best tour found so far)
+├── tourLength : double         (current tour cost)
+├── bestLength : double         (best cost found)
+├── currentStep : int
+└── finished : bool
+
+TSPSnapshot
+├── baseState : TSPState
+└── subclassState : std::any    (opaque subclass-specific state)
+```
+
+**Key design: polymorphic state snapshots.** Each subclass overrides `saveSubclassState()` and `restoreSubclassState()` to capture/restore its own fields alongside the base `TSPState`:
+
+| Algorithm | Saved Fields |
+|---|---|
+| NN | `_unvisited` (set), `_currentCity`, `_remaining2OptCycles` |
+| SA | `_temperature`, `_iterAtCurrentTemp` |
+| GA | `_generation`, `_population`, `_fitness` |
+
+This ensures step-back restores the **complete** algorithm state, not just the base tour data.
+
+**Required cities:** TSP algorithms only visit non-Blocked Goal cities plus the Start city as anchor. Open cities are not directly in the tour but may appear in expanded road paths.
+
+### 5.4 Nearest Neighbor
+
+```
+initializeTSP()
+├── Build _unvisited set from _requiredCities
+├── Start from _startCityIdx
+└── Clear tour, set tourLength = 0
+
+performStep()
+├── If _unvisited empty:
+│   ├── If 2-opt enabled: applyBestTwoOptMove(), decrement cycles
+│   └── Else: finalize (set finished)
+│
+├── Find nearest unvisited city by calculateTransitionCost()
+├── Add to tour, remove from _unvisited, update _currentCity
+└── If last city visited: finalize partial tour
+```
+
+**Cost function:** `Cost(A→B) = EuclideanDistance(A,B) × Weight(B)`
+
+### 5.5 Simulated Annealing
+
+```
+initializeTSP()
+├── Set temperature = initialTemp
+├── Generate initial tour (random or NN-seeded)
+└── Set bestTour = initial tour
+
+performStep()
+├── If temperature ≤ minTemp: finished
+├── Generate neighbour via random 2-opt swap
+├── Calculate ΔE = newLength - currentLength
+├── Accept if ΔE < 0, or with probability e^(-ΔE/T)
+├── Cool: iterAtCurrentTemp++; if >= iterationsPerTemp: T *= α
+└── Return (T > minTemp)
+```
+
+### 5.6 Genetic Algorithm
+
+```
+initializeTSP()
+├── Generate populationSize random tours
+├── Calculate fitness for each (1/tourLength)
+└── updateBest()
+
+performStep()
+├── If generation ≥ maxGenerations: finished
+├── Elitism: copy top-N individuals to new population
+├── Fill remaining via:
+│   ├── Selection: Roulette / Tournament / Rank
+│   ├── Crossover: Order Crossover (OX) with probability crossoverRate
+│   └── Mutation: Swap / Inversion with probability mutationRate
+├── Replace population, recalculate fitness
+├── updateBest()
+└── generation++
+```
+
+---
+
+## 6. UI Layer
+
+### 6.1 MainView — Central Orchestrator
+
+`MainView` is the heart of the application. It owns the data repository, both views, both timers, and the current solver. It is entirely header-only (611 lines).
+
+```
+MainView : gui::View
+│
+├── Layout:  SplitterLayout (MapView | SidePanelView)
+│
+├── Data:    DataRepository _repo
+│            unique_ptr<SearchAlgorithm> _solver
+│
+├── Timers:  _timer          (SOLVER_STEP_INTERVAL = 0.5s, drives auto-stepping)
+│            _solutionTimer  (SOLUTION_ANIM_INTERVAL = 0.05s, drives animations)
+│
+├── State:   _running              (auto-step active)
+│            _solutionRunning      (solution animation active)
+│            _stepAnimRunning      (step-tour animation active)
+│            _currentAlgorithmIdx  (0=NN, 1=SA, 2=GA)
+│
+├── Actions: handleSolverAction(action, algoIdx)
+│            ├── 0  → Start / Pause toggle
+│            ├── 1  → Step Forward
+│            ├── -1 → Step Back
+│            ├── 2  → Algorithm Changed (re-create solver)
+│            ├── 3  → Show Solution (fast-forward + animate)
+│            └── 4  → Reset
+│
+├── Solver:  selectAlgorithm(idx)    → create + reset solver
+│            startSolver()           → start _timer auto-stepping
+│            stopSolver()            → stop _timer
+│            stepForward()           → single step + trigger animation
+│            stepBackward()          → undo step + restore state
+│
+├── Timer:   onTimer(_timer)         → advance solver / play step-tour anim
+│            onTimer(_solutionTimer) → advance solution animation
+│                                      OR advance manual step animation
+│
+└── Wiring:  _repo.onDataChanged → reset solver, clear canvas
+             _mapView.onPrimaryCityClick → select in side panel
+             _mapView.onSecondaryCityClick → toggle connection
+             _sidePanel.solverCallback → handleSolverAction
+```
+
+### 6.2 SidePanelView
+
+Grid-based form with five sections:
+
+```
+SidePanelView : gui::View
+│
+├── Section 1: ADD NEW POINT
+│   └── Name, X, Y → btnAddPt
+│
+├── Section 2: EDIT SELECTED POINT
+│   └── Dropdown, Name, X, Y, Weight, Status → btnUpdate, btnDelete
+│
+├── Section 3: CONNECTIONS
+│   └── Connected-to label, Connect-to dropdown → btnToggle
+│
+├── Section 4: RANDOMIZE
+│   └── btnPositions, btnConnections, btnWeights, btnStatus, btnAll
+│
+└── Section 5: SOLVE
+    ├── Algorithm dropdown (NN / SA / GA)
+    ├── Algorithm-specific parameters (shown/hidden dynamically):
+    │   ├── NN: 2-opt checkbox, improvement cycles
+    │   ├── SA: temperature, cooling rate slider, iterations/temp, initial solution
+    │   └── GA: population, generations, mutation/crossover rates, selection, operator, elitism
+    ├── btnStartPause, btnStepFwd, btnStepBwd
+    ├── btnShowSolution, btnReset
+    └── Animation speed slider (1–10)
+```
+
+**Key callbacks:**
+- `onChangedSelection(ComboBox*)` — handles city selection, status changes, algorithm switch (shows/hides parameter controls)
+- `onClick(Button*)` — routes to handler methods; solver actions fire `_solverCallback(action, algoIdx)`
+
+### 6.3 MapView
+
+Canvas-based renderer with multiple drawing layers:
+
+```
+MapView : gui::Canvas
+│
+├── onDraw(rect)
+│   ├── Draw background image (yugoslavia.png) with uniform scaling
+│   ├── Draw road connections (black bezier lines)
+│   ├── Draw algorithm state (if solver attached):
+│   │   ├── BFS/DFS: visited (green), frontier (orange), current (blue), path
+│   │   └── TSP: drawTSPState() → see Rendering Pipeline
+│   ├── Draw unreachable-goals warning (red text)
+│   └── Draw city markers on top (MapPointRenderer)
+│
+├── Click handlers:
+│   ├── onPrimaryButtonPressed → hitTestCity → _onPrimaryCityClick
+│   └── onSecondaryButtonPressed → hitTestCity → _onSecondaryCityClick
+│
+├── Animation APIs:
+│   ├── Solution animation:  startSolutionAnimation(), advanceSolutionAnimation()
+│   ├── Step-tour animation: startStepTourAnimation() (SA edge-by-edge)
+│   │                        queueStepTourFrames() (GA full-path per member)
+│   │                        advanceStepTourAnimation()
+│   └── Stop methods:        stopSolutionAnimation(), stopStepTourAnimation()
+│
+└── Coordinate system:
+    ├── Original: 1000×866 (matches JSON coordinates and background image)
+    └── Scaled:   uniform scale + centering offsets for current window size
+```
+
+---
+
+## 7. Rendering Pipeline
+
+### 7.1 TSP State Rendering
+
+When a TSP solver is attached, `drawTSPState()` dispatches to one of three rendering modes:
+
+```
+drawTSPState()
+│
+├── IF solution animation active → drawAnimatedSolution()
+│   ├── Expanded path: tour edges resolved to road-hop sequences
+│   ├── Completed trail: thick ForestGreen bezier
+│   ├── Leading edge: thicker Gold bezier + Gold city highlight
+│   └── Progress label: "Solution: XX%"
+│
+├── ELSE IF step-tour animation active → drawStepTourAnimation()
+│   ├── Completed trail: DarkOrange bezier
+│   ├── Leading edge: Gold bezier + Gold city highlight
+│   └── Info panel: member index (GA) or path progress
+│
+└── ELSE → static state rendering
+    ├── NN:
+    │   ├── Tour path: DodgerBlue with visit-order numbers
+    │   ├── Head city: Gold fill (last added, if not complete)
+    │   └── Start city: LightSkyBlue fill
+    │
+    ├── SA / GA:
+    │   ├── Best tour (ghost): thin SteelBlue (if different from current)
+    │   ├── Current tour: thick DarkOrange
+    │   ├── Start city: LightSalmon fill
+    │   └── Other cities: DarkOrange wire ring
+    │
+    └── Info panel (WhiteSmoke background, DarkSlateGray text):
+        ├── NN:  Algorithm, Step, Tour cost, 2-opt status
+        ├── SA:  Algorithm, Step, Temperature, Best cost, Current cost
+        └── GA:  Algorithm, Generation/MaxGen, Best cost, Current cost
+```
+
+### 7.2 Colour Palette
+
+| Element | Colour | Usage |
+|---|---|---|
+| NN tour path | `DodgerBlue` | Construction path with visit-order numbers |
+| SA/GA current tour | `DarkOrange` | Thick tour line |
+| SA/GA best tour | `SteelBlue` | Thin ghost reference line |
+| NN head city | `Gold` / `OrangeRed` | Last-added city highlight |
+| Solution trail | `ForestGreen` | Animated solution playback |
+| Leading edge | `Gold` | Current animation front |
+| City markers | Status-based | Blocked=Red/Yellow, Goal=Yellow/Violet, Start=Yellow/Cyan, Open=Yellow/Yellow |
+| Info panel bg | `WhiteSmoke` / `Silver` | Semi-transparent overlay |
+
+### 7.3 Tour Path Expansion
+
+Tour edges between required cities are **expanded** along the actual road network:
+
+```
+buildExpandedTourPath(tour) → outPath
+│
+├── For each consecutive pair (tour[i], tour[i+1]):
+│   └── repo.getShortestRoadPath(a, b, leg)
+│       → returns intermediate road-hop cities
+│
+└── Concatenate all legs → smooth path along roads
+```
+
+This means the rendered path follows the road connections rather than drawing straight lines between distant cities.
+
+---
+
+## 8. Timer & Animation State Machine
+
+The application uses **two timers** managed by `MainView`:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                      Timer Architecture                       │
+│                                                               │
+│  _timer (0.5s interval)          _solutionTimer (0.05s)       │
+│  ┌─────────────────────┐         ┌─────────────────────────┐  │
+│  │ Auto-step solver     │         │ Solution animation      │  │
+│  │                      │         │ OR                      │  │
+│  │ IF _stepAnimRunning: │         │ Manual step-tour replay │  │
+│  │   drive step-tour    │         │                         │  │
+│  │   animation instead  │         │                         │  │
+│  │   of stepping solver │         │                         │  │
+│  └──────────────────────┘         └─────────────────────────┘  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 8.1 State Transitions
+
+```
+                    ┌──────────┐
+                    │  IDLE    │  (no solver running, no animation)
+                    └──┬───┬──┘
+           Start/Pause │   │ Step Forward/Back
+                    ┌──▼───┘──┐
+        ┌───────────│ RUNNING  │◄────────────────────────┐
+        │           └──┬───┬──┘                          │
+        │    step done │   │ step-tour animation started  │
+        │              │   ▼                              │
+        │              │  ┌────────────────┐              │
+        │              │  │ STEP_ANIM_RUN  │──anim done──►│
+        │              │  │ (SA/GA replay) │              │
+        │              │  └────────────────┘              │
+        │              │
+        │   solver complete
+        │              │
+        │              ▼
+        │         ┌──────────────┐
+        │         │ SHOW_SOLUTION│  (auto-triggered after completion)
+        │         │ (animation)  │
+        │         └──────┬───────┘
+        │                │ animation done
+        │                ▼
+        │           ┌────────┐
+        └──Pause──► │ PAUSED │ ◄── Step Back (from any state)
+                    └────────┘
+```
+
+### 8.2 Speed Control
+
+The speed slider (1–10) affects two aspects:
+
+```
+Speed slider value → getTicksPerAdvanceFromSpeed()
+    speed 1  → 10 ticks between advances (slowest)
+    speed 10 → 1 tick between advances  (fastest)
+
+Speed slider value → getStepAnimEdgesPerTick()
+    speed 1  → 1 edge per animation tick
+    speed 10 → 10 edges per animation tick
+```
+
+### 8.3 Step-Tour Animation Modes
+
+| Mode | Algorithm | Behaviour | Entry Point |
+|---|---|---|---|
+| Edge-by-edge | SA | Draws tour progressively, edge by edge | `startStepTourAnimation(tour)` |
+| Full-frame queue | GA | Shows each population member as a complete path, one per speed tick | `queueStepTourFrames(tours)` |
+
+---
+
+## 9. Event & Callback Wiring
+
+### 9.1 Startup Wiring
+
+```
+MainView constructor:
+│
+├── _mapView.setRepository(&_repo)
+├── _sidePanel.setRepository(&_repo)
+├── _sidePanel.populatePointNames(_repo.getCityNames())
+│
+├── _mapView.setOnPrimaryCityClick(λ → _sidePanel.selectPointIndex)
+├── _mapView.setOnSecondaryCityClick(λ → toggle connection)
+│
+├── _sidePanel.setSolverCallback(λ → handleSolverAction)
+│
+├── _repo.setOnDataChanged(λ → stopAllExecution, reset solver, clear canvas)
+│
+└── selectAlgorithm(0)  → create initial NN solver
+```
+
+### 9.2 Data Change Flow
+
+```
+User action (add/edit/delete city, toggle connection, change status)
+    │
+    ▼
+DataRepository::notifyChange()
+    ├── recomputeMetricClosure()       ← Floyd-Warshall rebuild
+    └── _onDataChanged()
+         │
+         ▼
+    MainView callback:
+         ├── stopAllExecution()        ← stop timers, clear animation
+         ├── _solver->reset(&_repo)    ← reinitialise with new data
+         ├── _mapView.setSolver(nullptr) ← clear canvas
+         ├── _mapView.refresh()
+         └── refreshStepButtons()
+
+    SidePanelView callback:
+         └── reDraw()                  ← refresh side panel display
+```
+
+### 9.3 Solver Action Dispatch
+
+```
+SidePanelView::onClick(button)
+    └── _solverCallback(actionCode, algorithmIdx)
+         │
+         ▼
+    MainView::handleSolverAction(action, algorithmIdx)
+         │
+         ├── 0: Start/Pause  → startSolver() / stopSolver()
+         ├── 1: Step Forward  → stepForward()
+         ├── -1: Step Back    → stepBackward()
+         ├── 2: Algo Changed  → selectAlgorithm(idx)
+         ├── 3: Show Solution → fast-forward + startSolutionAnimation()
+         └── 4: Reset         → stopAllExecution() + solver->reset()
+```
+
+---
+
+## 10. File Index
+
+### Headers (`include/`)
+
+| File | Lines | Description |
+|---|---|---|
+| `Application.h` | 21 | `gui::Application` subclass; creates `MainWindow` |
+| `MainWindow.h` | 66 | Top-level window; sets toolbar, central view; handles language action items |
+| `MainView.h` | 611 | **Core orchestrator**: owns repo, views, timers, solver; header-only |
+| `MapView.h` | 136 | Canvas header: animation APIs, click callbacks, drawing state |
+| `SidePanelView.h` | 231 | Side panel header: all GUI controls, callback types, getters |
+| `ToolBar.h` | 22 | Two-button language toolbar |
+| `DataRepository.h` | 71 | Data store: CRUD, metric closure, change notifications |
+| `DataTypes.h` | 38 | `CityPoint`, `RoadEdge`, `RoadInfo`, `VisitationStatus` |
+| `JsonService.h` | 38 | Static JSON I/O (load/save/find) |
+| `MapPoint.h` | 32 | `MapPointStyle` + `MapPointRenderer` for city markers |
+| `SearchAlgorithm.h` | 201 | Abstract graph search base: step/back/visited/frontier/path |
+| `TSPAlgorithm.h` | 241 | Abstract TSP base: tour state, snapshot system, required cities |
+| `BFSAlgorithm.h` | 75 | BFS with FIFO queue |
+| `DFSAlgorithm.h` | 77 | DFS with LIFO stack |
+| `NearestNeighborAlgorithm.h` | 173 | Greedy NN + optional 2-opt improvement |
+| `SimulatedAnnealingAlgorithm.h` | 186 | SA with configurable cooling schedule |
+| `GeneticAlgorithmTSP.h` | 352 | GA: selection, crossover, mutation, elitism |
+
+### Sources (`src/`)
+
+| File | Lines | Description |
+|---|---|---|
+| `main.cpp` | 41 | Entry point; reads `lang.cfg`, initialises `Application` |
+| `DataRepository.cpp` | 406 | CRUD implementations, Floyd-Warshall metric closure |
+| `JsonService.cpp` | 239 | Hand-rolled JSON parser/writer, file search |
+| `MapPoint.cpp` | 115 | City marker drawing (colour logic, scaled rendering) |
+| `MapView.cpp` | 1040 | Canvas rendering: TSP state, animations, info panel, tours |
+| `SidePanelView.cpp` | 1217 | All side panel event handlers, randomisation logic |
+
+### Resources (`res/`)
+
+| File | Description |
+|---|---|
+| `exYu.json` | Default dataset: 30 cities + ~40 roads across ex-Yugoslavia |
+| `main.xml` | Image resource declarations (flag icons) |
+| `DevRes.xml` | Development resource configuration |
+| `flag-us.png` | English flag icon for toolbar |
+| `flag-bhs.png` | Bosnian flag icon for toolbar |
+| `assets/yugoslavia.png` | Map background image |
+| `tr/EN/main.xml` | English UI strings |
+| `tr/BA/main.xml` | Bosnian UI strings |
+
+### Build
+
+| File | Description |
+|---|---|
+| `CMakeLists.txt` | Top-level CMake: loads DevEnv, natGUI, includes `TTS.cmake` |
+| `TTS.cmake` | Project target: globs sources, sets include paths, links natID libs |
+
+---
+
+**Total codebase: ~5,600 lines** across 23 source/header files + 8 resource files.
