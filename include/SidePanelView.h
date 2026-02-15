@@ -66,6 +66,9 @@ public:
     gui::Button btnToggleConnection;
 
 
+    gui::Button btnSetAllToVisit;
+
+
     // --- Randomize Section ---
     gui::Label lblRandomize;
     gui::HorizontalLayout hlRandomizeBtns;
@@ -157,7 +160,8 @@ public:
     
     // Set callback for solver control actions
     void setSolverCallback(SolverCallback callback);
-    
+    void handleSetAllToVisit();
+
     // Get currently selected algorithm index
     int getSelectedAlgorithmIndex() const;
 

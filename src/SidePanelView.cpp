@@ -82,6 +82,8 @@ SidePanelView::SidePanelView()
     lblConnectionsValue(""),
     lblConnectTo(tr("Connect to:")),
     btnToggleConnection(tr("Toggle")),
+    btnSetAllToVisit(tr("Set all to visit")),
+
     // Randomize Section
     lblRandomize(tr("Randomize")),
     hlRandomizeBtns(4),
@@ -123,11 +125,12 @@ SidePanelView::SidePanelView()
     txtEditElitismPercentage(td::DataType::decimal1),
     btnRandomizeParameters(tr("Randomize parameters")),
 
+
     // Layout (24 rows, 4 columns)
     showSolution(tr("Show Solution")),
     lblAnimationSpeed(tr("Animation speed")),
     sliderAnimationSpeed(),
-    gl(36, 5)
+    gl(37, 5)
 {
     gui::GridComposer gc(gl);
 
@@ -191,6 +194,9 @@ SidePanelView::SidePanelView()
     
     btnToggleConnection.setType(gui::Button::Type::Default);
     gc.appendRow(btnToggleConnection, 2);
+
+    btnSetAllToVisit.setType(gui::Button::Type::Default);
+    gc.appendRow(btnSetAllToVisit, 4);
 
     // ========================================
     // SECTION 4: Randomize
@@ -368,6 +374,10 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         checkBoxEnable2opt.hide(!nearestNeighborSelected, true);
         lblImprovementCycles.hide(!nearestNeighborSelected, true);
         txtEditImprovementCycles.hide(!nearestNeighborSelected, true);
+        btnStepFwd.hide(!nearestNeighborSelected, true);
+        btnStepBwd.hide(!nearestNeighborSelected, true);
+        btnStartPause.hide(nearestNeighborSelected, true);
+
 
         // -------------------------
         // SA (labels + inputs)
@@ -406,6 +416,7 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
 
         btnRandomizeParameters.hide(!geneticAlgorithmSelected, true);
         
+
         reDraw();
         // Notify that algorithm selection changed (action code 2)
         if (_solverCallback) {
@@ -496,6 +507,11 @@ bool SidePanelView::onClick(gui::Button* pBtn)
         if (_solverCallback) {
             _solverCallback(4, cmbSolvingAlgorithm.getSelectedIndex()); // 4 = reset solver state/visualization
         }
+        return true;
+    }
+    if (pBtn == &btnSetAllToVisit)
+    {
+        handleSetAllToVisit();
         return true;
     }
 
@@ -1229,4 +1245,32 @@ void SidePanelView::updateExecutionState(bool running)
     cmbMutationCrossoverOperator.enable(!running);
     txtEditElitismPercentage.enable(!running);
     btnRandomizeParameters.enable(!running);
+}
+
+
+void SidePanelView::handleSetAllToVisit()
+{
+    if (!_repo) return;
+
+    const auto& cities = _repo->cities();
+    if (cities.empty()) return;
+
+    int startIdx = -1;
+    for (size_t i = 0; i < cities.size(); ++i) {
+        if (cities[i].visitation_status == VisitationStatus::Start) {
+            startIdx = static_cast<int>(i);
+            break;
+        }
+    }
+
+    for (size_t i = 0; i < cities.size(); ++i) {
+        int idx = static_cast<int>(i);
+        if (idx == startIdx) continue;
+        _repo->updateCityStatus(idx, VisitationStatus::Goal);
+    }
+
+
+
+    syncSelectionDetails();
+    reDraw();
 }
