@@ -16,7 +16,7 @@
 #include "GeneticAlgorithmTSP.h"
 
 // Timer interval for auto-stepping (in seconds)
-constexpr float SOLVER_STEP_INTERVAL = 0.5f;
+constexpr float SOLVER_STEP_INTERVAL = 0.001f;
 constexpr float SOLUTION_ANIM_INTERVAL = 0.05f;
 
 
