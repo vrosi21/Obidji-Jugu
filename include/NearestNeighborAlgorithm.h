@@ -1,6 +1,7 @@
 #pragma once
 #include "TSPAlgorithm.h"
 #include <set>
+#include <tuple>
 
 // Nearest Neighbor algorithm for TSP
 // Greedy constructive heuristic that builds tour by always visiting nearest unvisited city
@@ -43,6 +44,21 @@ protected:
         _tspState.bestTour.clear();
         _tspState.bestLength = std::numeric_limits<double>::max();
         _remaining2OptCycles = _configuredImprovementCycles;
+    }
+
+    // Snapshot type for NN-specific state
+    using NNSnapshot = std::tuple<std::set<int>, int, int>; // _unvisited, _currentCity, _remaining2OptCycles
+
+    std::any saveSubclassState() const override {
+        return NNSnapshot{_unvisited, _currentCity, _remaining2OptCycles};
+    }
+
+    void restoreSubclassState(const std::any& state) override {
+        if (!state.has_value()) return;
+        auto& snap = std::any_cast<const NNSnapshot&>(state);
+        _unvisited = std::get<0>(snap);
+        _currentCity = std::get<1>(snap);
+        _remaining2OptCycles = std::get<2>(snap);
     }
 
     bool performStep() override {

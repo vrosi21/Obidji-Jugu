@@ -33,6 +33,20 @@ public:
     double getTemperature() const { return _temperature; }
 
 protected:
+    // Snapshot type for SA-specific state
+    using SASnapshot = std::pair<double, int>; // _temperature, _iterAtCurrentTemp
+
+    std::any saveSubclassState() const override {
+        return SASnapshot{_temperature, _iterAtCurrentTemp};
+    }
+
+    void restoreSubclassState(const std::any& state) override {
+        if (!state.has_value()) return;
+        auto& snap = std::any_cast<const SASnapshot&>(state);
+        _temperature = snap.first;
+        _iterAtCurrentTemp = snap.second;
+    }
+
     void initializeTSP() override {
         _temperature = _initialTemp;
         _iterAtCurrentTemp = 0;
