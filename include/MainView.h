@@ -544,9 +544,12 @@ private:
             _mapView.stopStepTourAnimation();
         }
 
-        // Reset if complete
+        // If algorithm is already complete, don't step further
         if (_solver->isComplete()) {
-            _solver->reset(&_repo);
+            ensureMapSolverAttached();
+            _mapView.refresh();
+            refreshStepButtons();
+            return;
         }
 
         ensureMapSolverAttached();
@@ -566,24 +569,30 @@ private:
     void stepBackward()
     {
         if (!_solver) return;
+        if (!_solver->canStepBack()) {
+            refreshStepButtons();
+            return;
+        }
 
         // Stop auto-run if active
         if (_running) {
             stopSolver();
         }
 
+        // Stop any ongoing animation/solution playback
         if (_solutionRunning) {
             _solutionRunning = false;
             _solutionTimer.stop();
-            _mapView.stopSolutionAnimation();
+            _solutionTickCounter = 0;
         }
+        _mapView.stopSolutionAnimation();
 
         if (_stepAnimRunning) {
             _stepAnimRunning = false;
             _stepAnimTickCounter = 0;
             _solutionTimer.stop();
-            _mapView.stopStepTourAnimation();
         }
+        _mapView.stopStepTourAnimation();
 
         ensureMapSolverAttached();
 

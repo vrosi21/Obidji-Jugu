@@ -4,6 +4,7 @@
 #include <limits>
 #include <algorithm>
 #include <random>
+#include <any>
 
 // State snapshot for TSP step-back functionality
 struct TSPState {
@@ -13,6 +14,12 @@ struct TSPState {
     double bestLength = std::numeric_limits<double>::max();
     int currentStep = 0;
     bool finished = false;
+};
+
+// Combined snapshot: base TSP state + opaque subclass-specific state
+struct TSPSnapshot {
+    TSPState baseState;
+    std::any subclassState;  // subclass-specific fields (NN, SA, GA)
 };
 
 // Abstract base class for TSP optimization algorithms
@@ -77,8 +84,11 @@ public:
             return false;
         }
 
-        // Save current state for step-back
-        _tspHistory.push_back(_tspState);
+        // Save current state (base + subclass) for step-back
+        TSPSnapshot snap;
+        snap.baseState = _tspState;
+        snap.subclassState = saveSubclassState();
+        _tspHistory.push_back(std::move(snap));
 
         // Perform one step of the TSP algorithm (subclass-specific)
         bool continued = performStep();
@@ -99,7 +109,9 @@ public:
             return false;
         }
 
-        _tspState = _tspHistory.back();
+        const auto& snap = _tspHistory.back();
+        _tspState = snap.baseState;
+        restoreSubclassState(snap.subclassState);
         _tspHistory.pop_back();
         return true;
     }
@@ -147,6 +159,11 @@ protected:
     // Perform one step of the algorithm - implemented by subclass
     // Returns true if algorithm should continue, false if finished
     virtual bool performStep() = 0;
+
+    // Save/restore subclass-specific state for step-back.
+    // Default implementation stores nothing (suitable if subclass has no extra state).
+    virtual std::any saveSubclassState() const { return std::any{}; }
+    virtual void restoreSubclassState(const std::any& /*state*/) {}
 
     // Calculate Euclidean distance between two cities
     double calculateDistance(int i, int j) const {
@@ -214,7 +231,7 @@ protected:
     void expandFrontier(int) override {}
 
     TSPState _tspState;
-    std::vector<TSPState> _tspHistory;
+    std::vector<TSPSnapshot> _tspHistory;
     int _cityCount = 0;
     std::vector<int> _requiredCities;  // Start + Goal indices that must be in the tour
     int _startCityIdx = -1;            // index of Start city (-1 if none)

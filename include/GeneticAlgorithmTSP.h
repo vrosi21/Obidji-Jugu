@@ -47,6 +47,25 @@ public:
     const std::vector<std::vector<int>>& getPopulation() const { return _population; }
 
 protected:
+    // Snapshot type for GA-specific state
+    struct GASnapshot {
+        int generation;
+        std::vector<std::vector<int>> population;
+        std::vector<double> fitness;
+    };
+
+    std::any saveSubclassState() const override {
+        return GASnapshot{_generation, _population, _fitness};
+    }
+
+    void restoreSubclassState(const std::any& state) override {
+        if (!state.has_value()) return;
+        auto& snap = std::any_cast<const GASnapshot&>(state);
+        _generation = snap.generation;
+        _population = snap.population;
+        _fitness = snap.fitness;
+    }
+
     void initializeTSP() override {
         _generation = 0;
         _population.clear();
