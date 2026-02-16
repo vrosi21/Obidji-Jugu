@@ -405,15 +405,7 @@ void MapView::drawPath(const std::vector<int>& path)
 
 void MapView::drawTSPState()
 {
-    if (_solutionAnimating) {
-        drawAnimatedSolution();
-        
-    }
-
-    if (_stepTourAnimating) {
-        drawStepTourAnimation();
-        
-    }
+    
 
     TSPAlgorithm* tspSolver = dynamic_cast<TSPAlgorithm*>(_solver);
     if (!tspSolver || !_repo) return;
@@ -444,11 +436,21 @@ void MapView::drawTSPState()
     } else {
         // SA / GA: show best-so-far as thin dashed reference, current as thick orange
         if (bestTour.size() >= 2 && bestTour != currentTour) {
-            drawTour(bestTour, td::ColorID::SteelBlue, 1.5f * avgScale);
+            drawTour(bestTour, td::ColorID::Blue, 1.5f * avgScale);
         }
         if (!currentTour.empty()) {
-            drawTour(currentTour, td::ColorID::DarkOrange, 2.5f * avgScale);
+            drawTour(currentTour, td::ColorID::Green, 2.5f * avgScale);
         }
+    }
+
+    if (_solutionAnimating) {
+        drawAnimatedSolution();
+
+    }
+
+    if (_stepTourAnimating) {
+        drawStepTourAnimation();
+
     }
 
     // ============================================================
@@ -784,7 +786,7 @@ void MapView::drawAnimatedSolution()
             completed.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
             completed.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
         }
-        completedShape.drawWire(td::ColorID::ForestGreen);
+        completedShape.drawWire(td::ColorID::Blue);
     }
 
     // --- Leading edge: thicker gold line ---
@@ -992,7 +994,7 @@ void MapView::drawStepTourAnimation()
             completed.moveTo({ (gui::CoordType)c1.first, (gui::CoordType)c1.second });
             completed.lineTo({ (gui::CoordType)c2.first, (gui::CoordType)c2.second });
         }
-        completedShape.drawWire(td::ColorID::DarkOrange);
+        completedShape.drawWire(td::ColorID::Green);
     }
 
     // --- Leading edge: thicker gold ---
@@ -1025,7 +1027,7 @@ void MapView::drawStepTourAnimation()
             );
             gui::Shape overlay;
             overlay.createRect(overlayRect);
-            overlay.drawFillAndWire(td::ColorID::Gold, td::ColorID::DarkOrange, 1.5f * avgScale);
+            overlay.drawFillAndWire(td::ColorID::Gold, td::ColorID::Red, 1.5f * avgScale);
         }
     }
 
