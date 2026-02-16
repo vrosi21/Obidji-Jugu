@@ -20,6 +20,9 @@ namespace {
     constexpr size_t SOLUTION_ANIM_SEGMENTS_PER_TICK = 1;
 
 }
+
+
+
 MapView::MapView()
     : gui::Canvas({ gui::InputDevice::Event::PrimaryClicks, gui::InputDevice::Event::SecondaryClicks })
     , _currentSize(ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT)

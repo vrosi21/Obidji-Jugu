@@ -14,6 +14,8 @@
 class SearchAlgorithm;
 class TSPAlgorithm;
 
+enum class PanelSide { Left, Right };
+
 // Original design dimensions (from JSON coordinates and background image)
 constexpr float ORIGINAL_MAP_WIDTH = 1000.0f;
 constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
@@ -23,7 +25,6 @@ constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
 class MapView : public gui::Canvas
 {
 public:
-    enum class PanelSide { Left, Right };
 
     using CityClickCallback = std::function<void(int cityIdx)>;
 
