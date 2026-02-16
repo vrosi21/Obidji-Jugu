@@ -1085,17 +1085,23 @@ void SidePanelView::handleRandomizeGAParameters()
     {
         std::ostringstream os;
         os << std::fixed << std::setprecision(3) << mutDist(rng);
-        txtEditMutationRate.setText(os.str().c_str());
+        std::string s = os.str();
+        dotToComma(s);
+        txtEditMutationRate.setText(s.c_str());
     }
     {
         std::ostringstream os;
         os << std::fixed << std::setprecision(3) << crossDist(rng);
-        txtEditCrossoverRate.setText(os.str().c_str());
+        std::string s = os.str();
+        dotToComma(s);
+        txtEditCrossoverRate.setText(s.c_str());
     }
     {
         std::ostringstream os;
         os << std::fixed << std::setprecision(1) << elitDist(rng);
-        txtEditElitismPercentage.setText(os.str().c_str());
+        std::string s = os.str();
+        dotToComma(s);
+        txtEditElitismPercentage.setText(s.c_str());
     }
 
     cmbSelectionMethod.selectIndex(selDist(rng));
