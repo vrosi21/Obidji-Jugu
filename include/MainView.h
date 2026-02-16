@@ -490,12 +490,23 @@ private:
             return;
         }
 
-        // Always re-create the solver with the latest side-panel parameters
-        // so that any control changes are picked up.
-        selectAlgorithm(_currentAlgorithmIdx);
+        // Re-create solver only if it hasn't started yet
+        bool hasProgress = false;
+
+        if (_solver) {
+            if (_solver->canStepBack()) {
+                hasProgress = true;
+            }
+            else if (auto* tsp = dynamic_cast<TSPAlgorithm*>(_solver.get())) {
+                hasProgress = (tsp->getCurrentStep() > 0);
+            }
+        }
+
+        if (!_solver || (!hasProgress && !_solver->isComplete())) {
+            selectAlgorithm(_currentAlgorithmIdx);   // fresh start (or pick up new params)
+        }
 
         ensureMapSolverAttached();
-
 
         _solutionRunning = false;
         _solutionTimer.stop();
@@ -505,12 +516,12 @@ private:
         _mapView.stopSolutionAnimation();
         _mapView.stopStepTourAnimation();
 
-        
         _running = true;
         _solveTickCounter = 0;
         _timer.start();
         refreshStepButtons();
     }
+
 
     void stopSolver()
     {

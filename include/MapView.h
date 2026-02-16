@@ -14,6 +14,8 @@
 class SearchAlgorithm;
 class TSPAlgorithm;
 
+enum class PanelSide { Left, Right };
+
 // Original design dimensions (from JSON coordinates and background image)
 constexpr float ORIGINAL_MAP_WIDTH = 1000.0f;
 constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
@@ -23,6 +25,7 @@ constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
 class MapView : public gui::Canvas
 {
 public:
+
     using CityClickCallback = std::function<void(int cityIdx)>;
 
     MapView();
@@ -84,7 +87,7 @@ private:
     void drawTSPState();
     void drawTour(const std::vector<int>& tour, td::ColorID color, float lineWidth);
     void drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID color, float lineWidth, td::ColorID orderColor);
-    void drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines) const;
+    void drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines, PanelSide side) const;
     bool getUnreachableGoalsMessage(std::string& outMessage) const;
 
     // Animation helpers (main)

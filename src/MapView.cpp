@@ -20,6 +20,9 @@ namespace {
     constexpr size_t SOLUTION_ANIM_SEGMENTS_PER_TICK = 1;
 
 }
+
+
+
 MapView::MapView()
     : gui::Canvas({ gui::InputDevice::Event::PrimaryClicks, gui::InputDevice::Event::SecondaryClicks })
     , _currentSize(ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT)
@@ -404,12 +407,12 @@ void MapView::drawTSPState()
 {
     if (_solutionAnimating) {
         drawAnimatedSolution();
-        return;
+        
     }
 
     if (_stepTourAnimating) {
         drawStepTourAnimation();
-        return;
+        
     }
 
     TSPAlgorithm* tspSolver = dynamic_cast<TSPAlgorithm*>(_solver);
@@ -525,43 +528,49 @@ void MapView::drawTSPState()
         infoLines.push_back({"Cost", fmtCost(currentLength)});
     }
 
-    drawInfoPanel(infoLines);
+    drawInfoPanel(infoLines, PanelSide::Right);
 }
 
-void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines) const
+void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines,
+    PanelSide side) const
 {
     if (lines.empty()) return;
 
-    // Panel position: top-left corner, offset from map edge
-    float panelX = _offsetX + 8.0f;
-    float panelY = _offsetY + 8.0f;
+    float margin = 8.0f;
     float lineH = 18.0f;
     float panelW = 260.0f;
     float panelH = lineH * static_cast<float>(lines.size()) + 12.0f;
 
-    // Draw semi-transparent background panel
+    float mapLeft = _offsetX;
+    float mapRight = _offsetX + ORIGINAL_MAP_WIDTH * _scaleX;
+
+    float panelX = (side == PanelSide::Left)
+        ? (mapLeft + margin)
+        : (mapRight - panelW - margin);
+
+    float panelY = _offsetY + margin;
+
     gui::Rect bgRect(
-        static_cast<gui::CoordType>(panelX),
-        static_cast<gui::CoordType>(panelY),
-        static_cast<gui::CoordType>(panelX + panelW),
-        static_cast<gui::CoordType>(panelY + panelH)
+        (gui::CoordType)panelX,
+        (gui::CoordType)panelY,
+        (gui::CoordType)(panelX + panelW),
+        (gui::CoordType)(panelY + panelH)
     );
+
     gui::Shape bgShape;
     bgShape.createRect(bgRect);
     bgShape.drawFillAndWire(td::ColorID::WhiteSmoke, td::ColorID::Silver, 1.0f);
 
-    // Draw each line as "Label:  Value"
     float textX = panelX + 8.0f;
     float textY = panelY + 6.0f;
     for (const auto& kv : lines) {
         std::string txt = kv.first + ":  " + kv.second;
         gui::DrawableString ds(txt.c_str());
-        gui::Point pos(static_cast<gui::CoordType>(textX), static_cast<gui::CoordType>(textY));
+        gui::Point pos((gui::CoordType)textX, (gui::CoordType)textY);
         ds.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::DarkSlateGray);
         textY += lineH;
     }
 }
-
 void MapView::drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID color, float lineWidth, td::ColorID orderColor)
 {
     // Draw the tour edges
@@ -1026,16 +1035,19 @@ void MapView::drawStepTourAnimation()
         int pct = static_cast<int>((100.0 * edgeCount) / maxEdges);
 
         if (_stepTourQueueTotal > 1) {
-            // GA mode: show member index
-            infoLines.push_back({"Member", std::to_string(_stepTourQueueIdx) + " / " + std::to_string(_stepTourQueueTotal)});
-
+            infoLines.push_back({ "Member", std::to_string(_stepTourQueueIdx) + " / " + std::to_string(_stepTourQueueTotal) });
             if (_solver) {
                 if (auto* ga = dynamic_cast<GeneticAlgorithmTSP*>(_solver)) {
-                    infoLines.push_back({"Generation", std::to_string(ga->getGeneration()) + " / " + std::to_string(ga->getMaxGenerations())});
+                    infoLines.push_back({ "Generation", std::to_string(ga->getGeneration()) + " / " + std::to_string(ga->getMaxGenerations()) });
                 }
             }
         }
-        infoLines.push_back({"Path", std::to_string(pct) + "%"});
-        drawInfoPanel(infoLines);
+        infoLines.push_back({ "Path", std::to_string(pct) + "%" });
+        drawInfoPanel(infoLines, PanelSide::Left);
     }
 }
+
+
+
+
+

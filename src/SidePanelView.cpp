@@ -392,7 +392,7 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         txtEditImprovementCycles.hide(!nearestNeighborSelected, true);
         btnStepFwd.hide(!nearestNeighborSelected, true);
         btnStepBwd.hide(!nearestNeighborSelected, true);
-        btnStartPause.hide(nearestNeighborSelected, true);
+        //btnStartPause.hide(nearestNeighborSelected, true);
 
 
         // -------------------------
