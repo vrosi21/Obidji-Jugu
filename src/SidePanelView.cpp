@@ -16,6 +16,11 @@ namespace {
         double dist = 0.0;
     };
 
+    static void dotToComma(std::string& s)
+    {
+        std::replace(s.begin(), s.end(), '.', ',');
+    }
+
     static double orient(double ax, double ay, double bx, double by, double cx, double cy)
     {
         return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
@@ -573,12 +578,20 @@ void SidePanelView::updateCurrentCoordsFromSelection()
             std::ostringstream sx;
             std::ostringstream sy;
             std::ostringstream sw;
-            sx << std::fixed << std::setprecision(2) << cp.x;
-            sy << std::fixed << std::setprecision(2) << cp.y;
-            sw << std::fixed << std::setprecision(2) << cp.weight;
+            
+
+
+            sx << std::fixed << cp.x;
+            sy << std::fixed << cp.y;
+            sw << std::fixed << cp.weight;
+            
             xStr = sx.str();
             yStr = sy.str();
             wStr = sw.str();
+
+            dotToComma(xStr);
+            dotToComma(yStr);
+            dotToComma(wStr);
         }
     }
     neCurrentX.setText(xStr.c_str());
