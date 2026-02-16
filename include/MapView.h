@@ -23,6 +23,8 @@ constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
 class MapView : public gui::Canvas
 {
 public:
+    enum class PanelSide { Left, Right };
+
     using CityClickCallback = std::function<void(int cityIdx)>;
 
     MapView();
@@ -84,7 +86,7 @@ private:
     void drawTSPState();
     void drawTour(const std::vector<int>& tour, td::ColorID color, float lineWidth);
     void drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID color, float lineWidth, td::ColorID orderColor);
-    void drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines) const;
+    void drawInfoPanel(const std::vector<std::pair<std::string, std::string>>& lines, PanelSide side) const;
     bool getUnreachableGoalsMessage(std::string& outMessage) const;
 
     // Animation helpers (main)
