@@ -570,6 +570,7 @@ void MapView::drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID c
     if (!_repo || tour.empty()) return;
     const auto& cities = _repo->cities();
 
+    /*
     // Draw visit-order numbers near each city
     float avgScale = _scaleX;
     float scaledSize = MapPointStyle::Size * avgScale;
@@ -586,6 +587,7 @@ void MapView::drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID c
         );
         ds.draw(pos, gui::Font::ID::SystemNormal, orderColor);
     }
+    */
 }
 
 void MapView::drawTour(const std::vector<int>& tour, td::ColorID color, float lineWidth)

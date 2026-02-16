@@ -21,6 +21,17 @@ namespace {
         return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
     }
 
+    static double neToDouble(const gui::NumericEdit& ne)
+    {
+        td::Variant v = ne.getValue();          
+        return v.toNumber<double>();            
+    }
+
+    static int neToIntRound(const gui::NumericEdit& ne)
+    {
+        return static_cast<int>(std::lround(neToDouble(ne)));
+    }
+
     static bool onSeg(double ax, double ay, double bx, double by, double px, double py)
     {
         const double eps = 1e-9;
@@ -648,8 +659,8 @@ void SidePanelView::handleAddPoint()
 {
     if (!_repo) return;
     std::string name = lnEditName.getText().c_str();
-    double x = std::atof(txtEditXCoord.getText().c_str());
-    double y = std::atof(txtEditYCoord.getText().c_str());
+    double x = txtEditXCoord.getValue().toNumber<double>();
+    double y = txtEditYCoord.getValue().toNumber<double>();
 
     if (_repo->addCity(name, x, y))
     {
@@ -673,9 +684,10 @@ void SidePanelView::handleUpdatePoint()
     if (idx < 0) return;
 
     std::string name = lnEditCurrentCityName.getText().c_str();
-    double x = std::atof(neCurrentX.getText().c_str());
-    double y = std::atof(neCurrentY.getText().c_str());
-    double weight = std::atof(neCurrentWeight.getText().c_str());
+
+    double x = neCurrentX.getValue().toNumber<double>();
+    double y = neCurrentY.getValue().toNumber<double>();
+    double weight = neCurrentWeight.getValue().toNumber<double>();
 
     if (_repo->updateCity(idx, name, x, y, weight))
     {
@@ -1106,14 +1118,18 @@ bool SidePanelView::isNN2OptEnabled() const
 
 int SidePanelView::getNNImprovementCycles() const
 {
-    int cycles = std::atoi(txtEditImprovementCycles.getText().c_str());
+    int cycles = static_cast<int>(std::lround(
+        txtEditImprovementCycles.getValue().toNumber<double>()
+    ));
+
     if (cycles < 0) cycles = 0;
     return cycles;
 }
 
+
 double SidePanelView::getSAInitialTemperature() const
 {
-    double t = std::atof(txtEditInitialTemperature.getText().c_str());
+    double t = txtEditInitialTemperature.getValue().toNumber<double>();
     return (t > 0.0) ? t : 10000.0;
 }
 
@@ -1127,9 +1143,13 @@ double SidePanelView::getSACoolingRateAlpha() const
 
 int SidePanelView::getSAIterationsPerTemperature() const
 {
-    int it = std::atoi(txtEditIterationsPerTemperatureLevel.getText().c_str());
+    int it = static_cast<int>(std::lround(
+        txtEditIterationsPerTemperatureLevel.getValue().toNumber<double>()
+    ));
+
     return (it > 0) ? it : 25;
 }
+
 
 bool SidePanelView::useNearestNeighborAsSAInitialSolution() const
 {
@@ -1138,31 +1158,37 @@ bool SidePanelView::useNearestNeighborAsSAInitialSolution() const
 
 int SidePanelView::getGAPopulationSize() const
 {
-    int v = std::atoi(txtEditPopulationSize.getText().c_str());
+    int v = static_cast<int>(std::lround(
+        txtEditPopulationSize.getValue().toNumber<double>()
+    ));
     return (v >= 2) ? v : 50;
 }
 
+
 int SidePanelView::getGANumberOfGenerations() const
 {
-    int v = std::atoi(txtEditNumberOfGenerations.getText().c_str());
+    int v = neToIntRound(txtEditNumberOfGenerations);
     return (v >= 1) ? v : 1000;
 }
 
 double SidePanelView::getGAMutationRate() const
 {
-    double v = std::atof(txtEditMutationRate.getText().c_str());
-    if (v < 0.0) v = 0.0;
-    if (v > 1.0) v = 1.0;
-    return v;
+    double x = txtEditMutationRate.getValue().toNumber<double>();
+
+    if (x < 0.0) x = 0.0;
+    if (x > 1.0) x = 1.0;
+    return x;
 }
 
 double SidePanelView::getGACrossoverRate() const
 {
-    double v = std::atof(txtEditCrossoverRate.getText().c_str());
-    if (v < 0.0) v = 0.0;
-    if (v > 1.0) v = 1.0;
-    return v;
+    double x = txtEditCrossoverRate.getValue().toNumber<double>();
+
+    if (x < 0.0) x = 0.0;
+    if (x > 1.0) x = 1.0;
+    return x;
 }
+
 
 int SidePanelView::getGASelectionMethodIndex() const
 {
@@ -1178,10 +1204,11 @@ int SidePanelView::getGAMutationOperatorIndex() const
 
 double SidePanelView::getGAElitismPercentage() const
 {
-    double v = std::atof(txtEditElitismPercentage.getText().c_str());
-    if (v < 0.0) v = 0.0;
-    if (v > 100.0) v = 100.0;
-    return v;
+    double x = txtEditElitismPercentage.getValue().toNumber<double>();
+
+    if (x < 0.0) x = 0.0;
+    if (x > 100.0) x = 100.0;
+    return x;
 }
 
 int SidePanelView::getExecutionSpeedLevel() const
