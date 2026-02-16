@@ -249,8 +249,8 @@ SidePanelView::SidePanelView()
     gc.appendCol(sliderCoolingRateAlpha, 3);
     gc.appendRow(lblIterationsPerTemperatureLevel);
     gc.appendCol(txtEditIterationsPerTemperatureLevel, 3);
-    cmbSAInitialSolution.addItem("Random");
-    cmbSAInitialSolution.addItem("Nearest Neighbor");
+    cmbSAInitialSolution.addItem(tr("Random"));
+    cmbSAInitialSolution.addItem(tr("Nearest Neighbor"));
     gc.appendRow(cmbSAInitialSolution, 4);
     
     //GA inputs (Shows only when GA selected)
@@ -268,12 +268,12 @@ SidePanelView::SidePanelView()
     gc.appendCol(txtEditElitismPercentage, 3);
     gc.appendRow(btnRandomizeParameters, 4);
     // Defaults / options
-    cmbSelectionMethod.addItem("Roulette");
-    cmbSelectionMethod.addItem("Tournament");
-    cmbSelectionMethod.addItem("Rank");
-    cmbMutationCrossoverOperator.addItem("Swap");
-    cmbMutationCrossoverOperator.addItem("Inversion");
-    cmbMutationCrossoverOperator.addItem("OX");
+    cmbSelectionMethod.addItem(tr("Roulette"));
+    cmbSelectionMethod.addItem(tr("Tournament"));
+    cmbSelectionMethod.addItem(tr("Rank"));
+    cmbMutationCrossoverOperator.addItem(tr("Swap"));
+    cmbMutationCrossoverOperator.addItem(tr("Inversion"));
+    cmbMutationCrossoverOperator.addItem(tr("OX"));
 
 
     btnStartPause.setType(gui::Button::Type::Default);
@@ -339,7 +339,7 @@ void SidePanelView::populateSolvingAlgorithms(const std::vector<std::string>& na
     cmbSolvingAlgorithm.clean();
     for (const auto& n : names)
     {
-        cmbSolvingAlgorithm.addItem(n.c_str());
+        cmbSolvingAlgorithm.addItem(tr(n.c_str()));
     }
 }
 

@@ -48,7 +48,7 @@
 		<Res id="Add Point" tr="Dodaj tačku"/>
 
 		<!-- Edit Point -->
-		<Res id="Select:" tr="Odaberi:"/>
+		<Res id="Select:" tr="Odaberi tačku:"/>
 		<Res id="Name:" tr="Naziv:"/>
 		<Res id="Weight:" tr="Težina:"/>
 		<Res id="Status:" tr="Status:"/>
@@ -87,12 +87,12 @@
 		<Res id="Crossover rate:" tr="Stopa ukrštanja:"/>
 		<Res id="Elitism (%):" tr="Elitizam (%):"/>
 
-		<Res id="Randomize parameters" tr="Nasumično parametri"/>
+		<Res id="Randomize parameters" tr="Randomiziraj parametre"/>
 
 		<Res id="Animation speed" tr="Brzina animacije"/>
 
 		<!-- Combo items used in code -->
-		<Res id="Random" tr="Nasumično"/>
+		<Res id="Random" tr="Random početno rješenje"/>
 		<Res id="Nearest Neighbor" tr="Najbliži susjed"/>
 		<Res id="Roulette" tr="Rulet"/>
 		<Res id="Tournament" tr="Turnir"/>
@@ -100,6 +100,26 @@
 		<Res id="Swap" tr="Zamjena"/>
 		<Res id="Inversion" tr="Inverzija"/>
 		<Res id="OX" tr="OX"/>
+
+
+		<!-- Missing SidePanelView translations (BHS) -->
+
+		<!-- Randomize section -->
+		<Res id="Set all to visit" tr="Postavi sve za posjetiti"/>
+		<Res id="Randomize" tr="Randomiziraj mapu"/>
+		<Res id="Positions" tr="Pozicije"/>
+		<Res id="Connections" tr="Veze"/>
+		<Res id="Weights" tr="Težine"/>
+		<Res id="Status" tr="Status"/>
+		<Res id="All" tr="Sve"/>
+
+		<!-- Solve controls -->
+		<Res id="Reset" tr="Resetuj"/>
+
+		<!-- SA slider label (constructor uses tr) -->
+		<Res id="Cooling rate - alpha" tr="Faktor hlađenja - alpha"/>
+		<Res id="Simulated Annealing" tr="Simulirano kaljenje"/>
+		<Res id="Genetic Algorithm" tr="Genetski algoritam"/>
 
 		
 	</Translations>

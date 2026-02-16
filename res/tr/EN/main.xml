@@ -101,5 +101,23 @@
 		<Res id="Inversion" tr="Inversion"/>
 		<Res id="OX" tr="OX"/>
 
+
+		<!-- Missing SidePanelView translations -->
+
+		<!-- Randomize section -->
+		<Res id="Set all to visit" tr="Set all to visit"/>
+		<Res id="Randomize" tr="Randomize"/>
+		<Res id="Positions" tr="Positions"/>
+		<Res id="Weights" tr="Weights"/>
+		<Res id="Status" tr="Status"/>
+		<Res id="All" tr="All"/>
+
+		<!-- Solve controls -->
+		<Res id="Reset" tr="Reset"/>
+
+		<!-- SA/GA slider label (if it uses tr in constructor) -->
+		<Res id="Cooling rate - alpha" tr="Cooling rate - alpha"/>
+		<Res id="Simulated Annealing" tr="Simulated Annealing"/>
+		<Res id="Genetic Algorithm" tr="Genetic Algorithm"/>
 	</Translations>
 </DevRes>
