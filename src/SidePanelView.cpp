@@ -313,8 +313,8 @@ SidePanelView::SidePanelView()
     // GA defaults
     txtEditPopulationSize.setText("50");
     txtEditNumberOfGenerations.setText("1000");
-    txtEditMutationRate.setText("0.02");
-    txtEditCrossoverRate.setText("0.80");
+    txtEditMutationRate.setText("0,02");
+    txtEditCrossoverRate.setText("0,80");
     txtEditElitismPercentage.setText("10");
     cmbSelectionMethod.selectIndex(0); // Roulette
     cmbMutationCrossoverOperator.selectIndex(0); // Swap
@@ -358,9 +358,9 @@ void SidePanelView::populatePointNames(const std::vector<std::string>& names)
     else
     {
         lnEditCurrentCityName.setText("");
-        neCurrentX.setText("0.0");
-        neCurrentY.setText("0.0");
-        neCurrentWeight.setText("0.0");
+        neCurrentX.setText("0,0");
+        neCurrentY.setText("0,0");
+        neCurrentWeight.setText("0,0");
     }
 }
 
@@ -1085,17 +1085,23 @@ void SidePanelView::handleRandomizeGAParameters()
     {
         std::ostringstream os;
         os << std::fixed << std::setprecision(3) << mutDist(rng);
-        txtEditMutationRate.setText(os.str().c_str());
+        std::string s = os.str();
+        dotToComma(s);
+        txtEditMutationRate.setText(s.c_str());
     }
     {
         std::ostringstream os;
         os << std::fixed << std::setprecision(3) << crossDist(rng);
-        txtEditCrossoverRate.setText(os.str().c_str());
+        std::string s = os.str();
+        dotToComma(s);
+        txtEditCrossoverRate.setText(s.c_str());
     }
     {
         std::ostringstream os;
         os << std::fixed << std::setprecision(1) << elitDist(rng);
-        txtEditElitismPercentage.setText(os.str().c_str());
+        std::string s = os.str();
+        dotToComma(s);
+        txtEditElitismPercentage.setText(s.c_str());
     }
 
     cmbSelectionMethod.selectIndex(selDist(rng));
