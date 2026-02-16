@@ -313,8 +313,8 @@ SidePanelView::SidePanelView()
     // GA defaults
     txtEditPopulationSize.setText("50");
     txtEditNumberOfGenerations.setText("1000");
-    txtEditMutationRate.setText("0.02");
-    txtEditCrossoverRate.setText("0.80");
+    txtEditMutationRate.setText("0,02");
+    txtEditCrossoverRate.setText("0,80");
     txtEditElitismPercentage.setText("10");
     cmbSelectionMethod.selectIndex(0); // Roulette
     cmbMutationCrossoverOperator.selectIndex(0); // Swap
@@ -358,9 +358,9 @@ void SidePanelView::populatePointNames(const std::vector<std::string>& names)
     else
     {
         lnEditCurrentCityName.setText("");
-        neCurrentX.setText("0.0");
-        neCurrentY.setText("0.0");
-        neCurrentWeight.setText("0.0");
+        neCurrentX.setText("0,0");
+        neCurrentY.setText("0,0");
+        neCurrentWeight.setText("0,0");
     }
 }
 
