@@ -7,8 +7,9 @@
 #include <queue>
 #include <utility>
 
-DataRepository::DataRepository()
+void DataRepository::init(const std::filesystem::path& jsonPath)
 {
+    _jsonPath = jsonPath;
     load();
     recomputeMetricClosure();
 }
@@ -17,14 +18,13 @@ DataRepository::DataRepository()
 
 void DataRepository::load()
 {
-    _jsonPath = JsonService::findJsonFile();
     JsonService::loadFromJson(_jsonPath, _cities, _roads, _roadsFull);
 }
 
 bool DataRepository::save()
 {
-    auto path = _jsonPath.empty() ? JsonService::findJsonFile() : _jsonPath;
-    return JsonService::saveToJson(path, _cities, _roadsFull);
+    if (_jsonPath.empty()) return false;
+    return JsonService::saveToJson(_jsonPath, _cities, _roadsFull);
 }
 
 int DataRepository::nextCityId() const

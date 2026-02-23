@@ -5,8 +5,6 @@
 #include <set>
 #include <sstream>
 #include <iomanip>
-#include <windows.h>
-#include <filesystem>
 #include "SimulatedAnnealingAlgorithm.h"
 #include "GeneticAlgorithmTSP.h"
 #include "NearestNeighborAlgorithm.h"
@@ -15,7 +13,6 @@
 
 
 namespace {
-    void dbg(const char* m) { OutputDebugStringA(m); }
     constexpr float SOLUTION_ANIM_INTERVAL_SEC = 0.05f;
     constexpr size_t SOLUTION_ANIM_SEGMENTS_PER_TICK = 1;
 
@@ -29,7 +26,7 @@ MapView::MapView()
     , _solutionTimer(this, SOLUTION_ANIM_INTERVAL_SEC, false)
 {
     enableResizeEvent(true);
-    loadBackground();
+    _bgLoaded = _bgImage.isOK();
 }
 
 
@@ -232,51 +229,6 @@ bool MapView::getUnreachableGoalsMessage(std::string& outMessage) const
     }
     outMessage = joined.str();
     return true;
-}
-
-void MapView::loadBackground()
-{
-    if (_bgLoaded) return;
-    namespace fs = std::filesystem;
-
-    static const char* candidates[] = {
-        "res/assets/yugoslavia.png",
-        "./res/assets/yugoslavia.png",
-        "../res/assets/yugoslavia.png"
-    };
-
-    auto exists = [](const fs::path& p) { 
-        try { return fs::exists(p); } 
-        catch (...) { return false; } 
-    };
-
-    fs::path cwd;
-    try { cwd = fs::current_path(); }
-    catch (...) { cwd = fs::path("."); }
-
-    char exeBuf[MAX_PATH] = { 0 };
-    GetModuleFileNameA(nullptr, exeBuf, MAX_PATH);
-    fs::path exeDir = fs::path(exeBuf).parent_path();
-
-    std::string toLoad;
-    for (auto c : candidates) {
-        fs::path p = cwd / c;
-        if (exists(p)) { toLoad = p.string(); break; }
-    }
-    if (toLoad.empty()) {
-        for (auto c : candidates) {
-            fs::path p = exeDir / c;
-            if (exists(p)) { toLoad = p.string(); break; }
-        }
-    }
-
-    if (!toLoad.empty()) {
-        _bgImage.load(toLoad.c_str());
-        _bgLoaded = _bgImage.isOK();
-        dbg(_bgLoaded ? "[MapView] Background loaded\n" : "[MapView] Failed to load background\n");
-    } else {
-        dbg("[MapView] Background image not found\n");
-    }
 }
 
 void MapView::drawAlgorithmState()

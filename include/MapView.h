@@ -81,7 +81,6 @@ protected:
     void onResize(const gui::Size& newSize) override;
 
 private:
-    void loadBackground();
     void drawAlgorithmState();
     void drawPath(const std::vector<int>& path);
     void drawTSPState();
@@ -104,7 +103,7 @@ private:
 
     DataRepository* _repo = nullptr;
     SearchAlgorithm* _solver = nullptr;
-    gui::Image _bgImage;
+    gui::Image _bgImage{":bgMap"};
     bool _bgLoaded = false;
 
     // Current view size + scale/offset (responsiveness)

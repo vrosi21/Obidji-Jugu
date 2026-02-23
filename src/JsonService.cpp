@@ -2,10 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <windows.h>
+#include <cstdio>
 
 namespace {
-    void dbg(const char* m) { OutputDebugStringA(m); }
+    void dbg(const char* m) { fprintf(stderr, "%s", m); }
 }
 
 // === PRIVATE HELPERS ===
@@ -209,30 +209,4 @@ bool JsonService::saveToJson(
     out << "  ]\n}\n";
     
     return true;
-}
-
-std::filesystem::path JsonService::findJsonFile()
-{
-    namespace fs = std::filesystem;
-    static const char* candidates[] = { "../res/exYu.json" };
-
-    fs::path cwd = fs::current_path();
-    
-    // Try from current working directory
-    for (auto c : candidates) {
-        fs::path p = cwd / c;
-        if (!readFileContent(p).empty()) return p;
-    }
-
-    // Try from exe directory
-    char exeBuf[MAX_PATH] = { 0 };
-    GetModuleFileNameA(nullptr, exeBuf, MAX_PATH);
-    fs::path exeDir = fs::path(exeBuf).parent_path();
-    
-    for (auto c : candidates) {
-        fs::path p = exeDir / c;
-        if (!readFileContent(p).empty()) return p;
-    }
-
-    return cwd / candidates[0];
 }

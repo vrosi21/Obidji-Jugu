@@ -4,9 +4,14 @@
         <!-- Toolbar flag icons provided in project res folder -->
         <Res id="flagEN" path=":flag-us.png"/>
         <Res id="flagBA" path=":flag-bhs.png"/>
+        <!-- Background map image -->
+        <Res id="bgMap" path=":assets/yugoslavia.png"/>
 		
         <!-- Keep example icons if needed elsewhere -->
         <Res id="zoomIn" path="Work/Common/Icons/zoomIn64.png"/>
         <Res id="zoomOut" path="Work/Common/Icons/zoomOut64.png"/>
     </Images>
+    <FileNames>
+        <Res id="exYu" path=":exYu.json"/>
+    </FileNames>
 </DevRes>

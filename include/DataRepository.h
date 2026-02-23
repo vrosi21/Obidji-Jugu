@@ -11,8 +11,11 @@ class DataRepository
 public:
     using ChangeCallback = std::function<void()>;
 
-    DataRepository();
+    DataRepository() = default;
     ~DataRepository() = default;
+
+    // Initialize with resolved JSON file path
+    void init(const std::filesystem::path& jsonPath);
 
     // --- City CRUD Operations ---
     bool addCity(const std::string& name, double x, double y);

@@ -46,6 +46,11 @@ public:
         , _solutionTimer(this, SOLUTION_ANIM_INTERVAL, false)
     {
         setMargins(0, 0, 0, 0);
+
+        // Resolve JSON data file path via framework resource system
+        // (build-location-independent: -devResPath resolves ':' prefix)
+        td::String jsonResPath = getResFileName(":exYu");
+        _repo.init(jsonResPath.c_str());
         
         // Size limits - allow resizing with reasonable minimums
         // Side panel has a minimum width to keep controls usable

@@ -3,7 +3,6 @@
 #include <td/StringConverter.h>
 #include <fstream>
 #include <gui/WinMain.h>
-#include <windows.h>
 
 
 // Note: Update ResPaths.txt if needed
