@@ -130,7 +130,7 @@ bool JsonService::loadFromJson(
     }
 
     char msg[128];
-    sprintf_s(msg, "[JsonService] Loaded %zu cities\n", outCities.size());
+    snprintf(msg, sizeof(msg), "[JsonService] Loaded %zu cities\n", outCities.size());
     dbg(msg);
 
     // Parse roads
