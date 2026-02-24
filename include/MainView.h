@@ -7,7 +7,7 @@
 #include <cmath>
 #include "DataRepository.h"
 #include "MapView.h"
-#include "SidePanelView.h"
+#include "SidePanelScroller.h"
 #include "SearchAlgorithm.h"
 #include "BFSAlgorithm.h"
 #include "DFSAlgorithm.h"
@@ -25,8 +25,9 @@ class MainView : public gui::View
 private:
     gui::SplitterLayout _splitter{gui::SplitterLayout::Orientation::Horizontal, gui::SplitterLayout::AuxiliaryCell::Second};
     DataRepository _repo;       // Single data source (owns the data)
-    MapView _mapView;           // Rendering only
-    SidePanelView _sidePanel;   // UI controls
+    MapView _mapView;              // Rendering only
+    SidePanelScroller _sidePanelScroller; // Scrollable wrapper
+    SidePanelView& _sidePanel = _sidePanelScroller.panel; // convenient alias
     gui::Timer _timer;          // Timer for auto-stepping
     std::unique_ptr<SearchAlgorithm> _solver;
     bool _running = false;
@@ -53,14 +54,14 @@ public:
         _repo.init(jsonResPath.c_str());
         
         // Size limits - allow resizing with reasonable minimums
-        // Side panel has a minimum width to keep controls usable
-        _sidePanel.setSizeLimits(300, gui::Control::Limit::UseAsMin,
-                                 200, gui::Control::Limit::UseAsMin);
+        // Side panel scroller has a minimum width to keep controls usable
+        _sidePanelScroller.setSizeLimits(300, gui::Control::Limit::UseAsMin,
+                                        200, gui::Control::Limit::UseAsMin);
         // Map view can scale down but has minimum to stay readable
         _mapView.setSizeLimits(400, gui::Control::Limit::UseAsMin,
                                350, gui::Control::Limit::UseAsMin);
 
-        _splitter.setContent(_mapView, _sidePanel);
+        _splitter.setContent(_mapView, _sidePanelScroller);
         setLayout(&_splitter);
 
         // Wire up: repository -> mapView & sidePanel
