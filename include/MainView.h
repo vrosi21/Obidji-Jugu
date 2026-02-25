@@ -54,12 +54,18 @@ public:
         _repo.init(jsonResPath.c_str());
         
         // Size limits - allow resizing with reasonable minimums
+        // Enforce minimum size for the whole view (propagated to window via FixMin)
+        // Map can be narrower than the image (right side hidden behind side panel)
+        // so 700 = reasonable map area (400) + side panel (300)
+        setSizeLimits(700, gui::Control::Limit::UseAsMin,
+                      600, gui::Control::Limit::UseAsMin);
+
         // Side panel scroller has a minimum width to keep controls usable
         _sidePanelScroller.setSizeLimits(300, gui::Control::Limit::UseAsMin,
                                         200, gui::Control::Limit::UseAsMin);
-        // Map view can scale down but has minimum to stay readable
-        _mapView.setSizeLimits(400, gui::Control::Limit::UseAsMin,
-                               350, gui::Control::Limit::UseAsMin);
+        // Map view: relaxed width minimum — the map always fills the full
+        // height and extends rightward; the side panel covers the overflow.
+        _mapView.setSizeLimits(400, gui::Control::Limit::UseAsMin);
 
         _splitter.setContent(_mapView, _sidePanelScroller);
         setLayout(&_splitter);

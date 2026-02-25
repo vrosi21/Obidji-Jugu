@@ -199,20 +199,17 @@ SidePanelView::SidePanelView()
     // ========================================
     // SECTION 3: Connections
     // ========================================
-    lblConnectionsSection.setFont(gui::Font::ID::SystemLargerBold);
-    gc.appendRow(lblConnectionsSection, 4);
-    
-    gc.appendRow(lblConnections);
-    gc.appendCol(lblConnectionsValue, 3);
-    
-    gc.appendRow(lblConnectTo);
-    gc.appendCol(cmbConnectTo, 3);
-    
-    btnToggleConnection.setType(gui::Button::Type::Default);
-    gc.appendRow(btnToggleConnection, 2);
-
-    btnSetAllToVisit.setType(gui::Button::Type::Default);
-    gc.appendRow(btnSetAllToVisit, 4);
+    // lblConnectionsSection.setFont(gui::Font::ID::SystemLargerBold);
+    // gc.appendRow(lblConnectionsSection, 4);
+    // 
+    // gc.appendRow(lblConnections);
+    // gc.appendCol(lblConnectionsValue, 3);
+    // 
+    // gc.appendRow(lblConnectTo);
+    // gc.appendCol(cmbConnectTo, 3);
+    // 
+    // btnToggleConnection.setType(gui::Button::Type::Default);
+    // gc.appendRow(btnToggleConnection, 2);
 
     // ========================================
     // SECTION 4: Randomize
@@ -224,6 +221,9 @@ SidePanelView::SidePanelView()
     gc.appendCol(btnRandomizeWeight, 1, td::HAlignment::Center);
     gc.appendCol(btnRandomizeStatus, 1, td::HAlignment::Center);
     gc.appendCol(btnRandomizeAll, 1, td::HAlignment::Center);
+
+    btnSetAllToVisit.setType(gui::Button::Type::Default);
+    gc.appendRow(btnSetAllToVisit, 4);
 
 
     // ========================================

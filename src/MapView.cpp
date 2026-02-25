@@ -94,14 +94,17 @@ int MapView::hitTestCity(const gui::Point& p) const
 
 void MapView::onDraw(const gui::Rect& rect)
 {
-    // Compute uniform scale and offsets to preserve proportions and center the map
+    // Always scale to fill the available height so the map never shrinks
+    // when the side panel expands.  The right edge may extend beyond the
+    // canvas (clipped) — the side panel visually covers that area.
     float viewW = static_cast<float>(rect.right - rect.left);
     float viewH = static_cast<float>(rect.bottom - rect.top);
-    float scaleX = viewW / ORIGINAL_MAP_WIDTH;
-    float scaleY = viewH / ORIGINAL_MAP_HEIGHT;
-    float scale = std::min(scaleX, scaleY);
-    float offsetX = rect.left + (viewW - ORIGINAL_MAP_WIDTH * scale) / 2.0f;
-    float offsetY = rect.top + (viewH - ORIGINAL_MAP_HEIGHT * scale) / 2.0f;
+    float scale  = viewH / ORIGINAL_MAP_HEIGHT;
+    float mapW   = ORIGINAL_MAP_WIDTH * scale;
+
+    // Center horizontally when there is room; otherwise left-align
+    float offsetX = rect.left + std::max(0.0f, (viewW - mapW) / 2.0f);
+    float offsetY = rect.top;  // fills height exactly
 
     // store for other methods
     _scaleX = scale;

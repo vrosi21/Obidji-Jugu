@@ -13,8 +13,6 @@ protected:
     ToolBar _toolBar;
     MainView _mainView;
 
-    int windowWidth;
-    int windowHeight;
 protected:
     
     bool shouldClose() override
@@ -28,7 +26,7 @@ public:
     {
         setTitle("Obiđi Jugu");
             setToolBar(_toolBar);
-        setCentralView(&_mainView);
+        setCentralView(&_mainView, Frame::FixSizes::FixMin);
     }
     
     ~MainWindow()
