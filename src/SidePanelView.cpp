@@ -157,12 +157,12 @@ SidePanelView::SidePanelView()
     gc.appendRow(lblAddSection, 4);
     
     gc.appendRow(lblName);
-    gc.appendCol(lnEditName, 3);
+    gc.appendCol(lnEditName, 4);
     
     gc.appendRow(lblXCoord);
     gc.appendCol(txtEditXCoord);
     gc.appendCol(lblYCoord);
-    gc.appendCol(txtEditYCoord);
+    gc.appendCol(txtEditYCoord, 2);
     
     btnAddPt.setType(gui::Button::Type::Default);
     gc.appendRow(btnAddPt, 2);
@@ -171,24 +171,24 @@ SidePanelView::SidePanelView()
     // SECTION 2: Edit Selected Point
     // ========================================
     lblEditSection.setFont(gui::Font::ID::SystemLargerBold);
-    gc.appendRow(lblEditSection, 4);
+    gc.appendRow(lblEditSection, 5);
     
     gc.appendRow(lblChoosePoint);
-    gc.appendCol(cmbPoints, 3);
+    gc.appendCol(cmbPoints, 4);
     
     gc.appendRow(lblCurrentCityName);
-    gc.appendCol(lnEditCurrentCityName, 3);
+    gc.appendCol(lnEditCurrentCityName, 4);
     
     gc.appendRow(lblCurrentX);
     gc.appendCol(neCurrentX);
     gc.appendCol(lblCurrentY);
-    gc.appendCol(neCurrentY);
+    gc.appendCol(neCurrentY,2);
     
     gc.appendRow(lblCurrentWeight);
-    gc.appendCol(neCurrentWeight, 3);
+    gc.appendCol(neCurrentWeight, 4);
     
     gc.appendRow(lblStatus);
-    gc.appendCol(cmbStatus, 3);
+    gc.appendCol(cmbStatus, 4);
     
     btnUpdatePoint.setType(gui::Button::Type::Default);
     //btnUpdatePoint.hide(true, false);
@@ -223,50 +223,50 @@ SidePanelView::SidePanelView()
     gc.appendCol(btnRandomizeAll, 1, td::HAlignment::Center);
 
     btnSetAllToVisit.setType(gui::Button::Type::Default);
-    gc.appendRow(btnSetAllToVisit, 4);
+    gc.appendRow(btnSetAllToVisit, 5);
 
 
     // ========================================
     // SECTION 5: Solve
     // ========================================
     lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
-    gc.appendRow(lblSolvingSection, 4);
+    gc.appendRow(lblSolvingSection, 5);
     
     gc.appendRow(lblAlgorithm);
-    gc.appendCol(cmbSolvingAlgorithm, 3);
+    gc.appendCol(cmbSolvingAlgorithm, 4);
     
 
     //NN inputs (Shows only when NN selected)
-    gc.appendRow(checkBoxEnable2opt, 4);
+    gc.appendRow(checkBoxEnable2opt, 5);
     gc.appendRow(lblImprovementCycles);
-    gc.appendCol(txtEditImprovementCycles, 3);
+    gc.appendCol(txtEditImprovementCycles, 4);
 
     //SA inputs (Shows only when SA selected)
     gc.appendRow(lblInitialTemperature);
-    gc.appendCol(txtEditInitialTemperature, 3);
+    gc.appendCol(txtEditInitialTemperature, 4);
     sliderCoolingRateAlpha.setRange(0.90, 0.99);
     gc.appendRow(lblCoolingRateAlpha);
-    gc.appendCol(sliderCoolingRateAlpha, 3);
+    gc.appendCol(sliderCoolingRateAlpha, 4);
     gc.appendRow(lblIterationsPerTemperatureLevel);
-    gc.appendCol(txtEditIterationsPerTemperatureLevel, 3);
+    gc.appendCol(txtEditIterationsPerTemperatureLevel, 4);
     cmbSAInitialSolution.addItem(tr("Random"));
     cmbSAInitialSolution.addItem(tr("Nearest Neighbor"));
-    gc.appendRow(cmbSAInitialSolution, 4);
+    gc.appendRow(cmbSAInitialSolution, 5);
     
     //GA inputs (Shows only when GA selected)
     gc.appendRow(lblPopulationSize);
-    gc.appendCol(txtEditPopulationSize, 3);
+    gc.appendCol(txtEditPopulationSize, 4);
     gc.appendRow(lblNumberOfGenerations);
-    gc.appendCol(txtEditNumberOfGenerations, 3);
+    gc.appendCol(txtEditNumberOfGenerations, 4);
     gc.appendRow(lblMutationRate);
-    gc.appendCol(txtEditMutationRate, 3);
+    gc.appendCol(txtEditMutationRate, 4);
     gc.appendRow(lblCrossoverRate);
-    gc.appendCol(txtEditCrossoverRate, 3);
-    gc.appendRow(cmbSelectionMethod, 4);
-    gc.appendRow(cmbMutationCrossoverOperator, 4);
+    gc.appendCol(txtEditCrossoverRate, 4);
+    gc.appendRow(cmbSelectionMethod, 5);
+    gc.appendRow(cmbMutationCrossoverOperator, 5);
     gc.appendRow(lblElitismPercentage);
-    gc.appendCol(txtEditElitismPercentage, 3);
-    gc.appendRow(btnRandomizeParameters, 4);
+    gc.appendCol(txtEditElitismPercentage, 4);
+    gc.appendRow(btnRandomizeParameters, 5);
     // Defaults / options
     cmbSelectionMethod.addItem(tr("Roulette"));
     cmbSelectionMethod.addItem(tr("Tournament"));
@@ -288,7 +288,7 @@ SidePanelView::SidePanelView()
     gc.appendCol(btnResetSolution, 2);
     gc.appendRow(lblAnimationSpeed);
     sliderAnimationSpeed.setRange(1.0, 10.0);
-    gc.appendCol(sliderAnimationSpeed,3);
+    gc.appendCol(sliderAnimationSpeed,4);
 
     setLayout(&gl);
 
