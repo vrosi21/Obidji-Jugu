@@ -321,6 +321,10 @@ SidePanelView::SidePanelView()
 
     // Shared speed default
     sliderAnimationSpeed.setValue(1.0);
+
+    // Select Nearest Neighbor by default and sync field visibility
+    cmbSolvingAlgorithm.selectIndex(0);
+    updateAlgorithmFieldsVisibility();
 }
 
 void SidePanelView::populateStatusCombo()
@@ -341,6 +345,47 @@ void SidePanelView::populateSolvingAlgorithms(const std::vector<std::string>& na
     {
         cmbSolvingAlgorithm.addItem(tr(n.c_str()));
     }
+}
+
+void SidePanelView::updateAlgorithmFieldsVisibility()
+{
+    int algoIdx = cmbSolvingAlgorithm.getSelectedIndex();
+
+    // Fallback: if nothing is selected (index < 0), hide all algorithm-specific fields
+    bool nearestNeighborSelected  = (algoIdx == 0);
+    bool simulatedAnnealingSelected = (algoIdx == 1);
+    bool geneticAlgorithmSelected   = (algoIdx == 2);
+
+    // NN controls
+    checkBoxEnable2opt.hide(!nearestNeighborSelected, false);
+    lblImprovementCycles.hide(!nearestNeighborSelected, false);
+    txtEditImprovementCycles.hide(!nearestNeighborSelected, false);
+    btnStepFwd.hide(!nearestNeighborSelected, false);
+    btnStepBwd.hide(!nearestNeighborSelected, false);
+
+    // SA controls
+    lblInitialTemperature.hide(!simulatedAnnealingSelected, false);
+    txtEditInitialTemperature.hide(!simulatedAnnealingSelected, false);
+    lblCoolingRateAlpha.hide(!simulatedAnnealingSelected, false);
+    sliderCoolingRateAlpha.hide(!simulatedAnnealingSelected, false);
+    lblIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, false);
+    txtEditIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, false);
+    cmbSAInitialSolution.hide(!simulatedAnnealingSelected, false);
+
+    // GA controls
+    lblPopulationSize.hide(!geneticAlgorithmSelected, false);
+    txtEditPopulationSize.hide(!geneticAlgorithmSelected, false);
+    lblNumberOfGenerations.hide(!geneticAlgorithmSelected, false);
+    txtEditNumberOfGenerations.hide(!geneticAlgorithmSelected, false);
+    lblMutationRate.hide(!geneticAlgorithmSelected, false);
+    txtEditMutationRate.hide(!geneticAlgorithmSelected, false);
+    lblCrossoverRate.hide(!geneticAlgorithmSelected, false);
+    txtEditCrossoverRate.hide(!geneticAlgorithmSelected, false);
+    cmbSelectionMethod.hide(!geneticAlgorithmSelected, false);
+    cmbMutationCrossoverOperator.hide(!geneticAlgorithmSelected, false);
+    lblElitismPercentage.hide(!geneticAlgorithmSelected, false);
+    txtEditElitismPercentage.hide(!geneticAlgorithmSelected, false);
+    btnRandomizeParameters.hide(!geneticAlgorithmSelected, false);
 }
 
 void SidePanelView::populatePointNames(const std::vector<std::string>& names)
@@ -379,59 +424,7 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
     }
     if (pCB == &cmbSolvingAlgorithm)
     {
-        int algoIdx = pCB->getSelectedIndex();
-        bool nearestNeighborSelected = (algoIdx == 0);
-        bool simulatedAnnealingSelected = (algoIdx == 1);
-        bool geneticAlgorithmSelected = (algoIdx == 2);
-
-        // -------------------------
-        // NN (label + inputs)
-        // -------------------------
-        checkBoxEnable2opt.hide(!nearestNeighborSelected, false);
-        lblImprovementCycles.hide(!nearestNeighborSelected, false);
-        txtEditImprovementCycles.hide(!nearestNeighborSelected, false);
-        btnStepFwd.hide(!nearestNeighborSelected, false);
-        btnStepBwd.hide(!nearestNeighborSelected, false);
-        //btnStartPause.hide(nearestNeighborSelected, true);
-
-
-        // -------------------------
-        // SA (labels + inputs)
-        // -------------------------
-        lblInitialTemperature.hide(!simulatedAnnealingSelected, false);
-        txtEditInitialTemperature.hide(!simulatedAnnealingSelected, false);
-
-        lblCoolingRateAlpha.hide(!simulatedAnnealingSelected, false);
-        sliderCoolingRateAlpha.hide(!simulatedAnnealingSelected, false);
-
-        lblIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, false);
-        txtEditIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, false);
-
-        cmbSAInitialSolution.hide(!simulatedAnnealingSelected, false);
-
-        // -------------------------
-        // GA (labels + inputs)
-        // -------------------------
-        lblPopulationSize.hide(!geneticAlgorithmSelected, false);
-        txtEditPopulationSize.hide(!geneticAlgorithmSelected, false);
-
-        lblNumberOfGenerations.hide(!geneticAlgorithmSelected, false);
-        txtEditNumberOfGenerations.hide(!geneticAlgorithmSelected, false);
-
-        lblMutationRate.hide(!geneticAlgorithmSelected, false);
-        txtEditMutationRate.hide(!geneticAlgorithmSelected, false);
-
-        lblCrossoverRate.hide(!geneticAlgorithmSelected, false);
-        txtEditCrossoverRate.hide(!geneticAlgorithmSelected, false);
-
-        cmbSelectionMethod.hide(!geneticAlgorithmSelected, false);
-        cmbMutationCrossoverOperator.hide(!geneticAlgorithmSelected, false);
-
-        lblElitismPercentage.hide(!geneticAlgorithmSelected, false);
-        txtEditElitismPercentage.hide(!geneticAlgorithmSelected, false);
-
-        btnRandomizeParameters.hide(!geneticAlgorithmSelected, false);
-        
+        updateAlgorithmFieldsVisibility();
 
         reDraw();
         // Notify that algorithm selection changed (action code 2)
