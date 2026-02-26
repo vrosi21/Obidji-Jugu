@@ -1,7 +1,6 @@
 // Main application window for Obiđi Jugu
 #pragma once
 #include <gui/Window.h>
-#include <fstream>
 #include <gui/Application.h>
 #include "MainView.h"
 #include "ToolBar.h"
@@ -37,21 +36,19 @@ public:
         {
             auto [menuID, firstSubMenuID, lastSubMenuID, actionID] = aiDesc.getIDs();
 
-            // Handle language toolbar actions (menuID 255 per examples)
+            // Handle language toolbar actions (menuID 255 per framework convention)
             if (menuID == 255)
             {
+                const char* lang = nullptr;
                 if (actionID == 10)
-                {
-                    // Persist language and restart application
-                    std::ofstream fout("lang.cfg", std::ios::trunc);
-                    if (fout) { fout << "EN"; fout.flush(); fout.close(); }
-                    gui::getApplication()->restart();
-                    return true;
-                }
+                    lang = "EN";
                 else if (actionID == 20)
+                    lang = "BA";
+
+                if (lang)
                 {
-                    std::ofstream fout("lang.cfg", std::ios::trunc);
-                    if (fout) { fout << "BA"; fout.flush(); fout.close(); }
+                    auto appProperties = getAppProperties();
+                    appProperties->setValue("translation", lang);
                     gui::getApplication()->restart();
                     return true;
                 }
