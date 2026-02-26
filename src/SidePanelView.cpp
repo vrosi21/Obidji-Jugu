@@ -567,36 +567,24 @@ void SidePanelView::updateCurrentNameFromSelection()
 void SidePanelView::updateCurrentCoordsFromSelection()
 {
     int idx = cmbPoints.getSelectedIndex();
-    std::string xStr = "0";
-    std::string yStr = "0";
-    std::string wStr = "0";
+
     if (_repo && idx >= 0)
     {
         CityPoint cp;
         if (_repo->getCity(idx, cp))
         {
-            std::ostringstream sx;
-            std::ostringstream sy;
-            std::ostringstream sw;
-            
-
-
-            sx << std::fixed << cp.x;
-            sy << std::fixed << cp.y;
-            sw << std::fixed << cp.weight;
-            
-            xStr = sx.str();
-            yStr = sy.str();
-            wStr = sw.str();
-
-            dotToComma(xStr);
-            dotToComma(yStr);
-            dotToComma(wStr);
+            neCurrentX.setValue(td::Decimal1(cp.x));
+            neCurrentY.setValue(td::Decimal1(cp.y));
+            neCurrentWeight.setValue(td::Decimal1(cp.weight));
         }
     }
-    neCurrentX.setText(xStr.c_str());
-    neCurrentY.setText(yStr.c_str());
-    neCurrentWeight.setText(wStr.c_str());
+    else
+    {
+        neCurrentX.setValue(td::Decimal1(0));
+        neCurrentY.setValue(td::Decimal1(0));
+        neCurrentWeight.setValue(td::Decimal1(0));
+    }
+
     reDraw();
 }
 
