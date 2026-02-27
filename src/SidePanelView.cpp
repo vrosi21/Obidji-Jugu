@@ -387,50 +387,50 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         // -------------------------
         // NN (label + inputs)
         // -------------------------
-        checkBoxEnable2opt.hide(!nearestNeighborSelected, false);
-        lblImprovementCycles.hide(!nearestNeighborSelected, false);
-        txtEditImprovementCycles.hide(!nearestNeighborSelected, false);
-        btnStepFwd.hide(!nearestNeighborSelected, false);
-        btnStepBwd.hide(!nearestNeighborSelected, false);
+        checkBoxEnable2opt.hide(!nearestNeighborSelected, true);
+        lblImprovementCycles.hide(!nearestNeighborSelected, true);
+        txtEditImprovementCycles.hide(!nearestNeighborSelected, true);
+        btnStepFwd.hide(!nearestNeighborSelected, true);
+        btnStepBwd.hide(!nearestNeighborSelected, true);
         //btnStartPause.hide(nearestNeighborSelected, true);
 
 
         // -------------------------
         // SA (labels + inputs)
         // -------------------------
-        lblInitialTemperature.hide(!simulatedAnnealingSelected, false);
-        txtEditInitialTemperature.hide(!simulatedAnnealingSelected, false);
+        lblInitialTemperature.hide(!simulatedAnnealingSelected, true);
+        txtEditInitialTemperature.hide(!simulatedAnnealingSelected, true);
 
-        lblCoolingRateAlpha.hide(!simulatedAnnealingSelected, false);
-        sliderCoolingRateAlpha.hide(!simulatedAnnealingSelected, false);
+        lblCoolingRateAlpha.hide(!simulatedAnnealingSelected, true);
+        sliderCoolingRateAlpha.hide(!simulatedAnnealingSelected, true);
 
-        lblIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, false);
-        txtEditIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, false);
+        lblIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, true);
+        txtEditIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, true);
 
-        cmbSAInitialSolution.hide(!simulatedAnnealingSelected, false);
+        cmbSAInitialSolution.hide(!simulatedAnnealingSelected, true);
 
         // -------------------------
         // GA (labels + inputs)
         // -------------------------
-        lblPopulationSize.hide(!geneticAlgorithmSelected, false);
-        txtEditPopulationSize.hide(!geneticAlgorithmSelected, false);
+        lblPopulationSize.hide(!geneticAlgorithmSelected, true);
+        txtEditPopulationSize.hide(!geneticAlgorithmSelected, true);
 
-        lblNumberOfGenerations.hide(!geneticAlgorithmSelected, false);
-        txtEditNumberOfGenerations.hide(!geneticAlgorithmSelected, false);
+        lblNumberOfGenerations.hide(!geneticAlgorithmSelected, true);
+        txtEditNumberOfGenerations.hide(!geneticAlgorithmSelected, true);
 
-        lblMutationRate.hide(!geneticAlgorithmSelected, false);
-        txtEditMutationRate.hide(!geneticAlgorithmSelected, false);
+        lblMutationRate.hide(!geneticAlgorithmSelected, true);
+        txtEditMutationRate.hide(!geneticAlgorithmSelected, true);
 
-        lblCrossoverRate.hide(!geneticAlgorithmSelected, false);
-        txtEditCrossoverRate.hide(!geneticAlgorithmSelected, false);
+        lblCrossoverRate.hide(!geneticAlgorithmSelected, true);
+        txtEditCrossoverRate.hide(!geneticAlgorithmSelected, true);
 
-        cmbSelectionMethod.hide(!geneticAlgorithmSelected, false);
-        cmbMutationCrossoverOperator.hide(!geneticAlgorithmSelected, false);
+        cmbSelectionMethod.hide(!geneticAlgorithmSelected, true);
+        cmbMutationCrossoverOperator.hide(!geneticAlgorithmSelected, true);
 
-        lblElitismPercentage.hide(!geneticAlgorithmSelected, false);
-        txtEditElitismPercentage.hide(!geneticAlgorithmSelected, false);
+        lblElitismPercentage.hide(!geneticAlgorithmSelected, true);
+        txtEditElitismPercentage.hide(!geneticAlgorithmSelected, true);
 
-        btnRandomizeParameters.hide(!geneticAlgorithmSelected, false);
+        btnRandomizeParameters.hide(!geneticAlgorithmSelected, true);
         
 
         reDraw();
