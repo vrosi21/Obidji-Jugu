@@ -28,8 +28,8 @@ namespace {
 
     static double neToDouble(const gui::NumericEdit& ne)
     {
-        td::Variant v = ne.getValue();          
-        return v.toNumber<double>();            
+        td::Variant v = ne.getValue();
+        return v.toNumber<double>();
     }
 
     static int neToIntRound(const gui::NumericEdit& ne)
@@ -41,7 +41,7 @@ namespace {
     {
         const double eps = 1e-9;
         return px <= std::max(ax, bx) + eps && px + eps >= std::min(ax, bx) &&
-               py <= std::max(ay, by) + eps && py + eps >= std::min(ay, by);
+            py <= std::max(ay, by) + eps && py + eps >= std::min(ay, by);
     }
 
     static bool segmentsIntersect(
@@ -155,15 +155,15 @@ SidePanelView::SidePanelView()
     // ========================================
     lblAddSection.setFont(gui::Font::ID::SystemLargerBold);
     gc.appendRow(lblAddSection, 4);
-    
+
     gc.appendRow(lblName);
     gc.appendCol(lnEditName, 4);
-    
+
     gc.appendRow(lblXCoord);
     gc.appendCol(txtEditXCoord);
     gc.appendCol(lblYCoord);
     gc.appendCol(txtEditYCoord, 2);
-    
+
     btnAddPt.setType(gui::Button::Type::Default);
     gc.appendRow(btnAddPt, 2);
 
@@ -172,24 +172,24 @@ SidePanelView::SidePanelView()
     // ========================================
     lblEditSection.setFont(gui::Font::ID::SystemLargerBold);
     gc.appendRow(lblEditSection, 5);
-    
+
     gc.appendRow(lblChoosePoint);
     gc.appendCol(cmbPoints, 4);
-    
+
     gc.appendRow(lblCurrentCityName);
     gc.appendCol(lnEditCurrentCityName, 4);
-    
+
     gc.appendRow(lblCurrentX);
     gc.appendCol(neCurrentX);
     gc.appendCol(lblCurrentY);
-    gc.appendCol(neCurrentY,2);
-    
+    gc.appendCol(neCurrentY, 2);
+
     gc.appendRow(lblCurrentWeight);
     gc.appendCol(neCurrentWeight, 4);
-    
+
     gc.appendRow(lblStatus);
     gc.appendCol(cmbStatus, 4);
-    
+
     btnUpdatePoint.setType(gui::Button::Type::Default);
     //btnUpdatePoint.hide(true, false);
     btnDeletePoint.setType(gui::Button::Type::Default);
@@ -201,13 +201,13 @@ SidePanelView::SidePanelView()
     // ========================================
     // lblConnectionsSection.setFont(gui::Font::ID::SystemLargerBold);
     // gc.appendRow(lblConnectionsSection, 4);
-    // 
+    //
     // gc.appendRow(lblConnections);
     // gc.appendCol(lblConnectionsValue, 3);
-    // 
+    //
     // gc.appendRow(lblConnectTo);
     // gc.appendCol(cmbConnectTo, 3);
-    // 
+    //
     // btnToggleConnection.setType(gui::Button::Type::Default);
     // gc.appendRow(btnToggleConnection, 2);
 
@@ -231,10 +231,11 @@ SidePanelView::SidePanelView()
     // ========================================
     lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
     gc.appendRow(lblSolvingSection, 5);
-    
+
     gc.appendRow(lblAlgorithm);
+
     gc.appendCol(cmbSolvingAlgorithm, 4);
-    
+
 
     //NN inputs (Shows only when NN selected)
     gc.appendRow(checkBoxEnable2opt, 5);
@@ -252,7 +253,7 @@ SidePanelView::SidePanelView()
     cmbSAInitialSolution.addItem(tr("Random"));
     cmbSAInitialSolution.addItem(tr("Nearest Neighbor"));
     gc.appendRow(cmbSAInitialSolution, 5);
-    
+
     //GA inputs (Shows only when GA selected)
     gc.appendRow(lblPopulationSize);
     gc.appendCol(txtEditPopulationSize, 4);
@@ -288,7 +289,7 @@ SidePanelView::SidePanelView()
     gc.appendCol(btnResetSolution, 2);
     gc.appendRow(lblAnimationSpeed);
     sliderAnimationSpeed.setRange(1.0, 10.0);
-    gc.appendCol(sliderAnimationSpeed,4);
+    gc.appendCol(sliderAnimationSpeed, 4);
 
     setLayout(&gl);
 
@@ -296,10 +297,11 @@ SidePanelView::SidePanelView()
     btnStepBwd.enable(false);
     btnStepFwd.enable(true);
     btnResetSolution.enable(true);
-    
+
     // Populate dropdowns
     populateStatusCombo();
     populateSolvingAlgorithms(_algorithmNames);
+    cmbSolvingAlgorithm.selectIndex(0);
 
     // NN defaults
     checkBoxEnable2opt.setChecked(false);
@@ -431,7 +433,7 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         txtEditElitismPercentage.hide(!geneticAlgorithmSelected, true);
 
         btnRandomizeParameters.hide(!geneticAlgorithmSelected, true);
-        
+
 
         reDraw();
         // Notify that algorithm selection changed (action code 2)
@@ -639,9 +641,9 @@ void SidePanelView::handleStatusChange()
     int cityIdx = cmbPoints.getSelectedIndex();
     int statusIdx = cmbStatus.getSelectedIndex();
     if (cityIdx < 0 || statusIdx < 0) return;
-    
+
     VisitationStatus status = static_cast<VisitationStatus>(statusIdx);
-    
+
     // If setting to Start, clear any existing Start status
     if (status == VisitationStatus::Start) {
         for (size_t i = 0; i < _repo->cityCount(); ++i) {
@@ -652,7 +654,7 @@ void SidePanelView::handleStatusChange()
             }
         }
     }
-    
+
     _repo->updateCityStatus(cityIdx, status);
 }
 
@@ -824,12 +826,12 @@ void SidePanelView::handleRandomizeConnections()
         for (int j = i + 1; j < n; ++j) {
             double dx = cities[i].x - cities[j].x;
             double dy = cities[i].y - cities[j].y;
-            edges.push_back({i, j, std::sqrt(dx * dx + dy * dy)});
+            edges.push_back({ i, j, std::sqrt(dx * dx + dy * dy) });
         }
     }
     std::sort(edges.begin(), edges.end(), [](const CandidateEdge& l, const CandidateEdge& r) {
         return l.dist < r.dist;
-    });
+        });
 
     std::vector<std::pair<int, int>> chosen;
     std::vector<int> degree(n, 0);
@@ -849,21 +851,21 @@ void SidePanelView::handleRandomizeConnections()
             x = parent[x];
         }
         return x;
-    };
+        };
     auto unionSet = [&](int a, int b) {
         int ra = findSet(a), rb = findSet(b);
         if (ra == rb) return;
         if (rank[ra] < rank[rb]) std::swap(ra, rb);
         parent[rb] = ra;
         if (rank[ra] == rank[rb]) rank[ra]++;
-    };
+        };
     auto isConnectedAll = [&]() {
         int root = findSet(0);
         for (int i = 1; i < n; ++i) {
             if (findSet(i) != root) return false;
         }
         return true;
-    };
+        };
 
     auto intersectsExisting = [&](int a, int b) {
         const auto& A = cities[a];
@@ -882,7 +884,7 @@ void SidePanelView::handleRandomizeConnections()
             }
         }
         return false;
-    };
+        };
 
     auto tryAddEdge = [&](int a, int b, bool allowCrossing) {
         if (a == b) return false;
@@ -891,14 +893,14 @@ void SidePanelView::handleRandomizeConnections()
         if (!allowCrossing && intersectsExisting(a, b)) return false;
 
         if (_repo->addConnection(a, b)) {
-            chosen.push_back({a, b});
+            chosen.push_back({ a, b });
             degree[a]++;
             degree[b]++;
             unionSet(a, b);
             return true;
         }
         return false;
-    };
+        };
 
     // 3) Build a connected backbone (prefer non-crossing + short edges)
     for (const auto& e : edges) {
@@ -924,7 +926,7 @@ void SidePanelView::handleRandomizeConnections()
             if (degree[i] < targetDegree[i]) return true;
         }
         return false;
-    };
+        };
 
     // Pass A: non-crossing additions
     bool progress = true;
@@ -1244,7 +1246,8 @@ void SidePanelView::updateStepButtons(bool running, bool canFwd, bool canBwd)
         // While auto-running, disable both step buttons
         btnStepFwd.enable(false);
         btnStepBwd.enable(false);
-    } else {
+    }
+    else {
         // Paused or not started: enable based on state
         btnStepFwd.enable(canFwd);
         btnStepBwd.enable(canBwd);
