@@ -229,6 +229,7 @@ private:
     void updateConnectionsLabel();
     void populateConnectToCombo();
     void populateStatusCombo();
+    void updateAlgorithmFieldsVisibility();
     void updateStatusFromSelection();
     void handleStatusChange();
 };
