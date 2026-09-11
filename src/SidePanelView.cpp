@@ -294,9 +294,9 @@ SidePanelView::SidePanelView()
     setLayout(&gl);
 
     // Initial button state: not started, only forward enabled
-    btnStepBwd.enable(false);
-    btnStepFwd.enable(true);
-    btnResetSolution.enable(true);
+    btnStepBwd.disable(true);
+    btnStepFwd.disable(false);
+    btnResetSolution.disable(false);
 
     // Populate dropdowns
     populateStatusCombo();
@@ -1244,44 +1244,44 @@ void SidePanelView::updateStepButtons(bool running, bool canFwd, bool canBwd)
 {
     if (running) {
         // While auto-running, disable both step buttons
-        btnStepFwd.enable(false);
-        btnStepBwd.enable(false);
+        btnStepFwd.disable(true);
+        btnStepBwd.disable(true);
     }
     else {
         // Paused or not started: enable based on state
-        btnStepFwd.enable(canFwd);
-        btnStepBwd.enable(canBwd);
+        btnStepFwd.disable(!canFwd);
+        btnStepBwd.disable(!canBwd);
     }
 }
 
 void SidePanelView::updateExecutionState(bool running)
 {
     // Lock algorithm selection while executing
-    cmbSolvingAlgorithm.enable(!running);
+    cmbSolvingAlgorithm.disable(running);
 
     // Keep solution/reset disabled while running to avoid conflicting states
-    showSolution.enable(!running);
-    btnResetSolution.enable(!running);
+    showSolution.disable(running);
+    btnResetSolution.disable(running);
 
     // Lock NN controls while running
-    checkBoxEnable2opt.enable(!running);
-    txtEditImprovementCycles.enable(!running);
+    checkBoxEnable2opt.disable(running);
+    txtEditImprovementCycles.disable(running);
 
     // Lock SA controls while running
-    txtEditInitialTemperature.enable(!running);
-    sliderCoolingRateAlpha.enable(!running);
-    txtEditIterationsPerTemperatureLevel.enable(!running);
-    cmbSAInitialSolution.enable(!running);
+    txtEditInitialTemperature.disable(running);
+    sliderCoolingRateAlpha.disable(running);
+    txtEditIterationsPerTemperatureLevel.disable(running);
+    cmbSAInitialSolution.disable(running);
 
     // Lock GA controls while running
-    txtEditPopulationSize.enable(!running);
-    txtEditNumberOfGenerations.enable(!running);
-    txtEditMutationRate.enable(!running);
-    txtEditCrossoverRate.enable(!running);
-    cmbSelectionMethod.enable(!running);
-    cmbMutationCrossoverOperator.enable(!running);
-    txtEditElitismPercentage.enable(!running);
-    btnRandomizeParameters.enable(!running);
+    txtEditPopulationSize.disable(running);
+    txtEditNumberOfGenerations.disable(running);
+    txtEditMutationRate.disable(running);
+    txtEditCrossoverRate.disable(running);
+    cmbSelectionMethod.disable(running);
+    cmbMutationCrossoverOperator.disable(running);
+    txtEditElitismPercentage.disable(running);
+    btnRandomizeParameters.disable(running);
 }
 
 
