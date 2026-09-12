@@ -1,7 +1,7 @@
 set(PROJECT_NAME The_Travelling_Salesman)				#Naziv prvog projekta u solution-u
 
-file(GLOB PROJECT_SOURCES  ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
-file(GLOB PROJECT_INCS  ${CMAKE_CURRENT_LIST_DIR}/include/*.h)
+file(GLOB PROJECT_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
+file(GLOB PROJECT_INCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/include/*.h)
 set(PROJECT_PLIST  ${CMAKE_CURRENT_LIST_DIR}/src/Info.plist)
 file(GLOB PROJECT_INC_TD  ${MY_INC}/td/*.h)
 file(GLOB PROJECT_INC_GUI ${MY_INC}/gui/*.h)

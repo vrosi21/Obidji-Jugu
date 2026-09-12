@@ -1,0 +1,2981 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Banja Luka",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 138963,
+        "population_date": "2013",
+        "place": "city",
+        "osm_id": 9063920,
+        "osm_type": "relation",
+        "wikidata": null,
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.206012,
+          44.7786236
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Banja Luka",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 138963,
+        "population_date": "2013",
+        "place": "city",
+        "osm_id": 248407024,
+        "osm_type": "node",
+        "wikidata": "Q131127",
+        "source_population": "www.bhas.ba/obavjestenja/Preliminarni_rezultati_bos.pdf"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.1917651,
+          44.7720845
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Banovići",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 23431,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 322034490,
+        "osm_type": "node",
+        "wikidata": "Q2421636",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.5292365,
+          44.4088812
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bihać",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 39690,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 1596886537,
+        "osm_type": "node",
+        "wikidata": "Q204434",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.86896,
+          44.8146563
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bijeljina",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 42278,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 254035698,
+        "osm_type": "node",
+        "wikidata": "Q207801",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.2175336,
+          44.7573656
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Brčko",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 39893,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 254397489,
+        "osm_type": "node",
+        "wikidata": "Q322828",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.8095022,
+          44.8771222
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bugojno",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 15555,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 251285063,
+        "osm_type": "node",
+        "wikidata": "Q934612",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.4509043,
+          44.0558542
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Doboj",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 25132,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 251913823,
+        "osm_type": "node",
+        "wikidata": "Q169247",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.0850157,
+          44.7324559
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Goražde",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 20897,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 251856694,
+        "osm_type": "node",
+        "wikidata": "Q504058",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.9759044,
+          43.6684413
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ilidža",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 63528,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 1299306684,
+        "osm_type": "node",
+        "wikidata": "Q247962",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.3077357,
+          43.8306182
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Modriča",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 35000,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 251914226,
+        "osm_type": "node",
+        "wikidata": "Q180743",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.3011351,
+          44.9565236
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mostar",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 60195,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 5715309398,
+        "osm_type": "node",
+        "wikidata": "Q93347",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.8076584,
+          43.3435855
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Prijedor",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 29555,
+        "population_date": "2013",
+        "place": "city",
+        "osm_id": 1217207082,
+        "osm_type": "node",
+        "wikidata": "Q323986",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.7123704,
+          44.9801369
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sanski Most",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 16913,
+        "population_date": "2013",
+        "place": "town",
+        "osm_id": 248400862,
+        "osm_type": "node",
+        "wikidata": "Q2189505",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.6656827,
+          44.7651882
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sarajevo",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 271194,
+        "population_date": "2013",
+        "place": "city",
+        "osm_id": 2021709163,
+        "osm_type": "node",
+        "wikidata": "Q11194",
+        "source_population": "census"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.4126147,
+          43.8570713
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Travnik",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 15344,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 90249576,
+        "osm_type": "node",
+        "wikidata": "Q159818",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.6661738,
+          44.2259454
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Trebinje",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 25589,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 8821181,
+        "osm_type": "relation",
+        "wikidata": null,
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.3390033,
+          42.717537
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Trebinje",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 23770,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 253020205,
+        "osm_type": "node",
+        "wikidata": "Q690052",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.34468,
+          42.7115264
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tuzla",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 74457,
+        "population_date": "2013",
+        "place": "city",
+        "osm_id": 275005833,
+        "osm_type": "node",
+        "wikidata": "Q174684",
+        "source_population": "www.bhas.ba/obavjestenja/Preliminarni_rezultati_bos.pdf"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.6749337,
+          44.539298
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zenica",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 70533,
+        "population_date": "2013",
+        "place": "city",
+        "osm_id": 1966975750,
+        "osm_type": "node",
+        "wikidata": "Q184046",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.9093012,
+          44.199828
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Živinice",
+        "country": "Bosnia and Herzegovina",
+        "country_code": "BA",
+        "population": 16157,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 2547579160,
+        "osm_type": "node",
+        "wikidata": "Q394166",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.6501306,
+          44.451574
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Belovar",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 24392,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 463204318,
+        "osm_type": "node",
+        "wikidata": "Q5707",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.8421977,
+          45.8986869
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dubrovnik",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 26922,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 1583747666,
+        "osm_type": "node",
+        "wikidata": "Q1722",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.0939501,
+          42.6491029
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Karlovac",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 41869,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 341465590,
+        "osm_type": "node",
+        "wikidata": "Q3617",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.5486303,
+          45.4892522
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kaštela",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 37794,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 558878143,
+        "osm_type": "node",
+        "wikidata": "Q396579",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3646048,
+          43.5561377
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Koprivnica",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 22262,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 418152207,
+        "osm_type": "node",
+        "wikidata": "Q5640",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.8307909,
+          46.1623335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Osijek",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 75535,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 253924853,
+        "osm_type": "node",
+        "wikidata": "Q1640",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.6953685,
+          45.5548793
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pozhega",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 16867,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 1588846913,
+        "osm_type": "node",
+        "wikidata": "Q273114",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.6765332,
+          45.3310723
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pula",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 52220,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 1830216906,
+        "osm_type": "node",
+        "wikidata": "Q4656",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.8455311,
+          44.8702281
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Rijeka",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 107964,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 29098860,
+        "osm_type": "node",
+        "wikidata": "Q1647",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.442208,
+          45.3267976
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Samobor",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 16911,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 2027048676,
+        "osm_type": "node",
+        "wikidata": "Q390587",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.7097105,
+          45.8018625
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Shibeniku",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 31115,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 270442378,
+        "osm_type": "node",
+        "wikidata": "Q3549",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.8944767,
+          43.7340647
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sisak",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 40185,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 408910962,
+        "osm_type": "node",
+        "wikidata": "Q192119",
+        "source_population": "wikipedia"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3746041,
+          45.489175
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sllavonski Brod",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 45005,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 1588925812,
+        "osm_type": "node",
+        "wikidata": "Q4686",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.0125553,
+          45.1584339
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Solin",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 20996,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 1588135994,
+        "osm_type": "node",
+        "wikidata": "Q642828",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4853016,
+          43.5442913
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Split",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 149830,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 1467604275,
+        "osm_type": "node",
+        "wikidata": "Q1663",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4399659,
+          43.5116383
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Varaždin",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 36187,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 343645893,
+        "osm_type": "node",
+        "wikidata": "Q5420",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3378198,
+          46.3079645
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Velika Gorica",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 30036,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 330369640,
+        "osm_type": "node",
+        "wikidata": "Q331141",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.0717164,
+          45.7155672
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vinkovci",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 28111,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 1588972606,
+        "osm_type": "node",
+        "wikidata": "Q221495",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.8045248,
+          45.2883771
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vukovar",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 22255,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 343592046,
+        "osm_type": "node",
+        "wikidata": "Q5867",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.002376,
+          45.3444094
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zadar",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 67309,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 1832917478,
+        "osm_type": "node",
+        "wikidata": "Q3370",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.2353257,
+          44.1168594
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zagreb",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 663592,
+        "population_date": "2021-08-31",
+        "place": "city",
+        "osm_id": 1551865419,
+        "osm_type": "node",
+        "wikidata": "Q1435",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.9772795,
+          45.8130967
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zaprešić",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 18768,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 1605177300,
+        "osm_type": "node",
+        "wikidata": "Q5408",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.8050436,
+          45.8572728
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Čakovec",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 15078,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 568674747,
+        "osm_type": "node",
+        "wikidata": "Q167839",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4368593,
+          46.3892305
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Đakovo",
+        "country": "Croatia",
+        "country_code": "HR",
+        "population": 16875,
+        "population_date": "2021-08-31",
+        "place": "town",
+        "osm_id": 1588859221,
+        "osm_type": "node",
+        "wikidata": "Q318961",
+        "source_population": "DZS 2021"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.4116376,
+          45.3080745
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bar",
+        "country": "Montenegro",
+        "country_code": "ME",
+        "population": 17727,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 49875186,
+        "osm_type": "node",
+        "wikidata": "Q115276",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.0954528,
+          42.0979745
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nikšić",
+        "country": "Montenegro",
+        "country_code": "ME",
+        "population": 56970,
+        "population_date": "2011",
+        "place": "city",
+        "osm_id": 255351703,
+        "osm_type": "node",
+        "wikidata": "Q200733",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.9488097,
+          42.7739388
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pljevlja",
+        "country": "Montenegro",
+        "country_code": "ME",
+        "population": 19136,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 292101644,
+        "osm_type": "node",
+        "wikidata": "Q211343",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.3578632,
+          43.3561668
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Podgorica",
+        "country": "Montenegro",
+        "country_code": "ME",
+        "population": 150799,
+        "population_date": "2011",
+        "place": "city",
+        "osm_id": 123860883,
+        "osm_type": "node",
+        "wikidata": "Q23564",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.2621081,
+          42.4415238
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Rožaje",
+        "country": "Montenegro",
+        "country_code": "ME",
+        "population": 22693,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 307861977,
+        "osm_type": "node",
+        "wikidata": "Q506775",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.1679653,
+          42.8433181
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bitola",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 74550,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 1812231434,
+        "osm_type": "node",
+        "wikidata": "Q157246",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.3302511,
+          41.0316005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Delčevo",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 17505,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 417730489,
+        "osm_type": "node",
+        "wikidata": "Q157738",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.7767722,
+          41.9668344
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gevgelija",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 20664,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 155946734,
+        "osm_type": "node",
+        "wikidata": "Q157061",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.5033192,
+          41.1388664
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gostivar",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 36000,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 293655611,
+        "osm_type": "node",
+        "wikidata": "Q157058",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.9081703,
+          41.7920222
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kavadarci",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 29320,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 365758611,
+        "osm_type": "node",
+        "wikidata": "Q158088",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.0122593,
+          41.4332802
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kičevo",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 31000,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 299302852,
+        "osm_type": "node",
+        "wikidata": "Q158079",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.9585155,
+          41.5089037
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kočani",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 29000,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 417839656,
+        "osm_type": "node",
+        "wikidata": "Q214344",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.4114182,
+          41.9211332
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kumanovo",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 75051,
+        "population_date": "2021",
+        "place": "city",
+        "osm_id": 371046021,
+        "osm_type": "node",
+        "wikidata": "Q54452",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.7185474,
+          42.135913
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ohrid",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 38940,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 1851487116,
+        "osm_type": "node",
+        "wikidata": "Q1223508",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.8017715,
+          41.1170203
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Prilep",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 63308,
+        "population_date": "2021",
+        "place": "city",
+        "osm_id": 388170933,
+        "osm_type": "node",
+        "wikidata": "Q157032",
+        "source_population": "https://makstat.stat.gov.mk/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.5527115,
+          41.3444984
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Radoviš",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 16690,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 6882035,
+        "osm_type": "relation",
+        "wikidata": null,
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.4571222,
+          41.6517012
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Radoviš",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 16690,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 1879675180,
+        "osm_type": "node",
+        "wikidata": "Q991318",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.4645893,
+          41.639832
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Skopje",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 422540,
+        "population_date": "2021",
+        "place": "city",
+        "osm_id": 170792214,
+        "osm_type": "node",
+        "wikidata": "Q384",
+        "source_population": "https://www.stat.gov.mk/Aktivnosti.aspx?rbra=331"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.4318935,
+          41.9962164
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Struga",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 33000,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 293008707,
+        "osm_type": "node",
+        "wikidata": "Q156858",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.6790586,
+          41.1770278
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Strumica",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 36000,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 185561545,
+        "osm_type": "node",
+        "wikidata": "Q48814",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.6374139,
+          41.4390081
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tetovo",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 85000,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 293657706,
+        "osm_type": "node",
+        "wikidata": "Q157024",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.9728556,
+          42.0068297
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Veles",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 43716,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 324836987,
+        "osm_type": "node",
+        "wikidata": "Q157050",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.7705695,
+          41.718869
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Štip",
+        "country": "North Macedonia",
+        "country_code": "MK",
+        "population": 65000,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 417840346,
+        "osm_type": "node",
+        "wikidata": "Q147243",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.1935856,
+          41.7374724
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Arandjelovac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 22881,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 419138241,
+        "osm_type": "node",
+        "wikidata": "Q583161",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.5577054,
+          44.3071508
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bačka Palanka",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 25476,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 1647188835,
+        "osm_type": "node",
+        "wikidata": "Q477170",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.3829401,
+          45.2501002
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Beograd",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 1197714,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 60571493,
+        "osm_type": "node",
+        "wikidata": "Q3711",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4568974,
+          44.8178131
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bečej",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 19492,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 60352987,
+        "osm_type": "node",
+        "wikidata": "Q477142",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.0490085,
+          45.6153745
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bor",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 28822,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 622323437,
+        "osm_type": "node",
+        "wikidata": "Q462461",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.0991779,
+          44.0778456
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Borča",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 51862,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 353467823,
+        "osm_type": "node",
+        "wikidata": "Q712322",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4570078,
+          44.8773292
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Futog",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 18011,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 250045632,
+        "osm_type": "node",
+        "wikidata": "Q368374",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.7064376,
+          45.2373534
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gornji Milanovac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 23109,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 355055009,
+        "osm_type": "node",
+        "wikidata": "Q714668",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4600377,
+          44.0243159
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Indjija",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 24450,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 60349665,
+        "osm_type": "node",
+        "wikidata": "Q309341",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.0807338,
+          45.0478559
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Jagodina",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 34892,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 367764183,
+        "osm_type": "node",
+        "wikidata": "Q390358",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.2607688,
+          43.9794256
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kikinda",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 32084,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 955603411,
+        "osm_type": "node",
+        "wikidata": "Q309355",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4653054,
+          45.8300065
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Knjaževac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 16350,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 319343322,
+        "osm_type": "node",
+        "wikidata": "Q1011275",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.2556547,
+          43.5675155
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kragujevac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 146315,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 313853846,
+        "osm_type": "node",
+        "wikidata": "Q167394",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.9196353,
+          44.0131786
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kraljevo",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 57432,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 353439335,
+        "osm_type": "node",
+        "wikidata": "Q206317",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.6870792,
+          43.7234519
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kruševac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 53746,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 3720265371,
+        "osm_type": "node",
+        "wikidata": "Q201442",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.3264811,
+          43.58264
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lazarevac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 27635,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 561313083,
+        "osm_type": "node",
+        "wikidata": "Q714606",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.261033,
+          44.3815176
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Leskovac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 54091,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 185538499,
+        "osm_type": "node",
+        "wikidata": "Q192606",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.9464271,
+          42.9951304
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Loznica",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 19515,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 254036981,
+        "osm_type": "node",
+        "wikidata": "Q648489",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.2237478,
+          44.5309221
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mladenovac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 22346,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 364942011,
+        "osm_type": "node",
+        "wikidata": "Q12637166",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.6941535,
+          44.4401166
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Niš",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 178976,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 100890898,
+        "osm_type": "node",
+        "wikidata": "Q129259",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.8959232,
+          43.3211301
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Novi Pazar",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 71462,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 338659082,
+        "osm_type": "node",
+        "wikidata": "Q202453",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.518057,
+          43.1406913
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Novi Sad",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 260438,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 59735022,
+        "osm_type": "node",
+        "wikidata": "Q55630",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.8451756,
+          45.2551338
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Obrenovac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 25380,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 61721018,
+        "osm_type": "node",
+        "wikidata": "Q714650",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.2014318,
+          44.654833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pančevo",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 73401,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 253736569,
+        "osm_type": "node",
+        "wikidata": "Q205432",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.6399643,
+          44.8705686
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Paraćin",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 22349,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 1599441250,
+        "osm_type": "node",
+        "wikidata": "Q714643",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.4099615,
+          43.8636301
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Petrovaradin",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 15621,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 59735024,
+        "osm_type": "node",
+        "wikidata": "Q19429",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.8820073,
+          45.2426175
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pirot",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 34942,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 370352698,
+        "osm_type": "node",
+        "wikidata": "Q309343",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.5865039,
+          43.1547342
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Požarevac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 44183,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 1582764486,
+        "osm_type": "node",
+        "wikidata": "Q199942",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.1854,
+          44.6199926
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Prokuplje",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 24627,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 449625244,
+        "osm_type": "node",
+        "wikidata": "Q729524",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.5884422,
+          43.2343484
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ruma",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 27747,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 60583019,
+        "osm_type": "node",
+        "wikidata": "Q144973",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.8187834,
+          45.0078322
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Smederevo",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 59261,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 359219458,
+        "osm_type": "node",
+        "wikidata": "Q190774",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.9271115,
+          44.6651048
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Smederevska Palanka",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 20345,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 1599448252,
+        "osm_type": "node",
+        "wikidata": "Q715716",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.9579781,
+          44.3658207
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sombor",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 41814,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 1145970042,
+        "osm_type": "node",
+        "wikidata": "Q204475",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.1147036,
+          45.7727397
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sremska Mitrovica",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 36764,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 254036974,
+        "osm_type": "node",
+        "wikidata": "Q242733",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.6083864,
+          44.9685558
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Stara Pazova",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 18522,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 600576574,
+        "osm_type": "node",
+        "wikidata": "Q584694",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.1588763,
+          44.9846077
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Subotica",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 88752,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 1547830258,
+        "osm_type": "node",
+        "wikidata": "Q170287",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.6653273,
+          46.1002058
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Surcin",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 20602,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 1531134087,
+        "osm_type": "node",
+        "wikidata": "Q3621686",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.2701685,
+          44.7910362
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Temerin",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 17998,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 1547830265,
+        "osm_type": "node",
+        "wikidata": "Q579984",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.8876546,
+          45.4073868
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Uzice",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 48539,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 848084912,
+        "osm_type": "node",
+        "wikidata": "Q59473",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.840273,
+          43.8564957
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Valjevo",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 56059,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 307649772,
+        "osm_type": "node",
+        "wikidata": "Q208015",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.8863297,
+          44.2708719
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vranje",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 50954,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 185549608,
+        "osm_type": "node",
+        "wikidata": "Q211645",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.8979003,
+          42.5543511
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vrbas",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 20892,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 3722369896,
+        "osm_type": "node",
+        "wikidata": "Q511216",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.6470089,
+          45.568028
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vršac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 31946,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 1340352822,
+        "osm_type": "node",
+        "wikidata": "Q209329",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.298788,
+          45.1200117
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zaječar",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 32448,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 281664933,
+        "osm_type": "node",
+        "wikidata": "Q144495",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.2785496,
+          43.9031075
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zrenjanin",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 67129,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 61721547,
+        "osm_type": "node",
+        "wikidata": "Q201125",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.3907614,
+          45.3802683
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ćuprija",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 16522,
+        "population_date": "2022-09-30",
+        "place": "town",
+        "osm_id": 1599441293,
+        "osm_type": "node",
+        "wikidata": "Q336475",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.3712355,
+          43.9335612
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Čačak",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 69598,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 254037025,
+        "osm_type": "node",
+        "wikidata": "Q208038",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.3491624,
+          43.8914332
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Šabac",
+        "country": "Serbia",
+        "country_code": "RS",
+        "population": 51163,
+        "population_date": "2022-09-30",
+        "place": "city",
+        "osm_id": 254036931,
+        "osm_type": "node",
+        "wikidata": "Q204472",
+        "source_population": "RZS 2022"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.6953972,
+          44.7571535
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Celje",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 37872,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 30483320,
+        "osm_type": "node",
+        "wikidata": "Q1012",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.2616828,
+          46.2293889
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Koper",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 24900,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 1640456909,
+        "osm_type": "node",
+        "wikidata": "Q1015",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.7304781,
+          45.5479864
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kranj",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 36800,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 29098951,
+        "osm_type": "node",
+        "wikidata": "Q1021",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.3549353,
+          46.2432913
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ljubljana",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 285604,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 6968827,
+        "osm_type": "node",
+        "wikidata": "Q437",
+        "source_population": "https://pxweb.stat.si/SiStatData/pxweb/en/Data/-/H232S.px/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.5069289,
+          46.0500268
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Maribor",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 96000,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 36667529,
+        "osm_type": "node",
+        "wikidata": "Q1010",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.6455854,
+          46.5576439
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Novo Mesto",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 23200,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 57074435,
+        "osm_type": "node",
+        "wikidata": "Q5266",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.1696684,
+          45.8040475
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ptuj",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 18339,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 35526498,
+        "osm_type": "node",
+        "wikidata": "Q15906",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.8717378,
+          46.4198096
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Trbovlje",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 15500,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 57091263,
+        "osm_type": "node",
+        "wikidata": "Q8011202",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.0540204,
+          46.1558964
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Velenje",
+        "country": "Slovenia",
+        "country_code": "SI",
+        "population": 25800,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 56758589,
+        "osm_type": "node",
+        "wikidata": "Q15928",
+        "source_population": "http://www.stat.si/KrajevnaImena/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.1150301,
+          46.3592869
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gjakova",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 40827,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 1530391541,
+        "osm_type": "node",
+        "wikidata": "Q474651",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4316226,
+          42.3798793
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gnjilane",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 54239,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 6352912023,
+        "osm_type": "node",
+        "wikidata": "Q739808",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.4693599,
+          42.463515
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kosovska Mitrovica",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 46132,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 1640485042,
+        "osm_type": "node",
+        "wikidata": "Q178168",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.8657862,
+          42.8790424
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Orahovac",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 15829,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 1379511730,
+        "osm_type": "node",
+        "wikidata": "Q733155",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.6527389,
+          42.3998736
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Peć",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 48962,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 3075195901,
+        "osm_type": "node",
+        "wikidata": "Q112657",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.2885757,
+          42.6593986
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Podujevo",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 31417,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 299447753,
+        "osm_type": "node",
+        "wikidata": "Q994245",
+        "source_population": "source=https://kk.rks-gov.net/podujeve/wp-content/uploads/sites/25/2023/02/Vendim-per-venie-ne-diskutim-publik-Propozim-Plani-Trvejcar-i-Banimit-2023-2025-1.pdf"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.1925286,
+          42.9078011
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Prizren",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 85119,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 150906142,
+        "osm_type": "node",
+        "wikidata": "Q200061",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.7363339,
+          42.2130151
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Priština",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 161751,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 2885136501,
+        "osm_type": "node",
+        "wikidata": "Q25270",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.1640849,
+          42.6638771
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Uroševac",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 42628,
+        "population_date": null,
+        "place": "city",
+        "osm_id": 1905560456,
+        "osm_type": "node",
+        "wikidata": "Q738901",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.1532848,
+          42.3682168
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vučitrn",
+        "country": "Kosovo",
+        "country_code": "XK",
+        "population": 26964,
+        "population_date": null,
+        "place": "town",
+        "osm_id": 448726882,
+        "osm_type": "node",
+        "wikidata": "Q911241",
+        "source_population": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.9674413,
+          42.8219248
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "source": "OpenStreetMap contributors",
+    "license": "ODbL 1.0",
+    "osm_base_timestamp": "2026-09-11T19:52:34Z",
+    "selection": "place in (city, town) and population > 15000"
+  }
+}

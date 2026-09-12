@@ -122,7 +122,7 @@ public:
 
             // Clear canvas slate until an explicit execute action (start/step/show).
             _mapView.setSolver(nullptr);
-            _mapView.refresh();
+            _mapView.refreshData();
             refreshStepButtons();
         });
 

@@ -57,15 +57,11 @@ void MapPointRenderer::draw(const CityPoint& mapPoint)
         ix + MapPointStyle::Size + MapPointStyle::BorderOffset,
         iy + MapPointStyle::Size + MapPointStyle::BorderOffset
     );
-    gui::Shape borderShape;
-    borderShape.createRect(borderRect);
-    borderShape.drawFillAndWire(borderColor, td::ColorID::Black, 1.0f);
+    gui::Shape::drawRect(borderRect, borderColor, td::ColorID::Black, 1.0f);
     
     // Center rectangle (inner)
     gui::Rect centerRect(ix, iy, ix + MapPointStyle::Size, iy + MapPointStyle::Size);
-    gui::Shape centerShape;
-    centerShape.createRect(centerRect);
-    centerShape.drawFillAndWire(centerColor, td::ColorID::Black, 1.0f);
+    gui::Shape::drawRect(centerRect, centerColor, td::ColorID::Black, 1.0f);
     
     // MapPoint name label
     td::String pointName = mapPoint.name;
@@ -74,7 +70,8 @@ void MapPointRenderer::draw(const CityPoint& mapPoint)
                gui::Font::ID::SystemNormal, td::ColorID::Black);
 }
 
-void MapPointRenderer::drawScaled(const CityPoint& mapPoint, float scale, float offsetX, float offsetY)
+void MapPointRenderer::drawScaled(const CityPoint& mapPoint, float scale, float offsetX, float offsetY,
+                                  bool drawLabel)
 {
     td::ColorID borderColor, centerColor;
     MapPointStyle::getColors(mapPoint.visitation_status, borderColor, centerColor);
@@ -96,19 +93,17 @@ void MapPointRenderer::drawScaled(const CityPoint& mapPoint, float scale, float 
         sx + scaledSize + scaledBorderOffset,
         sy + scaledSize + scaledBorderOffset
     );
-    gui::Shape borderShape;
-    borderShape.createRect(borderRect);
-    borderShape.drawFillAndWire(borderColor, td::ColorID::Black, scaledLineWidth);
+    gui::Shape::drawRect(borderRect, borderColor, td::ColorID::Black, scaledLineWidth);
 
     // Center rectangle (inner)
     gui::Rect centerRect(sx, sy, sx + scaledSize, sy + scaledSize);
-    gui::Shape centerShape;
-    centerShape.createRect(centerRect);
-    centerShape.drawFillAndWire(centerColor, td::ColorID::Black, scaledLineWidth);
+    gui::Shape::drawRect(centerRect, centerColor, td::ColorID::Black, scaledLineWidth);
 
     // MapPoint name label
-    td::String pointName = mapPoint.name;
-    gui::DrawableString label(pointName);
-    label.draw(gui::Point(sx, sy + scaledSize), 
-               gui::Font::ID::SystemNormal, td::ColorID::Black);
+    if (drawLabel) {
+        td::String pointName = mapPoint.name;
+        gui::DrawableString label(pointName);
+        label.draw(gui::Point(sx, sy + scaledSize),
+                   gui::Font::ID::SystemNormal, td::ColorID::Black);
+    }
 }

@@ -398,7 +398,10 @@ Canvas-based renderer with multiple drawing layers:
 MapView : gui::Canvas
 │
 ├── onDraw(rect)
-│   ├── Draw background image (yugoslavia.png) with uniform scaling
+│   ├── Draw generated offline OSM vector geometry
+│   │   ├── Sea, administrative land polygons and inland borders
+│   │   └── Coastline sea mask and the largest Adriatic islands
+│   │       (persistent gui::Shape cache + gui::Transformation on resize)
 │   ├── Draw road connections (black bezier lines)
 │   ├── Draw algorithm state (if solver attached):
 │   │   ├── BFS/DFS: visited (green), frontier (orange), current (blue), path
@@ -418,9 +421,36 @@ MapView : gui::Canvas
 │   └── Stop methods:        stopSolutionAnimation(), stopStepTourAnimation()
 │
 └── Coordinate system:
-    ├── Original: 1000×866 (matches JSON coordinates and background image)
-    └── Scaled:   uniform scale + centering offsets for current window size
+    ├── Logical: 1000×866 (shared projected coordinates for boundaries and cities)
+    └── Scaled:  aspect-preserving fit + centering offsets for current window size
 ```
+
+`MapGeometry` loads the `EXYU_MAP_V2` resource `ex_yu_boundaries.map`, generated
+from OSM administrative relation members and `natural=coastline` ways by
+`tools/build_osm_map_data.py`. Overpass is not contacted by the application.
+`MapView` first draws administrative land, masks the maritime parts with the open
+mainland coastline and refills 10 retained coastline island rings. Only the 50
+editable graph cities are drawn; the separate OSM catalogue is not part of the
+runtime rendering path. The generated `res/osm/*.geojson` files retain
+longitude/latitude for inspection and future import features, while the compact
+runtime file avoids adding a JSON/GIS dependency to the renderer.
+
+Static map paths are constructed once by `buildVectorMapShapes()`. Its border
+cache treats edges as undirected, quantised endpoint pairs, reducing 1,665 ring
+edges to 1,050 unique wire segments. `buildRoadShape()` similarly caches 92
+unique road segments from 121 records and rebuilds only when repository geometry
+changes. `gui::Transformation` performs the resize translation/scaling without
+reallocating the underlying native shapes. Drawing is deliberately not dispatched
+to worker threads because the natID graphics context is owned by the UI thread.
+
+During an active resize, `onResize()` coalesces explicit repaint requests through
+a 30 FPS one-shot timer. `onDraw()` uses a pre-rendered 1000 × 866 `gui::Image`
+for the expensive land and shared-border layer and omits labels, solver overlays
+and warnings. The lightweight sea-mask, island and coastline overlay remains a
+live display-context vector layer so its colours exactly match normal rendering.
+A second one-shot timer treats 140 ms without another resize event as completion
+and requests one final full vector redraw. The bitmap is a temporary resize
+preview; normal rendering remains resolution-independent vector output.
 
 ---
 
@@ -660,6 +690,7 @@ SidePanelView::onClick(button)
 | `main.cpp` | 41 | Entry point; reads `lang.cfg`, initialises `Application` |
 | `DataRepository.cpp` | 406 | CRUD implementations, Floyd-Warshall metric closure |
 | `JsonService.cpp` | 239 | Hand-rolled JSON parser/writer, file search |
+| `MapGeometry.cpp` | — | Compact offline vector-map resource parser |
 | `MapPoint.cpp` | 115 | City marker drawing (colour logic, scaled rendering) |
 | `MapView.cpp` | 1040 | Canvas rendering: TSP state, animations, info panel, tours |
 | `SidePanelView.cpp` | 1217 | All side panel event handlers, randomisation logic |
@@ -668,12 +699,15 @@ SidePanelView::onClick(button)
 
 | File | Description |
 |---|---|
-| `exYu.json` | Default dataset: 30 cities + ~40 roads across ex-Yugoslavia |
+| `exYu.json` | Default dataset: 50 editable cities and 121 connected roads across ex-Yugoslavia |
+| `ex_yu_boundaries.map` | `EXYU_MAP_V2`: projected, aggressively simplified boundaries and coastlines |
+| `osm/ex_yu_boundaries.geojson` | Simplified country polygons in `[lon, lat]` coordinates |
+| `osm/ex_yu_coastlines.geojson` | Stitched mainland coastline and detailed closed island rings |
+| `osm/ex_yu_cities_15000.geojson` | Deduplicated OSM city/town catalogue with country, population and OSM identity |
 | `main.xml` | Image resource declarations (flag icons) |
 | `DevRes.xml` | Development resource configuration |
 | `flag-us.png` | English flag icon for toolbar |
 | `flag-bhs.png` | Bosnian flag icon for toolbar |
-| `assets/yugoslavia.png` | Map background image |
 | `tr/EN/main.xml` | English UI strings |
 | `tr/BA/main.xml` | Bosnian UI strings |
 

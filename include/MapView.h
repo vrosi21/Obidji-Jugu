@@ -4,8 +4,10 @@
 #include <gui/Image.h>
 #include <gui/DrawableString.h>
 #include "DataRepository.h"
+#include "MapGeometry.h"
 #include <vector>
 #include <set>
+#include <memory>
 #include <string>
 #include <functional>
 #include <gui/Timer.h>
@@ -16,7 +18,7 @@ class TSPAlgorithm;
 
 enum class PanelSide { Left, Right };
 
-// Original design dimensions (from JSON coordinates and background image)
+// Logical vector-map dimensions shared by generated OSM geometry and graph cities.
 constexpr float ORIGINAL_MAP_WIDTH = 1000.0f;
 constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
 
@@ -41,7 +43,11 @@ public:
     DataRepository* repository() const { return _repo; }
     
     // Public method to trigger redraw (wraps protected reDraw)
+    // Explicit UI/data changes redraw the current frame. Resize throttling is
+    // controlled independently by the resize activity state.
     void refresh() { reDraw(); }
+    // Repository geometry changed: rebuild the cached road path, then redraw.
+    void refreshData();
     
     // Get current scale factors for coordinate transformation
     float getScaleX() const { return _scaleX; }
@@ -81,6 +87,14 @@ protected:
     void onResize(const gui::Size& newSize) override;
 
 private:
+    void buildVectorMapShapes();
+    void buildStaticMapBitmap();
+    void buildRoadShape();
+    void handleResizeFrame();
+    void drawPreparedLandShapes(float logicalLineWidth) const;
+    void drawPreparedCoastShapes(float logicalLineWidth) const;
+    void drawResizePreview(const gui::Rect& canvasRect) const;
+    void drawVectorMap(const gui::Rect& canvasRect) const;
     void drawAlgorithmState();
     void drawPath(const std::vector<int>& path);
     void drawTSPState();
@@ -103,8 +117,18 @@ private:
 
     DataRepository* _repo = nullptr;
     SearchAlgorithm* _solver = nullptr;
-    gui::Image _bgImage{":bgMap"};
-    bool _bgLoaded = false;
+    MapGeometry _mapGeometry;
+    bool _mapLoaded = false;
+
+    // Static map geometry is compiled into natID shapes once. Resizing only
+    // applies a graphics transformation instead of rebuilding every path.
+    std::vector<std::unique_ptr<gui::Shape>> _landShapes;
+    std::unique_ptr<gui::Shape> _borderShape;
+    std::unique_ptr<gui::Shape> _seaMaskShape;
+    std::vector<std::unique_ptr<gui::Shape>> _islandShapes;
+    std::unique_ptr<gui::Shape> _coastlineShape;
+    std::unique_ptr<gui::Shape> _roadShape;
+    std::unique_ptr<gui::Image> _staticMapBitmap;
 
     // Current view size + scale/offset (responsiveness)
     gui::Size _currentSize;
@@ -115,6 +139,10 @@ private:
 
     // Animation state (main)
     gui::Timer _solutionTimer;
+    gui::Timer _resizeFrameTimer;
+    bool _isResizing = false;
+    bool _resizeRedrawPending = false;
+    unsigned int _resizeStableTicks = 0;
     bool _solutionAnimating = false;
     std::vector<int> _solutionExpandedPath;
     size_t _solutionAnimEdgeCount = 0;
