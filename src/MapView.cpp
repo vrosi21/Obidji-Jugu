@@ -49,8 +49,6 @@ MapView::MapView()
     }
 }
 
-
-
 void MapView::setRepository(DataRepository* repo)
 {
     _repo = repo;
@@ -153,7 +151,10 @@ void MapView::handleResizeFrame()
 
 void MapView::onPrimaryButtonPressed(const gui::InputDevice& inputDevice)
 {
-    int idx = hitTestCity(inputDevice.getFramePoint());
+    const gui::Point& point = inputDevice.getFramePoint();
+    if (handleDisplayOptionClick(point)) return;
+
+    int idx = hitTestCity(point);
     if (idx >= 0 && _onPrimaryCityClick) {
         _onPrimaryCityClick(idx);
     }
@@ -194,17 +195,39 @@ int MapView::hitTestCity(const gui::Point& p) const
 
 void MapView::onDraw(const gui::Rect& rect)
 {
-    // Fit the full logical map inside the available canvas. This keeps the map
-    // visible at every window size and centers the same vector geometry without
-    // stretching it.
+    _lastCanvasRect = rect;
+
+    // Keep a small options band available at every splitter position. Very
+    // narrow cells use two rows so the controls remain readable and clickable.
     float viewW = static_cast<float>(rect.right - rect.left);
     float viewH = static_cast<float>(rect.bottom - rect.top);
-    float scale  = std::min(viewW / ORIGINAL_MAP_WIDTH, viewH / ORIGINAL_MAP_HEIGHT);
+    _bottomOptionsBandHeight = (viewW < 300.0f) ? 62.0f : 40.0f;
+    _bottomOptionsBandHeight = std::min(_bottomOptionsBandHeight,
+                                        std::max(24.0f, viewH * 0.20f));
+
+    // If width is the limiting dimension and there is enough vertical
+    // letterbox space, move the algorithm card into a dedicated full-width
+    // header instead of covering the map.
+    const float baseMapHeight = std::max(1.0f, viewH - _bottomOptionsBandHeight);
+    const float naturalMapHeight = viewW * ORIGINAL_MAP_HEIGHT / ORIGINAL_MAP_WIDTH;
+    const float naturalVerticalSpace = baseMapHeight - naturalMapHeight;
+    _useCompactMapBands = naturalVerticalSpace >= 76.0f;
+    _topInfoBandHeight = (_useCompactMapBands && _solver) ? 92.0f : 0.0f;
+    _topInfoBandHeight = std::min(_topInfoBandHeight,
+                                  std::max(0.0f, baseMapHeight - 80.0f));
+
+    const float mapAreaTop = static_cast<float>(rect.top) + _topInfoBandHeight;
+    const float mapAreaH = std::max(
+        1.0f, viewH - _topInfoBandHeight - _bottomOptionsBandHeight);
+
+    // Fit the logical map into the remaining area without stretching it.
+    float scale  = std::min(viewW / ORIGINAL_MAP_WIDTH,
+                            mapAreaH / ORIGINAL_MAP_HEIGHT);
     float mapW   = ORIGINAL_MAP_WIDTH * scale;
     float mapH   = ORIGINAL_MAP_HEIGHT * scale;
 
     float offsetX = rect.left + std::max(0.0f, (viewW - mapW) / 2.0f);
-    float offsetY = rect.top + std::max(0.0f, (viewH - mapH) / 2.0f);
+    float offsetY = mapAreaTop + std::max(0.0f, (mapAreaH - mapH) / 2.0f);
 
     // store for other methods
     _scaleX = scale;
@@ -212,7 +235,10 @@ void MapView::onDraw(const gui::Rect& rect)
     _offsetX = offsetX;
     _offsetY = offsetY;
 
-    if (_isResizing && _staticMapBitmap && _staticMapBitmap->isOK()) {
+    if (!_showMapGeometry) {
+        // Map-off mode intentionally leaves only the road graph and cities.
+        gui::Shape::drawRect(rect, td::ColorID::LightBlue);
+    } else if (_isResizing && _staticMapBitmap && _staticMapBitmap->isOK()) {
         drawResizePreview(rect);
     } else {
         drawVectorMap(rect);
@@ -254,7 +280,80 @@ void MapView::onDraw(const gui::Rect& rect)
         // Markers remain useful during resize; text is restored only on the
         // final stable frame to keep interactive window movement inexpensive.
         MapPointRenderer::drawScaled(city, _scaleX, _offsetX, _offsetY,
-                                     !_isResizing);
+                                     !_isResizing && _showCityNames);
+    }
+
+    drawDisplayOptions(rect);
+}
+
+bool MapView::handleDisplayOptionClick(const gui::Point& point)
+{
+    if (_cityNamesToggleRect.contains(point)) {
+        _showCityNames = !_showCityNames;
+        reDraw();
+        return true;
+    }
+    if (_mapToggleRect.contains(point)) {
+        _showMapGeometry = !_showMapGeometry;
+        reDraw();
+        return true;
+    }
+    return false;
+}
+
+void MapView::drawDisplayOptions(const gui::Rect& canvasRect)
+{
+    const float left = static_cast<float>(canvasRect.left);
+    const float right = static_cast<float>(canvasRect.right);
+    const float bottom = static_cast<float>(canvasRect.bottom);
+    const float top = std::max(static_cast<float>(canvasRect.top),
+                               bottom - _bottomOptionsBandHeight);
+    const float width = std::max(1.0f, right - left);
+
+    gui::Rect barRect(left, top, right, bottom);
+    gui::Shape::drawRect(barRect, td::ColorID::WhiteSmoke,
+                         td::ColorID::Silver, 1.0f);
+
+    auto drawToggle = [](float x, float y, const char* text, bool checked,
+                         float hitWidth, gui::Rect& hitRect) {
+        constexpr float boxSize = 15.0f;
+        gui::Rect boxRect(x, y, x + boxSize, y + boxSize);
+        gui::Shape::drawRect(boxRect,
+                             checked ? td::ColorID::DodgerBlue : td::ColorID::White,
+                             td::ColorID::DarkSlateGray, 1.0f);
+
+        if (checked) {
+            gui::Shape tickShape;
+            auto tick = tickShape.createBezier(2.0f, td::LinePattern::Solid);
+            tick.moveTo({ static_cast<gui::CoordType>(x + 3.0f),
+                          static_cast<gui::CoordType>(y + 8.0f) });
+            tick.lineTo({ static_cast<gui::CoordType>(x + 6.5f),
+                          static_cast<gui::CoordType>(y + 11.5f) });
+            tick.lineTo({ static_cast<gui::CoordType>(x + 12.5f),
+                          static_cast<gui::CoordType>(y + 3.5f) });
+            tickShape.drawWire(td::ColorID::White);
+        }
+
+        gui::DrawableString label(text);
+        label.draw({ static_cast<gui::CoordType>(x + boxSize + 6.0f),
+                     static_cast<gui::CoordType>(y - 1.0f) },
+                   gui::Font::ID::SystemSmaller, td::ColorID::DarkSlateGray);
+
+        hitRect = gui::Rect(x - 4.0f, y - 5.0f,
+                            x + hitWidth, y + boxSize + 5.0f);
+    };
+
+    const float x = left + 10.0f;
+    if (width < 300.0f) {
+        drawToggle(x, top + 8.0f, "City names", _showCityNames,
+                   std::max(1.0f, width - 16.0f), _cityNamesToggleRect);
+        drawToggle(x, top + 35.0f, "Map", _showMapGeometry,
+                   std::max(1.0f, width - 16.0f), _mapToggleRect);
+    } else {
+        drawToggle(x, top + 12.0f, "City names", _showCityNames,
+                   122.0f, _cityNamesToggleRect);
+        drawToggle(x + 135.0f, top + 12.0f, "Map", _showMapGeometry,
+                   78.0f, _mapToggleRect);
     }
 }
 
@@ -773,19 +872,73 @@ void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string
 {
     if (lines.empty()) return;
 
-    float margin = 8.0f;
+    const float mapLeft = _offsetX;
+    const float mapRight = _offsetX + ORIGINAL_MAP_WIDTH * _scaleX;
+    const float mapTop = _offsetY;
+    const float mapBottom = _offsetY + ORIGINAL_MAP_HEIGHT * _scaleY;
+    const float mapWidth = std::max(1.0f, mapRight - mapLeft);
+    const float mapHeight = std::max(1.0f, mapBottom - mapTop);
+
+    gui::Font::ID infoFont = gui::Font::ID::SystemNormal;
     float lineH = 18.0f;
-    float panelW = 260.0f;
-    float panelH = lineH * static_cast<float>(lines.size()) + 12.0f;
+    if (mapWidth < 650.0f) {
+        infoFont = gui::Font::ID::SystemSmallest;
+        lineH = 13.0f;
+    } else if (mapWidth < 900.0f) {
+        infoFont = gui::Font::ID::SystemSmaller;
+        lineH = 15.0f;
+    }
 
-    float mapLeft = _offsetX;
-    float mapRight = _offsetX + ORIGINAL_MAP_WIDTH * _scaleX;
+    float panelX = 0.0f;
+    float panelY = 0.0f;
+    float panelW = 0.0f;
+    float panelH = 0.0f;
+    float paddingX = 0.0f;
+    float paddingY = 0.0f;
 
-    float panelX = (side == PanelSide::Left)
-        ? (mapLeft + margin)
-        : (mapRight - panelW - margin);
+    const bool useFullWidthHeader =
+        side == PanelSide::Right && _useCompactMapBands && _topInfoBandHeight >= 50.0f;
 
-    float panelY = _offsetY + margin;
+    if (useFullWidthHeader) {
+        // In a narrow splitter cell the map is width-limited, leaving useful
+        // vertical space. Put the main algorithm card in that top band and
+        // use the full cell width instead of covering the map.
+        const float canvasLeft = static_cast<float>(_lastCanvasRect.left);
+        const float canvasRight = static_cast<float>(_lastCanvasRect.right);
+        const float canvasTop = static_cast<float>(_lastCanvasRect.top);
+        const float canvasWidth = std::max(1.0f, canvasRight - canvasLeft);
+        const float margin = std::clamp(canvasWidth * 0.015f, 4.0f, 8.0f);
+
+        panelX = canvasLeft + margin;
+        panelY = canvasTop + margin;
+        panelW = std::max(1.0f, canvasWidth - 2.0f * margin);
+        paddingX = std::clamp(panelW * 0.025f, 5.0f, 10.0f);
+        paddingY = 5.0f;
+        const float wantedPanelH =
+            lineH * static_cast<float>(lines.size()) + 2.0f * paddingY;
+        panelH = std::min(wantedPanelH,
+                          std::max(1.0f, _topInfoBandHeight - 2.0f * margin));
+    } else {
+        // Normal/wide mode keeps the compact overlay inside the map.
+        const float margin = std::clamp(mapWidth * 0.012f, 4.0f, 12.0f);
+        const float maxPanelW = std::max(1.0f, mapWidth - 2.0f * margin);
+        panelW = std::min(
+            std::clamp(mapWidth * 0.27f, 150.0f, 280.0f), maxPanelW);
+        paddingX = std::clamp(panelW * 0.03f, 4.0f, 8.0f);
+        paddingY = std::clamp(panelW * 0.02f, 3.0f, 6.0f);
+        const float wantedPanelH =
+            lineH * static_cast<float>(lines.size()) + 2.0f * paddingY;
+        panelH = std::min(
+            wantedPanelH, std::max(1.0f, mapHeight - 2.0f * margin));
+
+        panelX = (side == PanelSide::Left)
+            ? (mapLeft + margin)
+            : (mapRight - panelW - margin);
+        panelX = std::clamp(panelX, mapLeft,
+                            std::max(mapLeft, mapRight - panelW));
+        panelY = std::clamp(
+            mapTop + margin, mapTop, std::max(mapTop, mapBottom - panelH));
+    }
 
     gui::Rect bgRect(
         (gui::CoordType)panelX,
@@ -798,13 +951,13 @@ void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string
     bgShape.createRect(bgRect);
     bgShape.drawFillAndWire(td::ColorID::WhiteSmoke, td::ColorID::Silver, 1.0f);
 
-    float textX = panelX + 8.0f;
-    float textY = panelY + 6.0f;
+    float textX = panelX + paddingX;
+    float textY = panelY + paddingY;
     for (const auto& kv : lines) {
         std::string txt = kv.first + ":  " + kv.second;
         gui::DrawableString ds(txt.c_str());
         gui::Point pos((gui::CoordType)textX, (gui::CoordType)textY);
-        ds.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::DarkSlateGray);
+        ds.draw(pos, infoFont, td::ColorID::DarkSlateGray);
         textY += lineH;
     }
 }

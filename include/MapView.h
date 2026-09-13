@@ -95,6 +95,8 @@ private:
     void drawPreparedCoastShapes(float logicalLineWidth) const;
     void drawResizePreview(const gui::Rect& canvasRect) const;
     void drawVectorMap(const gui::Rect& canvasRect) const;
+    void drawDisplayOptions(const gui::Rect& canvasRect);
+    bool handleDisplayOptionClick(const gui::Point& point);
     void drawAlgorithmState();
     void drawPath(const std::vector<int>& path);
     void drawTSPState();
@@ -136,6 +138,14 @@ private:
     float _scaleY = 1.0f;
     float _offsetX = 0.0f;
     float _offsetY = 0.0f;
+    gui::Rect _lastCanvasRect { 0.0, 0.0, ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT };
+    gui::Rect _cityNamesToggleRect { 0.0, 0.0, 0.0, 0.0 };
+    gui::Rect _mapToggleRect { 0.0, 0.0, 0.0, 0.0 };
+    float _topInfoBandHeight = 0.0f;
+    float _bottomOptionsBandHeight = 40.0f;
+    bool _useCompactMapBands = false;
+    bool _showCityNames = true;
+    bool _showMapGeometry = true;
 
     // Animation state (main)
     gui::Timer _solutionTimer;

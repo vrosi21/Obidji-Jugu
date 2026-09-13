@@ -1,6 +1,5 @@
 #pragma once
 #include <gui/View.h>
-#include <gui/HorizontalLayout.h>
 #include <gui/SplitterLayout.h>
 #include <gui/Timer.h>
 #include <memory>
@@ -23,7 +22,7 @@ constexpr float SOLUTION_ANIM_INTERVAL = 0.05f;
 class MainView : public gui::View
 {
 private:
-    gui::SplitterLayout _splitter{gui::SplitterLayout::Orientation::Horizontal, gui::SplitterLayout::AuxiliaryCell::Second};
+    gui::SplitterLayout _splitter;
     DataRepository _repo;       // Single data source (owns the data)
     MapView _mapView;              // Rendering only
     SidePanelScroller _sidePanelScroller; // Scrollable wrapper
@@ -42,7 +41,8 @@ private:
 
 public:
     MainView()
-        : _splitter(gui::SplitterLayout::Orientation::Horizontal, gui::SplitterLayout::AuxiliaryCell::Second)
+        : _splitter(gui::SplitterLayout::Orientation::Horizontal,
+                    gui::SplitterLayout::AuxiliaryCell::First)
         , _timer(this, SOLVER_STEP_INTERVAL, false)
         , _solutionTimer(this, SOLUTION_ANIM_INTERVAL, false)
     {
@@ -53,20 +53,22 @@ public:
         td::String jsonResPath = getResFileName(":exYu");
         _repo.init(jsonResPath.c_str());
         
-        // Size limits - allow resizing with reasonable minimums
-        // Enforce minimum size for the whole view (propagated to window via FixMin)
-        // Map can be narrower than the image (right side hidden behind side panel)
-        // so 700 = reasonable map area (400) + side panel (300)
+        // Keep the application usable at small sizes. The splitter remains
+        // freely draggable; MapView adapts narrow cells with top/bottom bands.
         setSizeLimits(700, gui::Control::Limit::UseAsMin,
                       600, gui::Control::Limit::UseAsMin);
 
         // Side panel scroller has a minimum width to keep controls usable
         _sidePanelScroller.setSizeLimits(300, gui::Control::Limit::UseAsMin,
                                         200, gui::Control::Limit::UseAsMin);
-        // Map view: relaxed width minimum — the map always fills the full
-        // height and extends rightward; the side panel covers the overflow.
-        _mapView.setSizeLimits(400, gui::Control::Limit::UseAsMin);
+        // Absolute fallback only. The vector map itself always keeps its
+        // 1000:866 aspect ratio inside the available cell.
+        _mapView.setSizeLimits(700, gui::Control::Limit::UseAsMin);
 
+        // Preserve the draggable divider. Narrow map cells switch to a compact
+        // presentation rather than attempting to mutate layout limits while
+        // natID is in the middle of a splitter operation.
+        _splitter.setSpaceBetweenCells(4);
         _splitter.setContent(_mapView, _sidePanelScroller);
         setLayout(&_splitter);
 
