@@ -6,6 +6,7 @@
 #include <cmath>
 #include "DataRepository.h"
 #include "MapView.h"
+#include "MapSplitterLayout.h"
 #include "SidePanelScroller.h"
 #include "SearchAlgorithm.h"
 #include "BFSAlgorithm.h"
@@ -22,9 +23,9 @@ constexpr float SOLUTION_ANIM_INTERVAL = 0.05f;
 class MainView : public gui::View
 {
 private:
-    gui::SplitterLayout _splitter;
+    MapSplitterLayout _splitter;
     DataRepository _repo;       // Single data source (owns the data)
-    MapView _mapView;              // Rendering only
+    SplitterMapView _mapView;      // Right auxiliary map with bounded divider
     SidePanelScroller _sidePanelScroller; // Scrollable wrapper
     SidePanelView& _sidePanel = _sidePanelScroller.panel; // convenient alias
     gui::Timer _timer;          // Timer for auto-stepping
@@ -41,8 +42,7 @@ private:
 
 public:
     MainView()
-        : _splitter(gui::SplitterLayout::Orientation::Horizontal,
-                    gui::SplitterLayout::AuxiliaryCell::First)
+        : _mapView(_splitter)
         , _timer(this, SOLVER_STEP_INTERVAL, false)
         , _solutionTimer(this, SOLUTION_ANIM_INTERVAL, false)
     {
@@ -69,7 +69,7 @@ public:
         // presentation rather than attempting to mutate layout limits while
         // natID is in the middle of a splitter operation.
         _splitter.setSpaceBetweenCells(4);
-        _splitter.setContent(_mapView, _sidePanelScroller);
+        _splitter.setContent(_sidePanelScroller, _mapView);
         setLayout(&_splitter);
 
         // Wire up: repository -> mapView & sidePanel
