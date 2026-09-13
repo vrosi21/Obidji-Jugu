@@ -11,6 +11,8 @@
 #include <gui/CheckBox.h>
 #include <gui/VerticalLayout.h>
 #include <gui/Slider.h>
+#include <gui/StandardTabView.h>
+#include <gui/ViewScroller.h>
 
 
 #include <vector>
@@ -26,7 +28,41 @@ using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 // Side panel for city/road CRUD operations and algorithm control
 class SidePanelView : public gui::View
 {
+    // StandardTabView's GTK backend cannot recover a form directly through
+    // a scroller's GtkViewport. A regular View host keeps native getView and
+    // measurement valid while the inner form still scrolls independently.
+    class ScrollPage : public gui::View
+    {
+        gui::GridLayout _layout;
+        gui::ViewScroller _scroller;
+    public:
+        ScrollPage()
+            : gui::View(0, 0, 0, 0), _layout(1, 1),
+              _scroller(gui::ViewScroller::Type::NoScroll,
+                        gui::ViewScroller::Type::ScrollAndAutoHide)
+        {
+            _layout.insert(0, 0, _scroller);
+            setLayout(&_layout);
+        }
+        void setContentView(gui::View* view) { _scroller.setContentView(view); }
+    };
+
+    // Controls keep their existing owner/callbacks even though their native
+    // parent is now a tab page. In particular, algorithm selection must still
+    // update parameter visibility and notify MainView.
+    class Page : public gui::View
+    {
+        SidePanelView& _owner;
+    public:
+        explicit Page(SidePanelView& owner) : _owner(owner) {}
+    protected:
+        bool onClick(gui::Button* button) override { return _owner.onClick(button); }
+        bool onChangedSelection(gui::ComboBox* combo) override
+        { return _owner.onChangedSelection(combo); }
+    };
+
 public:
+    gui::StandardTabView tabs;
     // --- Section Headers ---
     gui::Label lblAddSection;
     gui::Label lblEditSection;
@@ -89,6 +125,18 @@ public:
     gui::Button btnResetSolution;
     
     gui::GridLayout gl;
+
+private:
+    gui::GridLayout _setupLayout;
+    gui::GridLayout _solveLayout;
+    gui::HorizontalLayout _solveActions;
+    gui::HorizontalLayout _solutionActions;
+    Page _setupPage;
+    Page _solvePage;
+    ScrollPage _setupScroller;
+    ScrollPage _solveScroller;
+
+public:
 
     
 

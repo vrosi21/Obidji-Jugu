@@ -119,5 +119,6 @@
 		<Res id="Cooling rate - alpha" tr="Cooling rate - alpha"/>
 		<Res id="Simulated Annealing" tr="Simulated Annealing"/>
 		<Res id="Genetic Algorithm" tr="Genetic Algorithm"/>
+		<Res id="Simulation Setup" tr="Simulation Setup"/>
 	</Translations>
 </DevRes>

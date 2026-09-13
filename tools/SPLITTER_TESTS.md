@@ -6,11 +6,16 @@ application, linking all application `.cpp` files except `src/main.cpp`.
 Use the normal Debug runtime (`/MDd` with `natGUID` and `mainUtilsD` on Windows).
 Pass the project's absolute resource path as `-devResPath=<project directory>`.
 
-The test opens its own window, runs 105 resize/drag combinations through the
+The test opens its own window, runs 420 resize/drag combinations through the
 real `SplitterLayout::setGeometry` and `onSplitterCellMove` entry points, then
 closes automatically. It checks the left panel width, the right auxiliary map's
 700-unit minimum, pane overlap, and the native rectangles of the rightmost form
-controls for all three algorithm selections. The result is written alongside
+controls for both tabs, all three algorithm selections, and two viewport heights.
+It also verifies retained form values, algorithm-specific field visibility,
+setup CRUD/randomization, and solver button message routing through the tab
+pages. CRUD checks use only a disposable in-memory repository. On Windows,
+native assertions are redirected to a separate diagnostic file instead of
+blocking the test with a runtime dialog. The result is written alongside
 the executable as `<executable name>.results.txt`; exit code 0 means success.
 
 Define `SPLITTER_BASELINE_TEST` to replace the map's geometry hook with a regular
@@ -22,3 +27,9 @@ larger of 420 logical units and the form's measured minimum plus 20 units for
 the scrollbar. The map remains the right auxiliary pane. This uses natID 3.2.7's
 child layout order (left panel, divider, right map); rerun this test when
 upgrading the SDK. No SDK files need modification.
+
+The tab layout lives in `SidePanelView`: Simulation Setup contains city setup
+and randomization; Solve contains algorithm parameters and animation controls.
+Each tab has its own vertical scroller inside a plain View host, which avoids
+the natID 3.2.7 GTK StandardTabView assertion for scrolled forms. The outer
+SidePanelScroller wrapper no longer scrolls the tab headers off screen.

@@ -2,17 +2,18 @@
 #include <gui/ViewScroller.h>
 #include "SidePanelView.h"
 
-// Wraps SidePanelView in a scrollable container so the side panel
-// can be scrolled vertically when the window is too small to show it all.
-class SidePanelScroller : public gui::ViewScroller
+// The tabs stay visible; each page owns its independent vertical scroller.
+// Keep this wrapper's public interface unchanged for MainView/the splitter.
+class SidePanelScroller : public gui::View
 {
+    gui::GridLayout _layout;
 public:
     SidePanelView panel;
 
     SidePanelScroller()
-        : gui::ViewScroller(gui::ViewScroller::Type::NoScroll,
-                            gui::ViewScroller::Type::ScrollAndAutoHide)
+        : gui::View(0, 0, 0, 0), _layout(1, 1)
     {
-        setContentView(&panel);
+        _layout.insert(0, 0, panel);
+        setLayout(&_layout);
     }
 };

@@ -146,9 +146,17 @@ SidePanelView::SidePanelView()
     showSolution(tr("Show Solution")),
     lblAnimationSpeed(tr("Animation speed")),
     sliderAnimationSpeed(),
-    gl(37, 5)
+    gl(1, 1),
+    _setupLayout(14, 5),
+    _solveLayout(23, 2),
+    _solveActions(3),
+    _solutionActions(2),
+    _setupPage(*this),
+    _solvePage(*this)
 {
-    gui::GridComposer gc(gl);
+    setMargins(0, 0, 0, 0);
+    {
+    gui::GridComposer gc(_setupLayout);
 
     // ========================================
     // SECTION 1: Add New Point
@@ -224,50 +232,52 @@ SidePanelView::SidePanelView()
 
     btnSetAllToVisit.setType(gui::Button::Type::Default);
     gc.appendRow(btnSetAllToVisit, 5);
-
+    }
 
     // ========================================
     // SECTION 5: Solve
     // ========================================
+    {
+    gui::GridComposer gc(_solveLayout);
     lblSolvingSection.setFont(gui::Font::ID::SystemLargerBold);
-    gc.appendRow(lblSolvingSection, 5);
+    gc.appendRow(lblSolvingSection, 2);
 
     gc.appendRow(lblAlgorithm);
 
-    gc.appendCol(cmbSolvingAlgorithm, 4);
+    gc.appendCol(cmbSolvingAlgorithm);
 
 
     //NN inputs (Shows only when NN selected)
-    gc.appendRow(checkBoxEnable2opt, 5);
+    gc.appendRow(checkBoxEnable2opt, 2);
     gc.appendRow(lblImprovementCycles);
-    gc.appendCol(txtEditImprovementCycles, 4);
+    gc.appendCol(txtEditImprovementCycles);
 
     //SA inputs (Shows only when SA selected)
     gc.appendRow(lblInitialTemperature);
-    gc.appendCol(txtEditInitialTemperature, 4);
+    gc.appendCol(txtEditInitialTemperature);
     sliderCoolingRateAlpha.setRange(0.90, 0.99);
     gc.appendRow(lblCoolingRateAlpha);
-    gc.appendCol(sliderCoolingRateAlpha, 4);
+    gc.appendCol(sliderCoolingRateAlpha);
     gc.appendRow(lblIterationsPerTemperatureLevel);
-    gc.appendCol(txtEditIterationsPerTemperatureLevel, 4);
+    gc.appendCol(txtEditIterationsPerTemperatureLevel);
     cmbSAInitialSolution.addItem(tr("Random"));
     cmbSAInitialSolution.addItem(tr("Nearest Neighbor"));
-    gc.appendRow(cmbSAInitialSolution, 5);
+    gc.appendRow(cmbSAInitialSolution, 2);
 
     //GA inputs (Shows only when GA selected)
     gc.appendRow(lblPopulationSize);
-    gc.appendCol(txtEditPopulationSize, 4);
+    gc.appendCol(txtEditPopulationSize);
     gc.appendRow(lblNumberOfGenerations);
-    gc.appendCol(txtEditNumberOfGenerations, 4);
+    gc.appendCol(txtEditNumberOfGenerations);
     gc.appendRow(lblMutationRate);
-    gc.appendCol(txtEditMutationRate, 4);
+    gc.appendCol(txtEditMutationRate);
     gc.appendRow(lblCrossoverRate);
-    gc.appendCol(txtEditCrossoverRate, 4);
-    gc.appendRow(cmbSelectionMethod, 5);
-    gc.appendRow(cmbMutationCrossoverOperator, 5);
+    gc.appendCol(txtEditCrossoverRate);
+    gc.appendRow(cmbSelectionMethod, 2);
+    gc.appendRow(cmbMutationCrossoverOperator, 2);
     gc.appendRow(lblElitismPercentage);
-    gc.appendCol(txtEditElitismPercentage, 4);
-    gc.appendRow(btnRandomizeParameters, 5);
+    gc.appendCol(txtEditElitismPercentage);
+    gc.appendRow(btnRandomizeParameters, 2);
     // Defaults / options
     cmbSelectionMethod.addItem(tr("Roulette"));
     cmbSelectionMethod.addItem(tr("Tournament"));
@@ -281,16 +291,24 @@ SidePanelView::SidePanelView()
     btnStepBwd.setType(gui::Button::Type::Default);
     btnStepFwd.setType(gui::Button::Type::Default);
     btnResetSolution.setType(gui::Button::Type::Default);
-    gc.appendRow(btnStartPause, 2);
-    gc.appendCol(btnStepBwd);
-    gc.appendCol(btnStepFwd);
+    _solveActions << btnStartPause << btnStepBwd << btnStepFwd;
+    gc.appendRow(_solveActions, 2);
 
-    gc.appendRow(showSolution, 2);
-    gc.appendCol(btnResetSolution, 2);
+    _solutionActions << showSolution << btnResetSolution;
+    gc.appendRow(_solutionActions, 2);
     gc.appendRow(lblAnimationSpeed);
     sliderAnimationSpeed.setRange(1.0, 10.0);
-    gc.appendCol(sliderAnimationSpeed, 4);
+    gc.appendCol(sliderAnimationSpeed);
+    }
 
+    _setupPage.setLayout(&_setupLayout);
+    _solvePage.setLayout(&_solveLayout);
+    _setupScroller.setContentView(&_setupPage);
+    _solveScroller.setContentView(&_solvePage);
+    tabs.addView(&_setupScroller, tr("Simulation Setup").c_str());
+    tabs.addView(&_solveScroller, tr("Solve").c_str());
+    gui::GridComposer root(gl);
+    root.appendRow(tabs);
     setLayout(&gl);
 
     // Initial button state: not started, only forward enabled
