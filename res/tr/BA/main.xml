@@ -123,5 +123,8 @@
 
 		
 		<Res id="Simulation Setup" tr="Postavke simulacije"/>
+		<Res id="Resolve" tr="Ponovo riješi"/>
+		<Res id="City" tr="Grad"/>
+		<Res id="Total distance" tr="Ukupna dužina"/>
 	</Translations>
 </DevRes>

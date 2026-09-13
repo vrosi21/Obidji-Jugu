@@ -21,7 +21,7 @@ protected:
     
 public:
     MainWindow()
-    : gui::Window(gui::Size(1500, 866))
+    : gui::Window(initialApplicationSize())
     {
         setTitle("Obiđi Jugu");
             setToolBar(_toolBar);

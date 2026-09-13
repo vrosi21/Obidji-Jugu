@@ -4,6 +4,7 @@
 #include <cmath>
 #include <gui/SplitterLayout.h>
 #include "MapView.h"
+#include "ScreenLimits.h"
 
 // natID 3.2.7's native drag handler caps the auxiliary pane at 90% of
 // the view width, irrespective of the primary pane's measured minimum.
@@ -20,6 +21,7 @@ class MapSplitterLayout : public gui::SplitterLayout
 
     void reserveBothPanes(gui::CellInfo& cell) const
     {
+        cell.minVer = std::max(cell.minVer, minimumApplicationContentHeight());
         const auto minimum = controlsMinimumWidth() + _cells[2].minHor
             + _spaceOfSplitterCell + 2.0 * getXMargin();
         cell.minHor = std::max(cell.minHor,

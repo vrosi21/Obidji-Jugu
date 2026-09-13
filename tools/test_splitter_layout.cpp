@@ -179,11 +179,11 @@ public:
             if (algorithm != 0) throw std::runtime_error("Wrong solver selection");
             receivedAction = action;
         });
-        gui::Button* actions[] = {&_controls.panel.btnStartPause,
+        gui::Button* actions[] = {&_controls.panel.btnSolve,
             &_controls.panel.btnStepFwd, &_controls.panel.btnStepBwd,
-            &_controls.panel.showSolution, &_controls.panel.btnResetSolution};
-        const int codes[] = {0, 1, -1, 3, 4};
-        for (int i = 0; i < 5; ++i) {
+            &_controls.panel.btnResetSolution};
+        const int codes[] = {0, 1, -1, 4};
+        for (int i = 0; i < 4; ++i) {
             click(*actions[i]);
             if (receivedAction != codes[i])
                 throw std::runtime_error("Solve tab action was not forwarded");

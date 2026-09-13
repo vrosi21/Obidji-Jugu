@@ -110,7 +110,7 @@ SidePanelView::SidePanelView()
     btnRandomizeAll(tr("All")),
     // Solve Section
     lblAlgorithm(tr("Algorithm:")),
-    btnStartPause(tr("Start/Pause")),
+    btnSolve(tr("Solve")),
     btnStepFwd(tr("Step >")),
     btnStepBwd(tr("< Step")),
     btnResetSolution(tr("Reset")),
@@ -143,18 +143,20 @@ SidePanelView::SidePanelView()
 
 
     // Layout (24 rows, 4 columns)
-    showSolution(tr("Show Solution")),
     lblAnimationSpeed(tr("Animation speed")),
     sliderAnimationSpeed(),
     gl(1, 1),
     _setupLayout(14, 5),
-    _solveLayout(23, 2),
-    _solveActions(3),
-    _solutionActions(2),
+    _solveLayout(18, 2),
+    _solveActions(4),
+    _setupHostLayout(2, 1),
+    _solveHostLayout(2, 1),
     _setupPage(*this),
     _solvePage(*this)
 {
     setMargins(0, 0, 0, 0);
+    _setupLayout.setSpaceBetweenCells(4, 5);
+    _solveLayout.setSpaceBetweenCells(3, 5);
     {
     gui::GridComposer gc(_setupLayout);
 
@@ -287,15 +289,13 @@ SidePanelView::SidePanelView()
     cmbMutationCrossoverOperator.addItem(tr("OX"));
 
 
-    btnStartPause.setType(gui::Button::Type::Default);
+    btnSolve.setType(gui::Button::Type::Default);
     btnStepBwd.setType(gui::Button::Type::Default);
     btnStepFwd.setType(gui::Button::Type::Default);
     btnResetSolution.setType(gui::Button::Type::Default);
-    _solveActions << btnStartPause << btnStepBwd << btnStepFwd;
+    _solveActions << btnSolve << btnStepBwd << btnStepFwd << btnResetSolution;
     gc.appendRow(_solveActions, 2);
 
-    _solutionActions << showSolution << btnResetSolution;
-    gc.appendRow(_solutionActions, 2);
     gc.appendRow(lblAnimationSpeed);
     sliderAnimationSpeed.setRange(1.0, 10.0);
     gc.appendCol(sliderAnimationSpeed);
@@ -303,10 +303,17 @@ SidePanelView::SidePanelView()
 
     _setupPage.setLayout(&_setupLayout);
     _solvePage.setLayout(&_solveLayout);
-    _setupScroller.setContentView(&_setupPage);
-    _solveScroller.setContentView(&_solvePage);
-    tabs.addView(&_setupScroller, tr("Simulation Setup").c_str());
-    tabs.addView(&_solveScroller, tr("Solve").c_str());
+    _setupHostLayout.insert(0, 0, _setupPage, td::HAlignment::Left, td::VAlignment::Top);
+    _setupHostLayout.setSpaceBetweenCells(8, 0);
+    _setupHostLayout.insert(1, 0, _cityTable);
+    _cityTable.onCitySelected([this](int index) { selectPointIndex(index); });
+    _setupHost.setLayout(&_setupHostLayout);
+    _solveHostLayout.setSpaceBetweenCells(8, 0);
+    _solveHostLayout.insert(0, 0, _solvePage, td::HAlignment::Left, td::VAlignment::Top);
+    _solveHostLayout.insert(1, 0, _routeTable);
+    _solveHost.setLayout(&_solveHostLayout);
+    tabs.addView(&_setupHost, tr("Simulation Setup").c_str());
+    tabs.addView(&_solveHost, tr("Solve").c_str());
     gui::GridComposer root(gl);
     root.appendRow(tabs);
     setLayout(&gl);
@@ -366,6 +373,7 @@ void SidePanelView::populateSolvingAlgorithms(const std::vector<std::string>& na
 void SidePanelView::populatePointNames(const std::vector<std::string>& names)
 {
     _pointNames = names;
+    _cityTable.setCities(names);
     cmbPoints.clean();
     for (const auto& n : names)
     {
@@ -515,7 +523,7 @@ bool SidePanelView::onClick(gui::Button* pBtn)
         handleRandomizeGAParameters();
         return true;
     }
-    if (pBtn == &btnStartPause) {
+    if (pBtn == &btnSolve) {
         if (_solverCallback) {
             _solverCallback(0, cmbSolvingAlgorithm.getSelectedIndex());
         }
@@ -530,12 +538,6 @@ bool SidePanelView::onClick(gui::Button* pBtn)
     if (pBtn == &btnStepBwd) {
         if (_solverCallback) {
             _solverCallback(-1, cmbSolvingAlgorithm.getSelectedIndex());
-        }
-        return true;
-    }
-    if (pBtn == &showSolution) {
-        if (_solverCallback) {
-            _solverCallback(3, cmbSolvingAlgorithm.getSelectedIndex()); // 3 = show solution
         }
         return true;
     }
@@ -1120,6 +1122,7 @@ void SidePanelView::handleRandomizeGAParameters()
 void SidePanelView::selectIndexAndUpdate(int idx)
 {
     if (idx < 0 || idx >= (int)_pointNames.size()) return;
+    _cityTable.selectCity(idx);
     cmbPoints.selectIndex(idx);
     updateCurrentNameFromSelection();
     updateCurrentCoordsFromSelection();
@@ -1278,7 +1281,7 @@ void SidePanelView::updateExecutionState(bool running)
     cmbSolvingAlgorithm.disable(running);
 
     // Keep solution/reset disabled while running to avoid conflicting states
-    showSolution.disable(running);
+    btnSolve.disable(running);
     btnResetSolution.disable(running);
 
     // Lock NN controls while running

@@ -12,7 +12,7 @@
 #include <gui/VerticalLayout.h>
 #include <gui/Slider.h>
 #include <gui/StandardTabView.h>
-#include <gui/ViewScroller.h>
+#include "RouteTable.h"
 
 
 #include <vector>
@@ -22,31 +22,12 @@
 class DataRepository;
 enum class VisitationStatus : int;
 
-// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed, 3=show solution, 4=reset solver view/state
+// Solver action codes: 0=solve/resolve, 1=step forward, -1=step back, 2=algorithm changed, 3=show solution, 4=reset solver view/state
 using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 
 // Side panel for city/road CRUD operations and algorithm control
 class SidePanelView : public gui::View
 {
-    // StandardTabView's GTK backend cannot recover a form directly through
-    // a scroller's GtkViewport. A regular View host keeps native getView and
-    // measurement valid while the inner form still scrolls independently.
-    class ScrollPage : public gui::View
-    {
-        gui::GridLayout _layout;
-        gui::ViewScroller _scroller;
-    public:
-        ScrollPage()
-            : gui::View(0, 0, 0, 0), _layout(1, 1),
-              _scroller(gui::ViewScroller::Type::NoScroll,
-                        gui::ViewScroller::Type::ScrollAndAutoHide)
-        {
-            _layout.insert(0, 0, _scroller);
-            setLayout(&_layout);
-        }
-        void setContentView(gui::View* view) { _scroller.setContentView(view); }
-    };
-
     // Controls keep their existing owner/callbacks even though their native
     // parent is now a tab page. In particular, algorithm selection must still
     // update parameter visibility and notify MainView.
@@ -56,6 +37,10 @@ class SidePanelView : public gui::View
     public:
         explicit Page(SidePanelView& owner) : _owner(owner) {}
     protected:
+        void measure(gui::CellInfo& cell) override
+        { gui::View::measure(cell); cell.nResVer = 0; }
+        void reMeasure(gui::CellInfo& cell) override
+        { gui::View::reMeasure(cell); cell.nResVer = 0; }
         bool onClick(gui::Button* button) override { return _owner.onClick(button); }
         bool onChangedSelection(gui::ComboBox* combo) override
         { return _owner.onChangedSelection(combo); }
@@ -119,7 +104,7 @@ public:
     gui::Label lblAlgorithm;
     gui::ComboBox cmbSolvingAlgorithm;
     
-    gui::Button btnStartPause;
+    gui::Button btnSolve;
     gui::Button btnStepFwd;
     gui::Button btnStepBwd;
     gui::Button btnResetSolution;
@@ -130,11 +115,14 @@ private:
     gui::GridLayout _setupLayout;
     gui::GridLayout _solveLayout;
     gui::HorizontalLayout _solveActions;
-    gui::HorizontalLayout _solutionActions;
+    gui::GridLayout _setupHostLayout;
+    gui::GridLayout _solveHostLayout;
     Page _setupPage;
     Page _solvePage;
-    ScrollPage _setupScroller;
-    ScrollPage _solveScroller;
+    gui::View _setupHost;
+    gui::View _solveHost;
+    RouteTable _routeTable;
+    RouteTable _cityTable{true};
 
 public:
 
@@ -186,7 +174,6 @@ public:
 
 
 
-    gui::Button showSolution;
     gui::Label lblAnimationSpeed;
     gui::Slider sliderAnimationSpeed;
 
@@ -209,6 +196,12 @@ public:
     // Set callback for solver control actions
     void setSolverCallback(SolverCallback callback);
     void handleSetAllToVisit();
+    void clearResult() { _routeTable.clear(); btnSolve.setTitle(tr("Solve")); }
+    void showResult(const std::vector<int>& tour)
+    {
+        if (_repo) _routeTable.setRoute(*_repo, tour);
+        btnSolve.setTitle(tr("Resolve"));
+    }
 
     // Get currently selected algorithm index
     int getSelectedAlgorithmIndex() const;

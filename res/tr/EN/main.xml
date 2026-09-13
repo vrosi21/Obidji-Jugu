@@ -120,5 +120,8 @@
 		<Res id="Simulated Annealing" tr="Simulated Annealing"/>
 		<Res id="Genetic Algorithm" tr="Genetic Algorithm"/>
 		<Res id="Simulation Setup" tr="Simulation Setup"/>
+		<Res id="Resolve" tr="Resolve"/>
+		<Res id="City" tr="City"/>
+		<Res id="Total distance" tr="Total distance"/>
 	</Translations>
 </DevRes>

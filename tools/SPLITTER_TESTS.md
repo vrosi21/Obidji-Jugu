@@ -30,6 +30,9 @@ upgrading the SDK. No SDK files need modification.
 
 The tab layout lives in `SidePanelView`: Simulation Setup contains city setup
 and randomization; Solve contains algorithm parameters and animation controls.
-Each tab has its own vertical scroller inside a plain View host, which avoids
-the natID 3.2.7 GTK StandardTabView assertion for scrolled forms. The outer
-SidePanelScroller wrapper no longer scrolls the tab headers off screen.
+The forms are top-aligned in plain View hosts. Solve includes a bounded,
+internally scrollable route table below the inputs. The surrounding UI does
+not scroll. Solve/Resolve replaces Start/Pause and Show Solution.
+
+For v23 only the application was compiled, per the requested single-pass scope;
+this optional regression suite was not run again.

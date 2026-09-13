@@ -4,6 +4,7 @@
 #include <gui/Timer.h>
 #include <memory>
 #include <cmath>
+#include <chrono>
 #include "DataRepository.h"
 #include "MapView.h"
 #include "MapSplitterLayout.h"
@@ -56,7 +57,7 @@ public:
         // Keep the application usable at small sizes. The splitter remains
         // freely draggable; MapView adapts narrow cells with top/bottom bands.
         setSizeLimits(700, gui::Control::Limit::UseAsMin,
-                      600, gui::Control::Limit::UseAsMin);
+                      minimumApplicationContentHeight(), gui::Control::Limit::UseAsMin);
 
         // Side panel scroller has a minimum width to keep controls usable
         _sidePanelScroller.setSizeLimits(300, gui::Control::Limit::UseAsMin,
@@ -118,6 +119,7 @@ public:
         // When data changes (city added/deleted/status changed), reset the solver
         _repo.setOnDataChanged([this]() {
             stopAllExecution();
+            _sidePanel.clearResult();
             if (_solver) {
                 _solver->reset(&_repo);
             }
@@ -198,65 +200,27 @@ protected:
     bool onTimer(gui::Timer* pTimer) override
     {
         if (pTimer == &_timer && _running && _solver) {
-            // ---  Step-tour animation in progress: drive it instead of stepping solver ---
-            if (_stepAnimRunning && _mapView.isStepTourAnimating()) {
-                _stepAnimTickCounter++;
-                int ticksNeeded = getTicksPerAdvanceFromSpeed();
-                if (_stepAnimTickCounter < ticksNeeded) {
-                    _timer.start();
-                    return true;
-                }
-                _stepAnimTickCounter = 0;
-
-                size_t edges = getStepAnimEdgesPerTick();
-                if (!_mapView.advanceStepTourAnimation(edges)) {
-                    // Animation finished for this step; proceed to next solver step
-                    _stepAnimRunning = false;
-                    _mapView.stopStepTourAnimation();
-                }
-                _mapView.refresh();
-                if (_running) _timer.start();
+            // Compute in bounded batches; keep the UI responsive without
+            // attaching/painting intermediate SA populations or GA generations.
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(12);
+            while (!_solver->isComplete()) {
+                if (!_solver->step()) break;
+                if (std::chrono::steady_clock::now() >= deadline) break;
+            }
+            if (!_solver->isComplete()) {
+                _timer.start();
                 return true;
             }
-
-            // --- Normal solver stepping ---
-            int ticksPerAdvance = getTicksPerAdvanceFromSpeed();
-            _solveTickCounter++;
-
-            if (_solveTickCounter < ticksPerAdvance) {
-                if (_running) _timer.start();
-                return true;
+            stopSolver();
+            ensureMapSolverAttached();
+            if (auto* tsp = dynamic_cast<TSPAlgorithm*>(_solver.get())) {
+                const auto& tour = tsp->getBestTour().empty() ? tsp->getTour() : tsp->getBestTour();
+                _sidePanel.showResult(tour);
             }
-
-            _solveTickCounter = 0;
-            bool finishedThisTick = false;
-            if (!_solver->step()) {
-                stopSolver();
-                finishedThisTick = true;
-            }
-
-            // When auto-solving is finished, clear current step-path visualization,
-            // then run Show Solution flow automatically.
-            if (finishedThisTick && _solver) {
-                _mapView.stopStepTourAnimation();
-                _stepAnimRunning = false;
-                _mapView.setSolver(nullptr);
-                _mapView.refresh();
-                _mapView.setSolver(_solver.get());
-                handleSolverAction(3, _currentAlgorithmIdx);
-                return true;
-            }
-
-            // For SA / GA: start step-tour animation before next step
-            if (!finishedThisTick && beginStepTourAnimationForCurrentAlgo()) {
-                _mapView.refresh();
-                if (_running) _timer.start();
-                refreshStepButtons();
-                return true;
-            }
-
+            _mapView.startSolutionAnimation();
+            _solutionRunning = _mapView.isSolutionAnimating();
+            if (_solutionRunning) _solutionTimer.start();
             _mapView.refresh();
-            if (_running) _timer.start();
             refreshStepButtons();
             return true;
         }
@@ -367,12 +331,8 @@ private:
     void handleSolverAction(int action, int algorithmIdx)
     {
         switch (action) {
-            case 0:  // Start/Pause
-                if (_running) {
-                    stopSolver();
-                } else {
-                    startSolver();
-                }
+            case 0:  // Solve / Resolve: always use the latest parameters
+                startSolver();
                 break;
             case 1:  // Step forward
                 stepForward();
@@ -383,40 +343,8 @@ private:
             case 2:  // Algorithm changed
                 selectAlgorithm(algorithmIdx);
                 break;
-            case 3: // Show Solution (animated)
-                if (_running) stopSolver();
-
-                if (!canExecuteAlgorithms()) {
-                    _mapView.refresh();
-                    refreshStepButtons();
-                    break;
-                }
-
-                // Re-create solver with latest side-panel parameters
-                // if it hasn't been stepped yet, so parameter edits take effect.
-                if (_solver && !_solver->canStepBack() && !_solver->isComplete()) {
-                    selectAlgorithm(_currentAlgorithmIdx);
-                }
-
-                // Build final solution first (run remaining iterations immediately)
-                if (_solver) {
-                    ensureMapSolverAttached();
-                    while (!_solver->isComplete()) {
-                        if (!_solver->step()) break;
-                    }
-                }
-
-                _solutionRunning = false;
-                _solutionTimer.stop();
-                _solutionTickCounter = 0;
-
-                _mapView.startSolutionAnimation();  
-                if (_mapView.isSolutionAnimating()) {
-                    _solutionRunning = true;
-                    _solutionTimer.start();
-                }
-                _mapView.refresh();
-                refreshStepButtons();
+            case 3: // Legacy action: same unified solve flow
+                startSolver();
                 break;
             case 4: // Reset solver state + clear drawn algorithm paths/animation
                 stopAllExecution();
@@ -437,6 +365,7 @@ private:
     {
         // Side-panel change: stop all execution and clear any active animation.
         stopAllExecution();
+        _sidePanel.clearResult();
 
         _currentAlgorithmIdx = algorithmIdx;
 
@@ -499,37 +428,17 @@ private:
     {
         if (!canExecuteAlgorithms()) {
             stopAllExecution();
+            _sidePanel.clearResult();
+            _mapView.setSolver(nullptr);
             _mapView.refresh();
             refreshStepButtons();
             return;
         }
-
-        // Re-create solver only if it hasn't started yet
-        bool hasProgress = false;
-
-        if (_solver) {
-            if (_solver->canStepBack()) {
-                hasProgress = true;
-            }
-            else if (auto* tsp = dynamic_cast<TSPAlgorithm*>(_solver.get())) {
-                hasProgress = (tsp->getCurrentStep() > 0);
-            }
-        }
-
-        if (!_solver || (!hasProgress && !_solver->isComplete())) {
-            selectAlgorithm(_currentAlgorithmIdx);   // fresh start (or pick up new params)
-        }
-
-        ensureMapSolverAttached();
-
-        _solutionRunning = false;
-        _solutionTimer.stop();
-        _solutionTickCounter = 0;
-        _stepAnimRunning = false;
-        _stepAnimTickCounter = 0;
-        _mapView.stopSolutionAnimation();
-        _mapView.stopStepTourAnimation();
-
+        // Resolve is a fresh run, not a replay of the previous best tour.
+        selectAlgorithm(_currentAlgorithmIdx);
+        _mapView.setSolver(nullptr);
+        _mapView.refresh();
+        _sidePanel.btnSolve.setTitle(tr("Resolve"));
         _running = true;
         _solveTickCounter = 0;
         _timer.start();
