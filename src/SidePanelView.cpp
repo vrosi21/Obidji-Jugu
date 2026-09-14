@@ -1299,7 +1299,7 @@ void SidePanelView::updateExecutionState(bool running)
     // Keep solution/reset disabled while running to avoid conflicting states
     btnSolve.disable(running);
     btnReplay.disable(running || !_hasSolution);
-    btnResetSolution.disable(running);
+    btnResetSolution.disable(false); // Also cancels a long-running exact search.
 
     // Lock NN controls while running
     checkBoxEnable2opt.disable(running);

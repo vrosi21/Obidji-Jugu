@@ -266,7 +266,7 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
-    std::vector<std::string> _algorithmNames = {"Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm"}; // "BFS" and "DFS" exist but are not rendered in the combobox
+    std::vector<std::string> _algorithmNames = {"Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm", "Benchmark (Exact <=10, NN + 2-opt >10)"};
     DataRepository* _repo = nullptr;
     SolverCallback _solverCallback;
 

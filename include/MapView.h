@@ -26,7 +26,14 @@ constexpr float ORIGINAL_MAP_HEIGHT = 866.0f;
 // Data operations are delegated to DataRepository
 class MapView : public gui::Canvas
 {
+    bool _hasExactMinimum = false;
+    double _exactMinimum = 0.0;
+    bool _benchmarkExact = true;
 public:
+    void clearExactMinimum() { _hasExactMinimum = false; }
+    void setBenchmark(double cost, bool exact) {
+        _exactMinimum = cost; _hasExactMinimum = true; _benchmarkExact = exact;
+    }
 
     using CityClickCallback = std::function<void(int cityIdx)>;
 

@@ -5,6 +5,8 @@
 #include <memory>
 #include <cmath>
 #include <chrono>
+#include <thread>
+#include <atomic>
 #include "DataRepository.h"
 #include "MapView.h"
 #include "MapSplitterLayout.h"
@@ -15,6 +17,7 @@
 #include "NearestNeighborAlgorithm.h"
 #include "SimulatedAnnealingAlgorithm.h"
 #include "GeneticAlgorithmTSP.h"
+#include "ExactTSPAlgorithm.h"
 
 // Timer interval for auto-stepping (in seconds)
 constexpr float SOLVER_STEP_INTERVAL = 0.001f;
@@ -24,6 +27,18 @@ constexpr float SOLUTION_ANIM_INTERVAL = 0.05f;
 class MainView : public gui::View
 {
 private:
+    struct SolveJob {
+        DataRepository repo;
+        std::unique_ptr<SearchAlgorithm> solver;
+        std::atomic<bool> cancel{false}, done{false};
+        bool failed = false;
+        bool exact = false;
+        bool benchmarkSelected = false;
+        double benchmark = 0;
+    };
+    std::shared_ptr<SolveJob> _job;
+    // Keeps the repository referenced by the completed solver alive.
+    std::shared_ptr<SolveJob> _completedJob;
     MapSplitterLayout _splitter;
     DataRepository _repo;       // Single data source (owns the data)
     SplitterMapView _mapView;      // Right auxiliary map with bounded divider
@@ -42,6 +57,7 @@ private:
 
 
 public:
+    ~MainView() { if (_job) _job->cancel = true; }
     MainView()
         : _mapView(_splitter)
         , _timer(this, SOLVER_STEP_INTERVAL, false)
@@ -119,6 +135,7 @@ public:
         // When data changes (city added/deleted/status changed), reset the solver
         _repo.setOnDataChanged([this]() {
             stopAllExecution();
+            _mapView.clearExactMinimum();
             _sidePanel.clearResult();
             if (_solver) {
                 _solver->reset(&_repo);
@@ -199,18 +216,21 @@ protected:
     // Timer callback for auto-stepping
     bool onTimer(gui::Timer* pTimer) override
     {
-        if (pTimer == &_timer && _running && _solver) {
-            // Compute in bounded batches; keep the UI responsive without
-            // attaching/painting intermediate SA populations or GA generations.
-            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(12);
-            while (!_solver->isComplete()) {
-                if (!_solver->step()) break;
-                if (std::chrono::steady_clock::now() >= deadline) break;
-            }
-            if (!_solver->isComplete()) {
+        if (pTimer == &_timer && _running && _job) {
+            if (!_job->done.load()) {
                 _timer.start();
                 return true;
             }
+            if (_job->failed) {
+                stopAllExecution();
+                _sidePanel.clearResult();
+                refreshStepButtons();
+                return true;
+            }
+            _solver = std::move(_job->solver);
+            _completedJob = _job;
+            _mapView.setBenchmark(_job->benchmark, _job->exact);
+            _job.reset();
             stopSolver();
             ensureMapSolverAttached();
             if (auto* tsp = dynamic_cast<TSPAlgorithm*>(_solver.get())) {
@@ -307,6 +327,7 @@ private:
     // Stop both solve execution and final-solution animation
     void stopAllExecution()
     {
+        if (_job) { _job->cancel = true; _job.reset(); }
         _running = false;
         _timer.stop();
         _solveTickCounter = 0;
@@ -409,6 +430,7 @@ private:
                     static_cast<GeneticAlgorithmTSP::MutationOperator>(_sidePanel.getGAMutationOperatorIndex()),
                     _sidePanel.getGAElitismPercentage());
                 break;
+            case 3: _solver = std::make_unique<ExactTSPAlgorithm>(); break;
             default: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;
         }
 
@@ -452,6 +474,43 @@ private:
         _mapView.setSolver(nullptr);
         _mapView.refresh();
         _sidePanel.btnSolve.setTitle(tr("Resolve"));
+        _mapView.clearExactMinimum();
+        auto job = std::make_shared<SolveJob>();
+        job->repo = _repo;
+        job->repo.setOnDataChanged({});
+        size_t required = 0;
+        for (const auto& city : job->repo.cities())
+            if (city.visitation_status == VisitationStatus::Start ||
+                city.visitation_status == VisitationStatus::Goal) ++required;
+        job->exact = required <= 10;
+        job->benchmarkSelected = _currentAlgorithmIdx == 3;
+        job->solver = std::move(_solver);
+        // The explicit benchmark selection follows the same size policy.
+        if (_currentAlgorithmIdx == 3 && !job->exact)
+            job->solver = std::make_unique<NearestNeighborAlgorithm>(true, 100);
+        _job = job;
+        std::thread([job]() {
+            // No GUI access and no reference to MainView: cancelling/closing
+            // discards this job safely without blocking on a thread join.
+            try {
+                job->solver->reset(&job->repo);
+                while (!job->cancel && !job->solver->isComplete()) job->solver->step();
+                if (job->cancel) return;
+                if (job->benchmarkSelected) {
+                    job->benchmark = static_cast<TSPAlgorithm*>(job->solver.get())->getBestLength();
+                    job->done = true;
+                    return;
+                }
+                std::unique_ptr<TSPAlgorithm> benchmark;
+                if (job->exact) benchmark = std::make_unique<ExactTSPAlgorithm>();
+                else benchmark = std::make_unique<NearestNeighborAlgorithm>(true, 100);
+                benchmark->reset(&job->repo);
+                while (!job->cancel && !benchmark->isComplete()) benchmark->step();
+                if (job->cancel) return;
+                job->benchmark = benchmark->getBestLength();
+            } catch (...) { job->failed = true; }
+            job->done = true;
+        }).detach();
         _running = true;
         _solveTickCounter = 0;
         _timer.start();

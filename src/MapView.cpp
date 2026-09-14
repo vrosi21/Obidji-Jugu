@@ -870,10 +870,20 @@ void MapView::drawTSPState()
             }
         }
     } else {
-        infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
+        infoLines.push_back({"Algorithm", tspSolver->getName()});
+        infoLines.push_back({"Status", tspSolver->isComplete() ? "Optimal" : "Searching"});
         infoLines.push_back({"Total distance", fmtCost(totalDistance)});
     }
 
+    const double solutionCost = tspSolver->getBestTour().empty()
+        ? tspSolver->getTourLength() : tspSolver->getBestLength();
+    infoLines.push_back({"Total cost", fmtCost(solutionCost)});
+    infoLines.push_back({"Benchmark", !_hasExactMinimum ? "Pending"
+        : (_benchmarkExact ? "Exact TSP (proven)" : "NN + 2-opt (heuristic)")});
+    infoLines.push_back({_benchmarkExact ? "True minimum cost" : "Benchmark cost", _hasExactMinimum
+        ? fmtCost(_exactMinimum) : "Computing"});
+    infoLines.push_back({"Delta cost", _hasExactMinimum && tspSolver->isComplete()
+        ? fmtCost(solutionCost - _exactMinimum) : "--"});
     drawInfoPanel(infoLines, PanelSide::Right);
 }
 
