@@ -43,6 +43,14 @@ natID's `%s` translation config. They are packaged resources, not registry-only
 translations. The language toolbar saves the language preference and restarts.
 The package script resolves development SDK resource paths in its staging copy.
 
-This delivery contains packaging configuration/scripts, not prebuilt installers.
-No build or installer run was performed. GitHub-hosted CI provisioning is not
-included; call the same commands on a runner with the matching natID SDK installed.
+## GitHub Actions (Windows)
+
+Commit and push `.github/workflows/build-installer.yml` to the repository's default
+branch. In Actions, select **Build Obidji Jugu Windows installer**, then **Run
+workflow**. Supply the repository path to an approved application license file
+that has also been committed. The workflow installs the matching natID v4.2.1
+headers and Windows binaries (20260710), compiles Release, packages the installer,
+and uploads **Obidji-Jugu-Windows** as an artifact. Download and extract the entire
+artifact so bootstrapper and MSI files stay together. It does not publish a release.
+
+macOS and Linux packaging still use the native commands above.
