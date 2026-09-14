@@ -126,5 +126,30 @@
 		<Res id="Resolve" tr="Ponovo riješi"/>
 		<Res id="City" tr="Grad"/>
 		<Res id="Total distance" tr="Ukupna dužina"/>
+        <Res id="Replay" tr="Ponovi animaciju"/>
+        <Res id="Status: Unsolved" tr="Status: Neriješeno"/>
+        <Res id="Status: Solved" tr="Status: Riješeno"/>
+        <Res id="Algorithm" tr="Algoritam"/>
+        <Res id="Generation" tr="Generacija"/>
+        <Res id="Step" tr="Korak"/>
+        <Res id="Temperature" tr="Temperatura"/>
+        <Res id="Total cost" tr="Ukupni trošak"/>
+        <Res id="True minimum cost" tr="Stvarni minimalni trošak"/>
+        <Res id="Delta cost" tr="Razlika troška"/>
+        <Res id="Benchmark" tr="Referentno rješenje"/>
+        <Res id="Benchmark cost" tr="Referentni trošak"/>
+        <Res id="Pending" tr="Na čekanju"/>
+        <Res id="Computing" tr="Računanje"/>
+        <Res id="Optimal" tr="Optimalno"/>
+        <Res id="Searching" tr="Pretraga"/>
+        <Res id="Exact TSP (proven)" tr="Egzaktni TSP (dokazano)"/>
+        <Res id="NN + 2-opt (heuristic)" tr="NN + 2-opt (heuristika)"/>
+        <Res id="Exact TSP - weighted cost" tr="Egzaktni TSP - ponderisani trošak"/>
+        <Res id="Benchmark (Exact &lt;=10, NN + 2-opt &gt;10)" tr="Benchmark (egzaktni do 10, NN + 2-opt preko 10)"/>
+        <Res id="Exact TSP (unlimited; Reset to cancel)" tr="Egzaktni TSP (bez limita; Reset za prekid)"/>
+        <Res id="enabled" tr="uključeno"/>
+        <Res id="City names" tr="Imena gradova"/>
+        <Res id="Map" tr="Mapa"/>
+        <Res id="Solution" tr="Rješenje"/>
 	</Translations>
 </DevRes>

@@ -345,14 +345,14 @@ void MapView::drawDisplayOptions(const gui::Rect& canvasRect)
 
     const float x = left + 10.0f;
     if (width < 300.0f) {
-        drawToggle(x, top + 8.0f, "City names", _showCityNames,
+        drawToggle(x, top + 8.0f, tr("City names").c_str(), _showCityNames,
                    std::max(1.0f, width - 16.0f), _cityNamesToggleRect);
-        drawToggle(x, top + 35.0f, "Map", _showMapGeometry,
+        drawToggle(x, top + 35.0f, tr("Map").c_str(), _showMapGeometry,
                    std::max(1.0f, width - 16.0f), _mapToggleRect);
     } else {
-        drawToggle(x, top + 12.0f, "City names", _showCityNames,
+        drawToggle(x, top + 12.0f, tr("City names").c_str(), _showCityNames,
                    122.0f, _cityNamesToggleRect);
-        drawToggle(x + 135.0f, top + 12.0f, "Map", _showMapGeometry,
+        drawToggle(x + 135.0f, top + 12.0f, tr("Map").c_str(), _showMapGeometry,
                    78.0f, _mapToggleRect);
     }
 }
@@ -989,7 +989,7 @@ void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string
     for (const auto& kv : lines) {
         float textX = panelX + paddingX + (item / rows) * columnW;
         float textY = panelY + paddingY + (item % rows) * lineH;
-        std::string txt = kv.first + ":  " + kv.second;
+        std::string txt = std::string(tr(kv.first.c_str()).c_str()) + ":  " + tr(kv.second.c_str()).c_str();
         gui::DrawableString ds(txt.c_str());
         gui::Rect textRect(textX, textY, textX + std::max(1.0f, columnW - 4.0f),
             std::min(textY + lineH, panelY + panelH));
@@ -1251,7 +1251,7 @@ void MapView::drawAnimatedSolution()
     // --- Progress label ---
     {
         int pct = static_cast<int>((100.0 * edgeCount) / maxEdges);
-        std::string progress = "Solution: " + std::to_string(pct) + "%";
+        std::string progress = std::string(tr("Solution").c_str()) + ": " + std::to_string(pct) + "%";
         gui::DrawableString ds(progress.c_str());
         gui::Point pos(static_cast<gui::CoordType>(_offsetX + 10.0f), static_cast<gui::CoordType>(_offsetY + 20.0f));
         ds.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::ForestGreen);

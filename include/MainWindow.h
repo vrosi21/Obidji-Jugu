@@ -23,7 +23,7 @@ public:
     MainWindow()
     : gui::Window(initialApplicationSize())
     {
-        setTitle("Obiđi Jugu");
+        setTitle("Obidji Jugu");
             setToolBar(_toolBar);
         setCentralView(&_mainView, Frame::FixSizes::FixMin);
     }
