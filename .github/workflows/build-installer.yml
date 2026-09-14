@@ -1,204 +1,418 @@
 name: Build Obidji Jugu installers
 
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
       license_path:
-        description: Optional application license path (leave empty to omit)
+        description: "Optional application license path (leave empty to omit)"
         required: false
-        type: string
+        default: ""
+      publish_release:
+        description: "Publish installers to GitHub Releases (yes/no)"
+        required: false
+        default: "no"
+      release_tag:
+        description: "Release tag when publishing manually (for example v1.0.0)"
+        required: false
+        default: ""
 
 permissions:
-  contents: read
+  contents: write
 
 env:
+  LICENSE_PATH: ${{ inputs.license_path }}
   NATID_SDK_TAG: v4.2.1
-  NATID_SDK_BUILD: '20260710'
+  NATID_SDK_BUILD: "20260710"
 
 jobs:
   windows:
     runs-on: windows-2022
-    defaults:
-      run:
-        shell: pwsh
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out source
+        uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
-      - name: Check application license
-        env:
-          LICENSE_PATH: ${{ inputs.license_path }}
+      - name: Install matching natID SDK source and binaries
+        shell: pwsh
         run: |
-          if ($env:LICENSE_PATH -and -not (Test-Path -LiteralPath $env:LICENSE_PATH -PathType Leaf)) {
-            throw "Commit the approved application license and supply its repository path."
+          $sdkRepository = "$env:USERPROFILE\natID"
+          git clone --depth 1 --branch $env:NATID_SDK_TAG `
+            https://github.com/idzafic/natID.git $sdkRepository
+          if ($LASTEXITCODE -ne 0) { throw "Could not clone natID $env:NATID_SDK_TAG." }
+
+          New-Item -ItemType Junction `
+            -Path "$env:USERPROFILE\natID.SDK" `
+            -Target "$sdkRepository\natID.SDK" | Out-Null
+          New-Item -ItemType Junction `
+            -Path "$env:USERPROFILE\natID.Utils" `
+            -Target "$sdkRepository\natID.Utils" | Out-Null
+
+          $archive = "$env:TEMP\natid-sdk-win-x64.7z"
+          $url = "https://github.com/idzafic/natID/releases/download/$env:NATID_SDK_TAG/bin_win_x64_$env:NATID_SDK_BUILD.7z"
+          curl.exe --fail --location --retry 3 --output $archive $url
+          if ($LASTEXITCODE -ne 0) { throw "Could not download $url." }
+
+          $sevenZip = "$env:ProgramFiles\7-Zip\7z.exe"
+          if (-not (Test-Path -LiteralPath $sevenZip)) {
+            choco install 7zip -y --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "Could not install 7-Zip." }
+          }
+          & $sevenZip x -y "-o$env:USERPROFILE\natID.SDK\bin" $archive
+          if ($LASTEXITCODE -ne 0) { throw "Could not extract the natID SDK binaries." }
+
+          if (-not (Test-Path -LiteralPath "$env:USERPROFILE\natID.SDK\DevEnv\Common.cmake")) {
+            throw "The natID SDK source layout is incomplete."
+          }
+          if (-not (Test-Path -LiteralPath "$env:USERPROFILE\natID.SDK\bin\mainUtils.dll")) {
+            throw "The natID Windows binary package is incomplete."
           }
 
-      - name: Install matching natID SDK headers and binaries
+      - name: Generate icons and build Release
+        shell: pwsh
         run: |
-          git clone --depth 1 --branch $env:NATID_SDK_TAG https://github.com/idzafic/natID.git "$env:USERPROFILE\natID"
-          if ($LASTEXITCODE -ne 0) { throw 'SDK clone failed.' }
-          New-Item -ItemType Junction -Path "$env:USERPROFILE\natID.SDK" -Target "$env:USERPROFILE\natID\natID.SDK" | Out-Null
-          New-Item -ItemType Junction -Path "$env:USERPROFILE\natID.Utils" -Target "$env:USERPROFILE\natID\natID.Utils" | Out-Null
-          $archive = "$env:RUNNER_TEMP\natid.7z"
-          curl.exe --fail --location --retry 3 --output $archive "https://github.com/idzafic/natID/releases/download/$env:NATID_SDK_TAG/bin_win_x64_$env:NATID_SDK_BUILD.7z"
-          if ($LASTEXITCODE -ne 0) { throw 'SDK download failed.' }
-          & "$env:ProgramFiles\7-Zip\7z.exe" x -y "-o$env:USERPROFILE\natID.SDK\bin" $archive
-          if ($LASTEXITCODE -ne 0) { throw 'SDK extraction failed.' }
-          New-Item -ItemType Directory -Force "$env:USERPROFILE\natID.RAMDisk" | Out-Null
-          subst.exe R: "$env:USERPROFILE\natID.RAMDisk"
-          if ($LASTEXITCODE -ne 0) { throw 'RAMDisk mapping failed.' }
+          $ramDiskBacking = "$env:USERPROFILE\natID.RAMDisk"
+          New-Item -ItemType Directory -Force -Path $ramDiskBacking | Out-Null
+          if (-not (Get-PSDrive -Name R -ErrorAction SilentlyContinue)) {
+            & subst.exe R: $ramDiskBacking
+            if ($LASTEXITCODE -ne 0) { throw "Could not map the natID RAMDisk path." }
+          }
 
-      - name: Generate icons and compile Release
-        run: |
+          New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\Desktop" | Out-Null
+          $collectorSource = "$env:USERPROFILE\Desktop\Obidji-Jugu-source"
+          New-Item -ItemType Junction `
+            -Path $collectorSource `
+            -Target $env:GITHUB_WORKSPACE | Out-Null
+
           python -m pip install Pillow
-          if ($LASTEXITCODE -ne 0) { throw 'Pillow installation failed.' }
+          if ($LASTEXITCODE -ne 0) { throw "Pillow installation failed." }
           python tools/generate_icons.py
-          if ($LASTEXITCODE -ne 0) { throw 'Icon generation failed.' }
-          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 "-DNATID_SDK_ROOT=$env:USERPROFILE\natID.SDK"
-          if ($LASTEXITCODE -ne 0) { throw 'CMake configuration failed.' }
-          cmake --build build --config Release --target obidji-jugu --parallel 4
-          if ($LASTEXITCODE -ne 0) { throw 'Compilation failed.' }
+          if ($LASTEXITCODE -ne 0) { throw "Icon generation failed." }
+          cmake -S $collectorSource -B R:\build `
+            -G "Visual Studio 17 2022" -A x64 `
+            "-DNATID_SDK_ROOT=$env:USERPROFILE\natID.SDK"
+          if ($LASTEXITCODE -ne 0) { throw "CMake configuration failed." }
 
-      - name: Package installer
-        env:
-          LICENSE_PATH: ${{ inputs.license_path }}
+          cmake --build R:\build --config Release `
+            --target obidji-jugu
+          if ($LASTEXITCODE -ne 0) { throw "Release build failed." }
+
+          $env:PATH = "$env:USERPROFILE\natID.SDK\bin;$env:USERPROFILE\natID.SDK\bin\GTK;$env:PATH"
+
+          $guiExecutable = "R:\Out\The_Travelling_Salesman\Release\obidji-jugu.exe"
+          if (-not (Test-Path -LiteralPath $guiExecutable)) {
+            Get-ChildItem R:\Out -Recurse -ErrorAction SilentlyContinue
+            throw "Expected GUI executable was not produced at $guiExecutable."
+          }
+
+      - name: Collect Windows installer
+        shell: pwsh
         run: |
           $licenseArgs = @()
           if ($env:LICENSE_PATH) { $licenseArgs = @('--license', $env:LICENSE_PATH) }
-          python tools/package_installer.py --sdk "$env:USERPROFILE\natID.SDK" --collector "$env:USERPROFILE\natID.Utils\windows\SetupCollector.exe" --executable-dir "$env:USERPROFILE\natID.RAMDisk\Out\The_Travelling_Salesman\Release" @licenseArgs --output installer-output
-          if ($LASTEXITCODE -ne 0) { throw 'Installer packaging failed.' }
+          python tools/package_installer.py --sdk "$env:USERPROFILE\natID.SDK" --collector "$env:USERPROFILE\natID.Utils\windows\SetupCollector.exe" --executable-dir "R:\Out\The_Travelling_Salesman\Release" --output "R:\Setup" @licenseArgs
+          if ($LASTEXITCODE -ne 0) { throw "Installer packaging failed." }
 
-      - name: Upload installer files
+      - name: Stage Windows installer
+        shell: pwsh
+        run: |
+          $output = Join-Path $env:GITHUB_WORKSPACE "installer-output"
+          New-Item -ItemType Directory -Force -Path $output | Out-Null
+          Get-ChildItem R:\Setup -File -Recurse |
+            Where-Object { $_.Extension -eq ".msi" -or $_.Name -like "Install*.exe" } |
+            Copy-Item -Destination $output -Force
+
+          $msiFiles = @(Get-ChildItem $output -File -Filter *.msi)
+          if ($msiFiles.Count -eq 0) { throw "No MSI was produced by SetupCollector." }
+          $bootstrapperFiles = @(Get-ChildItem $output -File -Filter "Install*.exe")
+          $msiPaths = @($msiFiles | ForEach-Object FullName)
+          try {
+            $archiveInputs = @($msiPaths)
+            $archiveInputs += @($bootstrapperFiles | ForEach-Object FullName)
+            Compress-Archive -Path $archiveInputs `
+              -DestinationPath "Obidji-Jugu-Windows.zip" -Force
+          }
+          catch {
+            Write-Warning "The unsigned bootstrapper could not be archived; publishing the MSI only."
+            Compress-Archive -Path $msiPaths `
+              -DestinationPath "Obidji-Jugu-Windows.zip" -Force
+          }
+
+      - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
           name: Obidji-Jugu-Windows
-          path: installer-output/
+          path: Obidji-Jugu-Windows.zip
           if-no-files-found: error
 
-  unix:
-    name: ${{ matrix.label }} installer
+  macos:
     strategy:
       fail-fast: false
       matrix:
         include:
           - runner: macos-15
-            platform: macOS
-            arch: arm64
-            label: macOS-Silicon
-            collector: macOS/arm64/SetupCollector
+            sdk_arch: arm64
+            collector_arch: arm64
+            label: Silicon
           - runner: macos-15-intel
-            platform: macOS
-            arch: x64
-            label: macOS-Intel
-            collector: macOS/x64/SetupCollector
-          - runner: ubuntu-24.04
-            platform: linux
-            arch: x64
-            label: Linux
-            collector: linux/SetupCollector
+            sdk_arch: x64
+            collector_arch: x64
+            label: Intel
+
     runs-on: ${{ matrix.runner }}
-    defaults:
-      run:
-        shell: bash
-    env:
-      LICENSE_PATH: ${{ inputs.license_path }}
-      SDK_PLATFORM: ${{ matrix.platform }}
-      SDK_ARCH: ${{ matrix.arch }}
-      COLLECTOR: ${{ matrix.collector }}
-      PACKAGE_LABEL: ${{ matrix.label }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out source
+        uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
+
+      - name: Install matching natID SDK source and binaries
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch "$NATID_SDK_TAG" \
+            https://github.com/idzafic/natID.git "$HOME/natID"
+          ln -s "$HOME/natID/natID.SDK" "$HOME/natID.SDK"
+          ln -s "$HOME/natID/natID.Utils" "$HOME/natID.Utils"
+          brew list sevenzip >/dev/null 2>&1 || brew install sevenzip
+          url="https://github.com/idzafic/natID/releases/download/$NATID_SDK_TAG/bin_macOS_${{ matrix.sdk_arch }}_${NATID_SDK_BUILD}.7z"
+          curl --fail --location --retry 3 --output /tmp/natid-sdk.7z "$url"
+          7zz x -y -o"$HOME/natID.SDK/bin" /tmp/natid-sdk.7z
+          test -f "$HOME/natID.SDK/DevEnv/Common.cmake"
+          test -d "$HOME/natID.SDK/bin/lib"
+
+      - name: Generate icons and build Release
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/Desktop"
+          ln -s "$GITHUB_WORKSPACE" "$HOME/Desktop/Obidji-Jugu-source"
+          python -m pip install Pillow
+          python tools/generate_icons.py
+          cmake -S "$HOME/Desktop/Obidji-Jugu-source" \
+            -B "$HOME/natID.RAMDisk/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DNATID_SDK_ROOT="$HOME/natID.SDK"
+          cmake --build "$HOME/natID.RAMDisk/build" \
+            --target obidji-jugu \
+            -j"$(sysctl -n hw.logicalcpu)"
+          export DYLD_LIBRARY_PATH="$HOME/natID.SDK/bin/lib:${DYLD_LIBRARY_PATH:-}"
+          test -f "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release/obidji-jugu.app/Contents/MacOS/obidji-jugu"
+          test -f "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release/obidji-jugu.app/Contents/Resources/macApp.icns"
+
+      - name: Collect macOS package
+        run: |
+          set -euo pipefail
+          sudo mkdir -p /Volumes
+          if [ ! -e /Volumes/RAMDisk ]; then sudo ln -s "$HOME/natID.RAMDisk" /Volumes/RAMDisk; fi
+          license_args=()
+          if [ -n "$LICENSE_PATH" ]; then license_args=(--license "$LICENSE_PATH"); fi
+          chmod +x "$HOME/natID.Utils/macOS/${{ matrix.collector_arch }}/SetupCollector"
+          python tools/package_installer.py --sdk "$HOME/natID.SDK" --collector "$HOME/natID.Utils/macOS/${{ matrix.collector_arch }}/SetupCollector" --executable-dir "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release" --output "$HOME/natID.RAMDisk/Setup" "${license_args[@]}"
+
+      - name: Sign and archive macOS application
+        run: |
+          set -euo pipefail
+          output="$GITHUB_WORKSPACE/installer-output"
+          mkdir -p "$output"
+          bundle="$(find "$HOME/natID.RAMDisk/Setup" -type d -name "*.app" -print -quit)"
+          if [ -z "$bundle" ]; then
+            echo "No macOS app bundle was produced by SetupCollector." >&2
+            exit 1
+          fi
+          cp -R "$bundle" "$output/"
+          app="$output/$(basename "$bundle")"
+          test -f "$app/Contents/Resources/macApp.icns"
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          xattr -cr "$app"
+          cd "$output"
+          ditto -c -k --keepParent --sequesterRsrc \
+            "$(basename "$app")" \
+            "Obidji-Jugu-macOS-${{ matrix.label }}.zip"
+
+      - name: Upload macOS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Obidji-Jugu-macOS-${{ matrix.label }}
+          path: installer-output/Obidji-Jugu-macOS-${{ matrix.label }}.zip
+          if-no-files-found: error
+
+  linux:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Install build prerequisites
         run: |
-          set -euo pipefail
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            sudo apt-get update
-            sudo apt-get install -y build-essential cmake git p7zip-full zip libgtk-4-dev libadwaita-1-dev
-          else
-            brew list sevenzip >/dev/null 2>&1 || brew install sevenzip
-          fi
-          python -m pip install Pillow
-          if [[ -n "$LICENSE_PATH" ]]; then test -f "$LICENSE_PATH"; fi
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake git p7zip-full zip \
+            libgtk-4-dev libadwaita-1-dev
 
-      - name: Install matching natID SDK headers and binaries
+      - name: Install matching natID SDK source and binaries
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch "$NATID_SDK_TAG" https://github.com/idzafic/natID.git "$HOME/natID"
+          git clone --depth 1 --branch "$NATID_SDK_TAG" \
+            https://github.com/idzafic/natID.git "$HOME/natID"
           ln -s "$HOME/natID/natID.SDK" "$HOME/natID.SDK"
           ln -s "$HOME/natID/natID.Utils" "$HOME/natID.Utils"
-          archive="$RUNNER_TEMP/natid.7z"
-          curl --fail --location --retry 3 --output "$archive" "https://github.com/idzafic/natID/releases/download/$NATID_SDK_TAG/bin_${SDK_PLATFORM}_${SDK_ARCH}_${NATID_SDK_BUILD}.7z"
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            7z x -y -o"$HOME/natID.SDK/bin" "$archive"
-            sudo mkdir -p /media
-            mount_path=/media/RAMDisk
-          else
-            7zz x -y -o"$HOME/natID.SDK/bin" "$archive"
-            mount_path=/Volumes/RAMDisk
-          fi
-          mkdir -p "$HOME/natID.RAMDisk"
-          sudo ln -s "$HOME/natID.RAMDisk" "$mount_path"
+          url="https://github.com/idzafic/natID/releases/download/$NATID_SDK_TAG/bin_linux_x64_${NATID_SDK_BUILD}.7z"
+          curl --fail --location --retry 3 --output /tmp/natid-sdk.7z "$url"
+          7z x -y -o"$HOME/natID.SDK/bin" /tmp/natid-sdk.7z
+          test -f "$HOME/natID.SDK/DevEnv/Common.cmake"
+          test -d "$HOME/natID.SDK/bin/lib"
 
-      - name: Generate icons and compile Release
+      - name: Generate icons and build Release
         run: |
           set -euo pipefail
+          mkdir -p "$HOME/Desktop"
+          ln -s "$GITHUB_WORKSPACE" "$HOME/Desktop/Obidji-Jugu-source"
+          python -m pip install Pillow
           python tools/generate_icons.py
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DNATID_SDK_ROOT="$HOME/natID.SDK"
-          cmake --build build --config Release --target obidji-jugu --parallel 4
-
-      - name: Package installer
-        run: |
-          set -euo pipefail
-          license_args=()
-          if [[ -n "$LICENSE_PATH" ]]; then license_args=(--license "$LICENSE_PATH"); fi
-          chmod +x "$HOME/natID.Utils/$COLLECTOR"
+          cmake -S "$HOME/Desktop/Obidji-Jugu-source" \
+            -B "$HOME/natID.RAMDisk/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DNATID_SDK_ROOT="$HOME/natID.SDK"
+          cmake --build "$HOME/natID.RAMDisk/build" \
+            --target obidji-jugu \
+            -j"$(nproc)"
           export LD_LIBRARY_PATH="$HOME/natID.SDK/bin/lib:${LD_LIBRARY_PATH:-}"
-          export DYLD_LIBRARY_PATH="$HOME/natID.SDK/bin/lib:${DYLD_LIBRARY_PATH:-}"
-          python tools/package_installer.py --sdk "$HOME/natID.SDK" --collector "$HOME/natID.Utils/$COLLECTOR" --executable-dir "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release" "${license_args[@]}" --output installer-output
+          test -f "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release/obidji-jugu"
 
-      - name: Archive macOS application
-        if: runner.os == 'macOS'
+      - name: Collect Linux package
         run: |
           set -euo pipefail
-          bundle="$(find installer-output -type d -name '*.app' -print -quit)"
-          test -n "$bundle"
-          app="$RUNNER_TEMP/Obidji Jugu.app"
-          ditto "$bundle" "$app"
-          codesign --force --deep --sign - "$app"
-          xattr -cr "$app"
-          mkdir -p artifacts
-          ditto -c -k --keepParent --sequesterRsrc "$app" "artifacts/Obidji-Jugu-${PACKAGE_LABEL}.zip"
+          sudo mkdir -p /media
+          if [ ! -e /media/RAMDisk ]; then sudo ln -s "$HOME/natID.RAMDisk" /media/RAMDisk; fi
+          license_args=()
+          if [ -n "$LICENSE_PATH" ]; then license_args=(--license "$LICENSE_PATH"); fi
+          chmod +x "$HOME/natID.Utils/linux/SetupCollector"
+          python tools/package_installer.py --sdk "$HOME/natID.SDK" --collector "$HOME/natID.Utils/linux/SetupCollector" --executable-dir "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release" --output "$HOME/natID.RAMDisk/Setup" "${license_args[@]}"
 
-      - name: Embed Linux application icons and archive package
-        if: runner.os == 'Linux'
+      - name: Embed and validate Linux application icons
         run: |
           set -euo pipefail
-          deb="$(find installer-output -type f -name '*.deb' -print -quit)"
-          test -n "$deb"
-          package="$RUNNER_TEMP/obidji-jugu-deb"
-          dpkg-deb -R "$deb" "$package"
+          deb="$(find "$HOME/natID.RAMDisk/Setup" -type f -name "*.deb" -print -quit)"
+          if [ -z "$deb" ]; then
+            echo "No Linux DEB package was produced by SetupCollector." >&2
+            exit 1
+          fi
+
+          patch_root=/tmp/natidqp-deb-patch
+          rm -rf "$patch_root"
+          mkdir -p "$patch_root"
+          dpkg-deb -R "$deb" "$patch_root/package"
+          icon_source="$GITHUB_WORKSPACE/res/appIcon"
           for size in 16 32 48 128 256; do
-            icon_dir="$package/usr/share/icons/hicolor/${size}x${size}/apps"
+            icon_dir="$patch_root/package/usr/share/icons/hicolor/${size}x${size}/apps"
             mkdir -p "$icon_dir"
-            cp "res/appIcon/lnxApp${size}.png" "$icon_dir/obidji-jugu.png"
+            cp "$icon_source/lnxApp${size}.png" "$icon_dir/obidji-jugu.png"
           done
           while IFS= read -r desktop_file; do
             sed -i 's/^Name=.*/Name=Obidji Jugu/' "$desktop_file"
             sed -i 's/^Icon=.*/Icon=obidji-jugu/' "$desktop_file"
-          done < <(find "$package/usr/share/applications" -type f -name '*.desktop')
-          mkdir -p artifacts
-          dpkg-deb --root-owner-group -b "$package" "$RUNNER_TEMP/obidji-jugu.deb"
-          zip -j artifacts/Obidji-Jugu-Linux.zip "$RUNNER_TEMP/obidji-jugu.deb"
+          done < <(find "$patch_root/package/usr/share/applications" -type f -name "*.desktop" 2>/dev/null)
 
-      - name: Upload installer
+          dpkg-deb -b "$patch_root/package" "$patch_root/patched.deb"
+          mv "$patch_root/patched.deb" "$deb"
+          package_name="$(dpkg-deb -f "$deb" Package)"
+          case "$package_name" in
+            *[!a-z0-9+.-]*)
+              echo "Invalid Debian package name: $package_name" >&2
+              exit 1
+              ;;
+          esac
+          dpkg-deb -c "$deb" | grep '/icons/hicolor/.*/apps/obidji-jugu.png'
+          dpkg-deb -f "$deb" Package Version Maintainer
+
+      - name: Archive Linux package
+        run: |
+          set -euo pipefail
+          output="$GITHUB_WORKSPACE/installer-output"
+          mkdir -p "$output"
+          find "$HOME/natID.RAMDisk/Setup" -type f -name "*.deb" \
+            -exec cp {} "$output/" \;
+          test -n "$(find "$output" -maxdepth 1 -type f -name "*.deb" -print -quit)"
+          zip -j "$GITHUB_WORKSPACE/Obidji-Jugu-Linux.zip" "$output"/*.deb
+
+      - name: Upload Linux installer
         uses: actions/upload-artifact@v4
         with:
-          name: Obidji-Jugu-${{ matrix.label }}
-          path: artifacts/*.zip
+          name: Obidji-Jugu-Linux
+          path: Obidji-Jugu-Linux.zip
           if-no-files-found: error
+
+  release:
+    needs: [windows, macos, linux]
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'yes')
+
+    steps:
+      - name: Determine release tag
+        id: tag
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            tag="$GITHUB_REF_NAME"
+          else
+            tag="$RELEASE_TAG"
+          fi
+          if [ -z "$tag" ]; then
+            echo "release_tag is required when publish_release=yes." >&2
+            exit 1
+          fi
+          echo "name=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Validate release files
+        run: |
+          set -euo pipefail
+          test -f artifacts/Obidji-Jugu-Windows/Obidji-Jugu-Windows.zip
+          test -f artifacts/Obidji-Jugu-macOS-Silicon/Obidji-Jugu-macOS-Silicon.zip
+          test -f artifacts/Obidji-Jugu-macOS-Intel/Obidji-Jugu-macOS-Intel.zip
+          test -f artifacts/Obidji-Jugu-Linux/Obidji-Jugu-Linux.zip
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: Obidji Jugu ${{ steps.tag.outputs.name }}
+          body: |
+            ## Obidji Jugu installers
+
+            - Windows: `Obidji-Jugu-Windows.zip`
+            - macOS Apple Silicon: `Obidji-Jugu-macOS-Silicon.zip`
+            - macOS Intel: `Obidji-Jugu-macOS-Intel.zip`
+            - Linux Ubuntu 24.04+: `Obidji-Jugu-Linux.zip`
+
+            Authors: Hadzic, Rodin, Sivro
+
+            The macOS bundles are ad-hoc signed but not Apple-notarized.
+            The Linux DEB is not repository-signed.
+          files: |
+            artifacts/Obidji-Jugu-Windows/Obidji-Jugu-Windows.zip
+            artifacts/Obidji-Jugu-macOS-Silicon/Obidji-Jugu-macOS-Silicon.zip
+            artifacts/Obidji-Jugu-macOS-Intel/Obidji-Jugu-macOS-Intel.zip
+            artifacts/Obidji-Jugu-Linux/Obidji-Jugu-Linux.zip

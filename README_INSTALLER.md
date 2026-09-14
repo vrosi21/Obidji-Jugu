@@ -5,7 +5,8 @@ Executable/package ID: `obidji-jugu` (valid Debian name, no underscores).
 
 Uses natID SetupCollector, as in the natidqp solver project. Use matching SDK
 headers, binaries and SetupCollector for the target OS/architecture. No SDK
-files are patched. Windows, macOS and Linux packaging must run on their own OS.
+headers or binaries are patched. Windows packaging uses the reference project's
+GTK4 package manifest. Windows, macOS and Linux packaging must run on their own OS.
 
 ## Build preparation
 
@@ -51,6 +52,8 @@ workflow**. Leave the license path empty to omit the application license, or sup
 the path to a committed license file. The workflow installs the matching natID v4.2.1
 headers and Windows binaries (20260710), compiles Release, packages the installer,
 and uploads **Obidji-Jugu-Windows** as an artifact. Download and extract the entire
-artifact so bootstrapper and MSI files stay together. It does not publish a release.
+artifact so bootstrapper and MSI files stay together. Like the reference project,
+`v*` tags publish a release; manual runs publish only when `publish_release` is
+`yes` and `release_tag` is supplied.
 
 The same workflow also builds macOS Apple Silicon and Intel app ZIPs (ad-hoc signed), and a Linux Ubuntu 24.04 DEB ZIP. Artifacts: Obidji-Jugu-macOS-Silicon, Obidji-Jugu-macOS-Intel, Obidji-Jugu-Linux. Application name: Obidji Jugu. Authors: Hadzic, Rodin, Sivro.

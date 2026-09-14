@@ -426,50 +426,52 @@ bool SidePanelView::onChangedSelection(gui::ComboBox* pCB)
         // -------------------------
         // NN (label + inputs)
         // -------------------------
-        checkBoxEnable2opt.hide(!nearestNeighborSelected, true);
-        lblImprovementCycles.hide(!nearestNeighborSelected, true);
-        txtEditImprovementCycles.hide(!nearestNeighborSelected, true);
-        btnStepFwd.hide(!nearestNeighborSelected, true);
-        btnStepBwd.hide(!nearestNeighborSelected, true);
-        //btnStartPause.hide(nearestNeighborSelected, true);
+        // Use Frame's public one-argument API across SDK versions; newer
+        // Control headers hide it with an overload absent from release libraries.
+        checkBoxEnable2opt.gui::Frame::hide(!nearestNeighborSelected);
+        lblImprovementCycles.gui::Frame::hide(!nearestNeighborSelected);
+        txtEditImprovementCycles.gui::Frame::hide(!nearestNeighborSelected);
+        btnStepFwd.gui::Frame::hide(!nearestNeighborSelected);
+        btnStepBwd.gui::Frame::hide(!nearestNeighborSelected);
+        //btnStartPause.gui::Frame::hide(nearestNeighborSelected);
 
 
         // -------------------------
         // SA (labels + inputs)
         // -------------------------
-        lblInitialTemperature.hide(!simulatedAnnealingSelected, true);
-        txtEditInitialTemperature.hide(!simulatedAnnealingSelected, true);
+        lblInitialTemperature.gui::Frame::hide(!simulatedAnnealingSelected);
+        txtEditInitialTemperature.gui::Frame::hide(!simulatedAnnealingSelected);
 
-        lblCoolingRateAlpha.hide(!simulatedAnnealingSelected, true);
-        sliderCoolingRateAlpha.hide(!simulatedAnnealingSelected, true);
+        lblCoolingRateAlpha.gui::Frame::hide(!simulatedAnnealingSelected);
+        sliderCoolingRateAlpha.gui::Frame::hide(!simulatedAnnealingSelected);
 
-        lblIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, true);
-        txtEditIterationsPerTemperatureLevel.hide(!simulatedAnnealingSelected, true);
+        lblIterationsPerTemperatureLevel.gui::Frame::hide(!simulatedAnnealingSelected);
+        txtEditIterationsPerTemperatureLevel.gui::Frame::hide(!simulatedAnnealingSelected);
 
-        cmbSAInitialSolution.hide(!simulatedAnnealingSelected, true);
+        cmbSAInitialSolution.gui::Frame::hide(!simulatedAnnealingSelected);
 
         // -------------------------
         // GA (labels + inputs)
         // -------------------------
-        lblPopulationSize.hide(!geneticAlgorithmSelected, true);
-        txtEditPopulationSize.hide(!geneticAlgorithmSelected, true);
+        lblPopulationSize.gui::Frame::hide(!geneticAlgorithmSelected);
+        txtEditPopulationSize.gui::Frame::hide(!geneticAlgorithmSelected);
 
-        lblNumberOfGenerations.hide(!geneticAlgorithmSelected, true);
-        txtEditNumberOfGenerations.hide(!geneticAlgorithmSelected, true);
+        lblNumberOfGenerations.gui::Frame::hide(!geneticAlgorithmSelected);
+        txtEditNumberOfGenerations.gui::Frame::hide(!geneticAlgorithmSelected);
 
-        lblMutationRate.hide(!geneticAlgorithmSelected, true);
-        txtEditMutationRate.hide(!geneticAlgorithmSelected, true);
+        lblMutationRate.gui::Frame::hide(!geneticAlgorithmSelected);
+        txtEditMutationRate.gui::Frame::hide(!geneticAlgorithmSelected);
 
-        lblCrossoverRate.hide(!geneticAlgorithmSelected, true);
-        txtEditCrossoverRate.hide(!geneticAlgorithmSelected, true);
+        lblCrossoverRate.gui::Frame::hide(!geneticAlgorithmSelected);
+        txtEditCrossoverRate.gui::Frame::hide(!geneticAlgorithmSelected);
 
-        cmbSelectionMethod.hide(!geneticAlgorithmSelected, true);
-        cmbMutationCrossoverOperator.hide(!geneticAlgorithmSelected, true);
+        cmbSelectionMethod.gui::Frame::hide(!geneticAlgorithmSelected);
+        cmbMutationCrossoverOperator.gui::Frame::hide(!geneticAlgorithmSelected);
 
-        lblElitismPercentage.hide(!geneticAlgorithmSelected, true);
-        txtEditElitismPercentage.hide(!geneticAlgorithmSelected, true);
+        lblElitismPercentage.gui::Frame::hide(!geneticAlgorithmSelected);
+        txtEditElitismPercentage.gui::Frame::hide(!geneticAlgorithmSelected);
 
-        btnRandomizeParameters.hide(!geneticAlgorithmSelected, true);
+        btnRandomizeParameters.gui::Frame::hide(!geneticAlgorithmSelected);
 
 
         reDraw();

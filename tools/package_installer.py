@@ -24,12 +24,16 @@ subprocess.run([sys.executable, str(root / 'tools/generate_icons.py')], check=Tr
 args.output = args.output.resolve()
 args.output.mkdir(parents=True, exist_ok=True)
 # Unique, retained staging folder makes failures inspectable and avoids deleting
-# another package/run. Neither SDK headers, binaries nor package XML are edited.
+# another package/run. SDK headers and binaries are not edited.
 stage = Path(tempfile.mkdtemp(prefix='obidji-jugu-package-'))
 source = stage / 'source'
 shutil.copytree(root / 'res', source / 'res')
 configs = stage / 'collectors'
 shutil.copytree(args.sdk / 'DevEnv/SetupCollectors', configs)
+# Match the Windows DLL list used by the reference project's installer.
+if sys.platform == 'win32':
+    shutil.copy2(root / 'packaging/GTK4.xml', configs / 'Packages/GTK4.xml')
+    shutil.copy2(root / 'packaging/GTK4.xml', args.sdk / 'DevEnv/SetupCollectors/Packages/GTK4.xml')
 
 # The old development layout uses ~/Work; packaged resources resolve against
 # the actual SDK, on macOS/Linux as well as Windows.
