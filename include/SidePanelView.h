@@ -1,4 +1,5 @@
 #pragma once
+#include "NatIdCompatibility.h"
 #include <gui/View.h>
 #include <gui/Label.h>
 #include <gui/TextEdit.h>
@@ -266,7 +267,7 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
-    std::vector<std::string> _algorithmNames = {"Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm", "Benchmark (Exact <=10, NN + 2-opt >10)"};
+    std::vector<std::string> _algorithmNames = {"Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm", "Benchmark (Exact <=10, NN + 2-opt >10)", "Exact TSP (unlimited; Reset to cancel)"};
     DataRepository* _repo = nullptr;
     SolverCallback _solverCallback;
 

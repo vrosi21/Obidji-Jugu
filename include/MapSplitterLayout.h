@@ -90,6 +90,8 @@ public:
     {
     }
 
+    void setBenchmark(double cost, bool exact) { MapView::setBenchmark(cost, exact); }
+
     void setGeometry(const gui::Geometry& frame, const gui::Cell& cell) override
     {
         // The map is the LAST child laid out by natID's updateGeometry(). A

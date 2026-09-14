@@ -212,7 +212,7 @@ void MapView::onDraw(const gui::Rect& rect)
     const float naturalMapHeight = viewW * ORIGINAL_MAP_HEIGHT / ORIGINAL_MAP_WIDTH;
     const float naturalVerticalSpace = baseMapHeight - naturalMapHeight;
     _useCompactMapBands = naturalVerticalSpace >= 76.0f;
-    _topInfoBandHeight = (_useCompactMapBands && _solver) ? 92.0f : 0.0f;
+    _topInfoBandHeight = (_useCompactMapBands && _solver) ? 190.0f : 0.0f;
     _topInfoBandHeight = std::min(_topInfoBandHeight,
                                   std::max(0.0f, baseMapHeight - 80.0f));
 
@@ -960,6 +960,20 @@ void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string
             mapTop + margin, mapTop, std::max(mapTop, mapBottom - panelH));
     }
 
+    // Fit rows to the available header using additional columns when useful.
+    // Rectangle-based text rendering also ellipsizes unusually long values.
+    const int maxColumns = std::max(1, static_cast<int>((panelW - 2 * paddingX) / 220.0f));
+    int columns = 1;
+    int rows = static_cast<int>(lines.size());
+    while (columns < maxColumns && rows * lineH + 2 * paddingY > panelH) {
+        ++columns;
+        rows = (static_cast<int>(lines.size()) + columns - 1) / columns;
+    }
+    const float canvasBottom = static_cast<float>(_lastCanvasRect.bottom);
+    panelH = std::min(rows * lineH + 2 * paddingY,
+        std::max(1.0f, canvasBottom - panelY - 4.0f));
+    lineH = std::min(lineH, std::max(1.0f, (panelH - 2 * paddingY) / rows));
+    const float columnW = std::max(1.0f, (panelW - 2 * paddingX) / columns);
     gui::Rect bgRect(
         (gui::CoordType)panelX,
         (gui::CoordType)panelY,
@@ -971,14 +985,16 @@ void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string
     bgShape.createRect(bgRect);
     bgShape.drawFillAndWire(td::ColorID::WhiteSmoke, td::ColorID::Silver, 1.0f);
 
-    float textX = panelX + paddingX;
-    float textY = panelY + paddingY;
+    int item = 0;
     for (const auto& kv : lines) {
+        float textX = panelX + paddingX + (item / rows) * columnW;
+        float textY = panelY + paddingY + (item % rows) * lineH;
         std::string txt = kv.first + ":  " + kv.second;
         gui::DrawableString ds(txt.c_str());
-        gui::Point pos((gui::CoordType)textX, (gui::CoordType)textY);
-        ds.draw(pos, infoFont, td::ColorID::DarkSlateGray);
-        textY += lineH;
+        gui::Rect textRect(textX, textY, textX + std::max(1.0f, columnW - 4.0f),
+            std::min(textY + lineH, panelY + panelH));
+        ds.draw(textRect, infoFont, td::ColorID::DarkSlateGray);
+        ++item;
     }
 }
 void MapView::drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID color, float lineWidth, td::ColorID orderColor)

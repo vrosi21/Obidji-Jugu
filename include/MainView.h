@@ -1,4 +1,5 @@
 #pragma once
+#include "NatIdCompatibility.h"
 #include <gui/View.h>
 #include <gui/SplitterLayout.h>
 #include <gui/Timer.h>
@@ -431,6 +432,7 @@ private:
                     _sidePanel.getGAElitismPercentage());
                 break;
             case 3: _solver = std::make_unique<ExactTSPAlgorithm>(); break;
+            case 4: _solver = std::make_unique<ExactTSPAlgorithm>(); break;
             default: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;
         }
 
@@ -482,8 +484,8 @@ private:
         for (const auto& city : job->repo.cities())
             if (city.visitation_status == VisitationStatus::Start ||
                 city.visitation_status == VisitationStatus::Goal) ++required;
-        job->exact = required <= 10;
-        job->benchmarkSelected = _currentAlgorithmIdx == 3;
+        job->exact = required <= 10 || _currentAlgorithmIdx == 4;
+        job->benchmarkSelected = _currentAlgorithmIdx == 3 || _currentAlgorithmIdx == 4;
         job->solver = std::move(_solver);
         // The explicit benchmark selection follows the same size policy.
         if (_currentAlgorithmIdx == 3 && !job->exact)

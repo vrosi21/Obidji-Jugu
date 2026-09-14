@@ -1,4 +1,5 @@
 #pragma once
+#include "NatIdCompatibility.h"
 #include <gui/Canvas.h>
 #include <gui/Shape.h>
 #include <gui/Image.h>

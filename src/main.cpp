@@ -1,4 +1,5 @@
 // Main entry point for Obiđi Jugu application
+#include "NatIdCompatibility.h"
 #include "Application.h"
 #include <td/StringConverter.h>
 #include <gui/WinMain.h>
