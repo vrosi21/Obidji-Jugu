@@ -5,19 +5,23 @@
 #include <set>
 #include <sstream>
 #include <iomanip>
-#include <windows.h>
-#include <filesystem>
 #include "SimulatedAnnealingAlgorithm.h"
 #include "GeneticAlgorithmTSP.h"
 #include "NearestNeighborAlgorithm.h"
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <filesystem>
+#include <gui/Context.h>
+#include <gui/Transformation.h>
 
 
 namespace {
-    void dbg(const char* m) { OutputDebugStringA(m); }
     constexpr float SOLUTION_ANIM_INTERVAL_SEC = 0.05f;
     constexpr size_t SOLUTION_ANIM_SEGMENTS_PER_TICK = 1;
+    constexpr float RESIZE_FRAME_INTERVAL_SEC = 1.0f / 30.0f;
+    constexpr unsigned int RESIZE_STABLE_TICKS_REQUIRED = 4;
+    constexpr float RESIZE_SIZE_EPSILON = 0.75f;
 
 }
 
@@ -27,19 +31,67 @@ MapView::MapView()
     : gui::Canvas({ gui::InputDevice::Event::PrimaryClicks, gui::InputDevice::Event::SecondaryClicks })
     , _currentSize(ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT)
     , _solutionTimer(this, SOLUTION_ANIM_INTERVAL_SEC, false)
+    , _resizeFrameTimer(this, RESIZE_FRAME_INTERVAL_SEC, false)
 {
     enableResizeEvent(true);
-    loadBackground();
+    // Use Timer's direct callback API for resize activity. This avoids relying
+    // on timer-message routing through Canvas::onTimer, which is not consistent
+    // across the natID backends used by this project.
+    _resizeFrameTimer.onTimer([this]() {
+        handleResizeFrame();
+    });
+
+    const td::String mapPath = getResFileName(":exYuBoundaries");
+    _mapLoaded = _mapGeometry.load(std::filesystem::path(mapPath.c_str()));
+    if (_mapLoaded) {
+        buildVectorMapShapes();
+        buildStaticMapBitmap();
+    }
 }
-
-
 
 void MapView::setRepository(DataRepository* repo)
 {
     _repo = repo;
-    if (_repo) {
-        _repo->setOnDataChanged([this]() { reDraw(); });
+    buildRoadShape();
+}
+
+void MapView::buildRoadShape()
+{
+    _roadShape.reset();
+    if (!_repo) return;
+
+    const auto& cities = _repo->cities();
+    const auto& roads = _repo->roads();
+    auto roadShape = std::make_unique<gui::Shape>();
+    auto path = roadShape->createBezier(1.0f, td::LinePattern::Solid);
+    std::set<std::pair<int, int>> drawn;
+    bool hasRoad = false;
+    for (const auto& road : roads) {
+        const int first = std::min(road.fromId, road.toId);
+        const int second = std::max(road.fromId, road.toId);
+        if (!drawn.insert({ first, second }).second) continue;
+        if (first < 0 || second < 0 ||
+            first >= static_cast<int>(cities.size()) ||
+            second >= static_cast<int>(cities.size())) continue;
+
+        const auto firstCenter = MapPointStyle::getCenter(cities[first].x, cities[first].y);
+        const auto secondCenter = MapPointStyle::getCenter(cities[second].x, cities[second].y);
+        path.moveTo({ static_cast<gui::CoordType>(firstCenter.first),
+                      static_cast<gui::CoordType>(firstCenter.second) });
+        path.lineTo({ static_cast<gui::CoordType>(secondCenter.first),
+                      static_cast<gui::CoordType>(secondCenter.second) });
+        hasRoad = true;
     }
+    if (hasRoad) _roadShape = std::move(roadShape);
+}
+
+void MapView::refreshData()
+{
+    buildRoadShape();
+    // Repository mutations (including right-click connection toggles) are
+    // interactive and must be visible immediately, even if a resize preview
+    // happened just before the click.
+    reDraw();
 }
 
 void MapView::setSolver(SearchAlgorithm* solver)
@@ -51,12 +103,58 @@ void MapView::setSolver(SearchAlgorithm* solver)
 
 void MapView::onResize(const gui::Size& newSize)
 {
+    // Ignore duplicate and sub-pixel layout noise. A few natID backends can
+    // repeatedly alternate fractional dimensions during an otherwise idle
+    // layout, which must not be interpreted as continuous user resizing.
+    const float widthDelta = std::abs(
+        static_cast<float>(newSize.width - _currentSize.width));
+    const float heightDelta = std::abs(
+        static_cast<float>(newSize.height - _currentSize.height));
+    if (widthDelta <= RESIZE_SIZE_EPSILON &&
+        heightDelta <= RESIZE_SIZE_EPSILON) return;
+
     _currentSize = newSize;
+    _isResizing = true;
+    _resizeRedrawPending = true;
+    _resizeStableTicks = 0;
+
+    // The timer redraws at most once per frame while sizes arrive and declares
+    // resize complete only after several ticks without a new accepted size.
+    if (!_resizeFrameTimer.isRunning()) _resizeFrameTimer.start();
+}
+
+void MapView::handleResizeFrame()
+{
+    if (!_isResizing) {
+        _resizeFrameTimer.stop();
+        return;
+    }
+
+    if (_resizeRedrawPending) {
+        _resizeRedrawPending = false;
+        _resizeStableTicks = 0;
+        reDraw();
+    } else {
+        ++_resizeStableTicks;
+        if (_resizeStableTicks >= RESIZE_STABLE_TICKS_REQUIRED) {
+            _resizeFrameTimer.stop();
+            _resizeStableTicks = 0;
+            _isResizing = false;
+            reDraw(); // final full vector frame with all live layers
+            return;
+        }
+    }
+
+    // natID Timer remains active until stop(); the direct callback above keeps
+    // observing stable frames without restarting or resetting its interval.
 }
 
 void MapView::onPrimaryButtonPressed(const gui::InputDevice& inputDevice)
 {
-    int idx = hitTestCity(inputDevice.getFramePoint());
+    const gui::Point& point = inputDevice.getFramePoint();
+    if (handleDisplayOptionClick(point)) return;
+
+    int idx = hitTestCity(point);
     if (idx >= 0 && _onPrimaryCityClick) {
         _onPrimaryCityClick(idx);
     }
@@ -97,14 +195,39 @@ int MapView::hitTestCity(const gui::Point& p) const
 
 void MapView::onDraw(const gui::Rect& rect)
 {
-    // Compute uniform scale and offsets to preserve proportions and center the map
+    _lastCanvasRect = rect;
+
+    // Keep a small options band available at every splitter position. Very
+    // narrow cells use two rows so the controls remain readable and clickable.
     float viewW = static_cast<float>(rect.right - rect.left);
     float viewH = static_cast<float>(rect.bottom - rect.top);
-    float scaleX = viewW / ORIGINAL_MAP_WIDTH;
-    float scaleY = viewH / ORIGINAL_MAP_HEIGHT;
-    float scale = std::min(scaleX, scaleY);
-    float offsetX = rect.left + (viewW - ORIGINAL_MAP_WIDTH * scale) / 2.0f;
-    float offsetY = rect.top + (viewH - ORIGINAL_MAP_HEIGHT * scale) / 2.0f;
+    _bottomOptionsBandHeight = (viewW < 300.0f) ? 62.0f : 40.0f;
+    _bottomOptionsBandHeight = std::min(_bottomOptionsBandHeight,
+                                        std::max(24.0f, viewH * 0.20f));
+
+    // If width is the limiting dimension and there is enough vertical
+    // letterbox space, move the algorithm card into a dedicated full-width
+    // header instead of covering the map.
+    const float baseMapHeight = std::max(1.0f, viewH - _bottomOptionsBandHeight);
+    const float naturalMapHeight = viewW * ORIGINAL_MAP_HEIGHT / ORIGINAL_MAP_WIDTH;
+    const float naturalVerticalSpace = baseMapHeight - naturalMapHeight;
+    _useCompactMapBands = naturalVerticalSpace >= 76.0f;
+    _topInfoBandHeight = (_useCompactMapBands && _solver) ? 190.0f : 0.0f;
+    _topInfoBandHeight = std::min(_topInfoBandHeight,
+                                  std::max(0.0f, baseMapHeight - 80.0f));
+
+    const float mapAreaTop = static_cast<float>(rect.top) + _topInfoBandHeight;
+    const float mapAreaH = std::max(
+        1.0f, viewH - _topInfoBandHeight - _bottomOptionsBandHeight);
+
+    // Fit the logical map into the remaining area without stretching it.
+    float scale  = std::min(viewW / ORIGINAL_MAP_WIDTH,
+                            mapAreaH / ORIGINAL_MAP_HEIGHT);
+    float mapW   = ORIGINAL_MAP_WIDTH * scale;
+    float mapH   = ORIGINAL_MAP_HEIGHT * scale;
+
+    float offsetX = rect.left + std::max(0.0f, (viewW - mapW) / 2.0f);
+    float offsetY = mapAreaTop + std::max(0.0f, (mapAreaH - mapH) / 2.0f);
 
     // store for other methods
     _scaleX = scale;
@@ -112,63 +235,319 @@ void MapView::onDraw(const gui::Rect& rect)
     _offsetX = offsetX;
     _offsetY = offsetY;
 
-    // Draw background - scaled and centered
-    if (_bgLoaded && _bgImage.isOK()) {
-        gui::Rect imgRect(static_cast<gui::CoordType>(offsetX), static_cast<gui::CoordType>(offsetY),
-                          static_cast<gui::CoordType>(offsetX + ORIGINAL_MAP_WIDTH * scale),
-                          static_cast<gui::CoordType>(offsetY + ORIGINAL_MAP_HEIGHT * scale));
-        _bgImage.draw(imgRect, gui::Image::AspectRatio::No);
+    if (!_showMapGeometry) {
+        // Map-off mode intentionally leaves only the road graph and cities.
+        gui::Shape::drawRect(rect, td::ColorID::LightBlue);
+    } else if (_isResizing && _staticMapBitmap && _staticMapBitmap->isOK()) {
+        drawResizePreview(rect);
     } else {
-        gui::Shape bg;
-        bg.createRect(rect);
-        bg.drawFillAndWire(td::ColorID::White, td::ColorID::Black, 0.0f);
+        drawVectorMap(rect);
     }
 
     if (!_repo) return;
 
     const auto& cities = _repo->cities();
-    const auto& roads = _repo->roads();
-
-    // Draw connection lines first (under cities) - scaled
-    float avgScale = _scaleX; // uniform scale
-    float scaledLineWidth = 1.0f * avgScale;
-    if (scaledLineWidth < 0.5f) scaledLineWidth = 0.5f;
-
-    gui::Shape bezierShape;
-    auto bezier = bezierShape.createBezier(scaledLineWidth, td::LinePattern::Solid);
-    std::set<std::pair<int, int>> drawn;
-    
-    for (const auto& e : roads) {
-        int a = std::min(e.fromId, e.toId);
-        int b = std::max(e.fromId, e.toId);
-        if (drawn.insert({ a, b }).second) {
-            if (a >= 0 && b >= 0 && a < static_cast<int>(cities.size()) && b < static_cast<int>(cities.size())) {
-                auto c1 = MapPointStyle::getScaledCenter(cities[a].x, cities[a].y, _scaleX, _offsetX, _offsetY);
-                auto c2 = MapPointStyle::getScaledCenter(cities[b].x, cities[b].y, _scaleX, _offsetX, _offsetY);
-                bezier.moveTo({ static_cast<gui::CoordType>(c1.first), static_cast<gui::CoordType>(c1.second) });
-                bezier.lineTo({ static_cast<gui::CoordType>(c2.first), static_cast<gui::CoordType>(c2.second) });
-            }
-        }
+    // The road network is also a persistent logical-coordinate shape. Resize
+    // events transform it in-place instead of rebuilding every segment.
+    if (_roadShape) {
+        gui::Context context;
+        gui::Transformation transform;
+        transform.translate(static_cast<gui::CoordType>(_offsetX),
+                            static_cast<gui::CoordType>(_offsetY));
+        transform.scale(static_cast<gui::CoordType>(_scaleX));
+        transform.appendToContext();
+        const float logicalLineWidth = std::max(1.0f, 0.5f / std::max(_scaleX, 0.01f));
+        _roadShape->drawWire(td::ColorID::Black, logicalLineWidth);
     }
-    bezierShape.drawWire(td::ColorID::Black);
 
-    // Draw algorithm visualization (path, if found)
-    if (_solver) {
+    // Expensive live visualization is skipped only during an actively detected
+    // resize and restored by the final stable-frame redraw.
+    if (!_isResizing && _solver) {
         drawAlgorithmState();
     }
 
     // Draw warning if not all goals are reachable
     std::string unreachableMsg;
-    if (getUnreachableGoalsMessage(unreachableMsg)) {
+    if (!_isResizing && getUnreachableGoalsMessage(unreachableMsg)) {
         gui::DrawableString msg(unreachableMsg.c_str());
         gui::Point pos(static_cast<gui::CoordType>(_offsetX + 10.0f), static_cast<gui::CoordType>(_offsetY + 20.0f));
         msg.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::Red);
     }
 
     // Draw cities on top using scaled MapPointRenderer
-    for (const auto& city : cities) {
-        MapPointRenderer::drawScaled(city, _scaleX, _offsetX, _offsetY);
+    for (size_t i = 0; i < cities.size(); ++i) {
+        const auto& city = cities[i];
+        // Markers remain useful during resize; text is restored only on the
+        // final stable frame to keep interactive window movement inexpensive.
+        MapPointRenderer::drawScaled(city, _scaleX, _offsetX, _offsetY,
+                                     !_isResizing && _showCityNames);
     }
+
+    drawDisplayOptions(rect);
+}
+
+bool MapView::handleDisplayOptionClick(const gui::Point& point)
+{
+    if (_cityNamesToggleRect.contains(point)) {
+        _showCityNames = !_showCityNames;
+        reDraw();
+        return true;
+    }
+    if (_mapToggleRect.contains(point)) {
+        _showMapGeometry = !_showMapGeometry;
+        reDraw();
+        return true;
+    }
+    return false;
+}
+
+void MapView::drawDisplayOptions(const gui::Rect& canvasRect)
+{
+    const float left = static_cast<float>(canvasRect.left);
+    const float right = static_cast<float>(canvasRect.right);
+    const float bottom = static_cast<float>(canvasRect.bottom);
+    const float top = std::max(static_cast<float>(canvasRect.top),
+                               bottom - _bottomOptionsBandHeight);
+    const float width = std::max(1.0f, right - left);
+
+    gui::Rect barRect(left, top, right, bottom);
+    gui::Shape::drawRect(barRect, td::ColorID::WhiteSmoke,
+                         td::ColorID::Silver, 1.0f);
+
+    auto drawToggle = [](float x, float y, const char* text, bool checked,
+                         float hitWidth, gui::Rect& hitRect) {
+        constexpr float boxSize = 15.0f;
+        gui::Rect boxRect(x, y, x + boxSize, y + boxSize);
+        gui::Shape::drawRect(boxRect,
+                             checked ? td::ColorID::DodgerBlue : td::ColorID::White,
+                             td::ColorID::DarkSlateGray, 1.0f);
+
+        if (checked) {
+            gui::Shape tickShape;
+            auto tick = tickShape.createBezier(2.0f, td::LinePattern::Solid);
+            tick.moveTo({ static_cast<gui::CoordType>(x + 3.0f),
+                          static_cast<gui::CoordType>(y + 8.0f) });
+            tick.lineTo({ static_cast<gui::CoordType>(x + 6.5f),
+                          static_cast<gui::CoordType>(y + 11.5f) });
+            tick.lineTo({ static_cast<gui::CoordType>(x + 12.5f),
+                          static_cast<gui::CoordType>(y + 3.5f) });
+            tickShape.drawWire(td::ColorID::White);
+        }
+
+        gui::DrawableString label(text);
+        label.draw({ static_cast<gui::CoordType>(x + boxSize + 6.0f),
+                     static_cast<gui::CoordType>(y - 1.0f) },
+                   gui::Font::ID::SystemSmaller, td::ColorID::DarkSlateGray);
+
+        hitRect = gui::Rect(x - 4.0f, y - 5.0f,
+                            x + hitWidth, y + boxSize + 5.0f);
+    };
+
+    const float x = left + 10.0f;
+    if (width < 300.0f) {
+        drawToggle(x, top + 8.0f, tr("City names").c_str(), _showCityNames,
+                   std::max(1.0f, width - 16.0f), _cityNamesToggleRect);
+        drawToggle(x, top + 35.0f, tr("Map").c_str(), _showMapGeometry,
+                   std::max(1.0f, width - 16.0f), _mapToggleRect);
+    } else {
+        drawToggle(x, top + 12.0f, tr("City names").c_str(), _showCityNames,
+                   122.0f, _cityNamesToggleRect);
+        drawToggle(x + 135.0f, top + 12.0f, tr("Map").c_str(), _showMapGeometry,
+                   78.0f, _mapToggleRect);
+    }
+}
+
+void MapView::buildVectorMapShapes()
+{
+    _landShapes.clear();
+    _borderShape.reset();
+    _seaMaskShape.reset();
+    _islandShapes.clear();
+    _coastlineShape.reset();
+    if (!_mapLoaded || _mapGeometry.empty()) return;
+
+    constexpr float logicalLineWidth = 1.15f;
+    auto toPoint = [](const MapCoordinate& point) {
+        return gui::Point(static_cast<gui::CoordType>(point.x),
+                          static_cast<gui::CoordType>(point.y));
+    };
+
+    // Filled country polygons are static and can be compiled once by natID.
+    for (const auto& country : _mapGeometry.countries()) {
+        for (const auto& polygon : country.polygons) {
+            for (const auto& ring : polygon.rings) {
+                if (ring.isHole || ring.points.size() < 3) continue;
+                std::vector<gui::Point> points;
+                points.reserve(ring.points.size());
+                for (const auto& point : ring.points) points.push_back(toPoint(point));
+                auto land = std::make_unique<gui::Shape>();
+                land->createPolygon(points.data(), points.size(), logicalLineWidth);
+                _landShapes.push_back(std::move(land));
+            }
+        }
+    }
+
+    // Country relations contain the same shared edge in both directions. Build
+    // one persistent border path and keep each undirected segment only once.
+    using PointKey = std::pair<int, int>;
+    using EdgeKey = std::pair<PointKey, PointKey>;
+    auto pointKey = [](const MapCoordinate& point) -> PointKey {
+        return { static_cast<int>(std::lround(point.x * 1000.0f)),
+                 static_cast<int>(std::lround(point.y * 1000.0f)) };
+    };
+    std::set<EdgeKey> uniqueEdges;
+    _borderShape = std::make_unique<gui::Shape>();
+    auto borderPath = _borderShape->createBezier(logicalLineWidth, td::LinePattern::Solid);
+    bool hasBorder = false;
+    for (const auto& country : _mapGeometry.countries()) {
+        for (const auto& polygon : country.polygons) {
+            for (const auto& ring : polygon.rings) {
+                if (ring.points.size() < 2) continue;
+                for (size_t i = 1; i < ring.points.size(); ++i) {
+                    const auto& start = ring.points[i - 1];
+                    const auto& end = ring.points[i];
+                    auto startKey = pointKey(start);
+                    auto endKey = pointKey(end);
+                    if (endKey < startKey) std::swap(startKey, endKey);
+                    if (!uniqueEdges.insert({ startKey, endKey }).second) continue;
+                    borderPath.moveTo(toPoint(start));
+                    borderPath.lineTo(toPoint(end));
+                    hasBorder = true;
+                }
+            }
+        }
+    }
+    if (!hasBorder) _borderShape.reset();
+
+    const MapCoastline* mainlandCoast = nullptr;
+    for (const auto& coastline : _mapGeometry.coastlines()) {
+        if (!coastline.closed && (!mainlandCoast || coastline.points.size() > mainlandCoast->points.size())) {
+            mainlandCoast = &coastline;
+        }
+    }
+    if (mainlandCoast && mainlandCoast->points.size() >= 2) {
+        std::vector<gui::Point> points;
+        points.reserve(mainlandCoast->points.size() + 4);
+        for (const auto& point : mainlandCoast->points) points.push_back(toPoint(point));
+        const auto& start = mainlandCoast->points.front();
+        const auto& end = mainlandCoast->points.back();
+        points.emplace_back(static_cast<gui::CoordType>(end.x), ORIGINAL_MAP_HEIGHT);
+        points.emplace_back(0.0f, ORIGINAL_MAP_HEIGHT);
+        points.emplace_back(0.0f, 0.0f);
+        points.emplace_back(static_cast<gui::CoordType>(start.x), 0.0f);
+        _seaMaskShape = std::make_unique<gui::Shape>();
+        _seaMaskShape->createPolygon(points.data(), points.size(), 0.0f);
+    }
+
+    for (const auto& coastline : _mapGeometry.coastlines()) {
+        if (!coastline.closed || coastline.points.size() < 3) continue;
+        std::vector<gui::Point> points;
+        points.reserve(coastline.points.size());
+        for (const auto& point : coastline.points) points.push_back(toPoint(point));
+        auto island = std::make_unique<gui::Shape>();
+        island->createPolygon(points.data(), points.size(), logicalLineWidth);
+        _islandShapes.push_back(std::move(island));
+    }
+
+    _coastlineShape = std::make_unique<gui::Shape>();
+    auto coastlinePath = _coastlineShape->createBezier(logicalLineWidth, td::LinePattern::Solid);
+    bool hasCoastline = false;
+    for (const auto& coastline : _mapGeometry.coastlines()) {
+        if (coastline.points.size() < 2) continue;
+        coastlinePath.moveTo(toPoint(coastline.points.front()));
+        for (size_t i = 1; i < coastline.points.size(); ++i) {
+            coastlinePath.lineTo(toPoint(coastline.points[i]),
+                                 coastline.closed && i + 1 == coastline.points.size());
+        }
+        hasCoastline = true;
+    }
+    if (!hasCoastline) _coastlineShape.reset();
+}
+
+void MapView::drawPreparedLandShapes(float logicalLineWidth) const
+{
+    for (const auto& land : _landShapes) land->drawFill(td::ColorID::WhiteSmoke);
+    if (_borderShape) _borderShape->drawWire(td::ColorID::DarkSlateGray, logicalLineWidth);
+}
+
+void MapView::drawPreparedCoastShapes(float logicalLineWidth) const
+{
+    if (_seaMaskShape) _seaMaskShape->drawFill(td::ColorID::LightBlue);
+    for (const auto& island : _islandShapes) island->drawFill(td::ColorID::WhiteSmoke);
+    if (_coastlineShape) _coastlineShape->drawWire(td::ColorID::DarkSlateGray, logicalLineWidth);
+}
+
+void MapView::buildStaticMapBitmap()
+{
+    _staticMapBitmap.reset();
+    if (!_mapLoaded || _mapGeometry.empty() || _landShapes.empty()) return;
+
+    auto bitmap = std::make_unique<gui::Image>(
+        gui::Size(static_cast<gui::CoordType>(ORIGINAL_MAP_WIDTH),
+                  static_cast<gui::CoordType>(ORIGINAL_MAP_HEIGHT)));
+    if (!bitmap->isOK()) return;
+
+    bitmap->startDrawingContext(true, td::ColorID::LightBlue);
+    // natID's off-screen backend resolves a large LightBlue polygon differently
+    // from the display backend. Cache only the expensive land/border layer;
+    // the small coastline overlay is drawn live with the correct display color.
+    drawPreparedLandShapes(1.15f);
+    bitmap->releaseDrawingContext();
+    _staticMapBitmap = std::move(bitmap);
+}
+
+void MapView::drawResizePreview(const gui::Rect& canvasRect) const
+{
+    gui::Shape::drawRect(canvasRect, td::ColorID::LightBlue);
+    if (!_staticMapBitmap || !_staticMapBitmap->isOK()) {
+        drawVectorMap(canvasRect);
+        return;
+    }
+
+    gui::Rect mapRect(
+        static_cast<gui::CoordType>(_offsetX),
+        static_cast<gui::CoordType>(_offsetY),
+        static_cast<gui::CoordType>(_offsetX + ORIGINAL_MAP_WIDTH * _scaleX),
+        static_cast<gui::CoordType>(_offsetY + ORIGINAL_MAP_HEIGHT * _scaleY));
+    // The target rectangle has the same 1000:866 aspect as the bitmap.
+    _staticMapBitmap->draw(mapRect, gui::Image::AspectRatio::No);
+
+    gui::Context context;
+    gui::Transformation transform;
+    transform.translate(static_cast<gui::CoordType>(_offsetX),
+                        static_cast<gui::CoordType>(_offsetY));
+    transform.scale(static_cast<gui::CoordType>(_scaleX));
+    transform.appendToContext();
+    const float logicalLineWidth = std::max(1.15f, 0.65f / std::max(_scaleX, 0.01f));
+    drawPreparedCoastShapes(logicalLineWidth);
+}
+
+void MapView::drawVectorMap(const gui::Rect& canvasRect) const
+{
+    gui::Shape::drawRect(canvasRect, td::ColorID::LightBlue);
+
+    if (!_mapLoaded || _mapGeometry.empty() || _landShapes.empty()) {
+        gui::Rect mapRect(
+            static_cast<gui::CoordType>(_offsetX),
+            static_cast<gui::CoordType>(_offsetY),
+            static_cast<gui::CoordType>(_offsetX + ORIGINAL_MAP_WIDTH * _scaleX),
+            static_cast<gui::CoordType>(_offsetY + ORIGINAL_MAP_HEIGHT * _scaleY));
+        gui::Shape::drawRect(mapRect, td::ColorID::WhiteSmoke,
+                            td::ColorID::DarkSlateGray, 1.0f);
+        return;
+    }
+
+    gui::Context context;
+    gui::Transformation transform;
+    transform.translate(static_cast<gui::CoordType>(_offsetX),
+                        static_cast<gui::CoordType>(_offsetY));
+    transform.scale(static_cast<gui::CoordType>(_scaleX));
+    transform.appendToContext();
+
+    // Compensate for very small windows so the transformed stroke stays visible.
+    const float logicalLineWidth = std::max(1.15f, 0.65f / std::max(_scaleX, 0.01f));
+    drawPreparedLandShapes(logicalLineWidth);
+    drawPreparedCoastShapes(logicalLineWidth);
 }
 
 bool MapView::getUnreachableGoalsMessage(std::string& outMessage) const
@@ -232,51 +611,6 @@ bool MapView::getUnreachableGoalsMessage(std::string& outMessage) const
     }
     outMessage = joined.str();
     return true;
-}
-
-void MapView::loadBackground()
-{
-    if (_bgLoaded) return;
-    namespace fs = std::filesystem;
-
-    static const char* candidates[] = {
-        "res/assets/yugoslavia.png",
-        "./res/assets/yugoslavia.png",
-        "../res/assets/yugoslavia.png"
-    };
-
-    auto exists = [](const fs::path& p) { 
-        try { return fs::exists(p); } 
-        catch (...) { return false; } 
-    };
-
-    fs::path cwd;
-    try { cwd = fs::current_path(); }
-    catch (...) { cwd = fs::path("."); }
-
-    char exeBuf[MAX_PATH] = { 0 };
-    GetModuleFileNameA(nullptr, exeBuf, MAX_PATH);
-    fs::path exeDir = fs::path(exeBuf).parent_path();
-
-    std::string toLoad;
-    for (auto c : candidates) {
-        fs::path p = cwd / c;
-        if (exists(p)) { toLoad = p.string(); break; }
-    }
-    if (toLoad.empty()) {
-        for (auto c : candidates) {
-            fs::path p = exeDir / c;
-            if (exists(p)) { toLoad = p.string(); break; }
-        }
-    }
-
-    if (!toLoad.empty()) {
-        _bgImage.load(toLoad.c_str());
-        _bgLoaded = _bgImage.isOK();
-        dbg(_bgLoaded ? "[MapView] Background loaded\n" : "[MapView] Failed to load background\n");
-    } else {
-        dbg("[MapView] Background image not found\n");
-    }
 }
 
 void MapView::drawAlgorithmState()
@@ -417,8 +751,20 @@ void MapView::drawTSPState()
 
     const auto& currentTour = tspSolver->getTour();
     const auto& bestTour = tspSolver->getBestTour();
-    double currentLength = tspSolver->getTourLength();
-    double bestLength = tspSolver->getBestLength();
+    // Match the route table: unweighted distance along the expanded road route,
+    // including the return leg, rather than the solver's weighted objective.
+    const auto& distanceTour = bestTour.empty() ? currentTour : bestTour;
+    double totalDistance = 0.0;
+    for (size_t i = 0; i < distanceTour.size(); ++i) {
+        std::vector<int> leg;
+        if (!_repo->getShortestRoadPath(distanceTour[i],
+                distanceTour[(i + 1) % distanceTour.size()], leg)) {
+            totalDistance = std::numeric_limits<double>::infinity();
+            break;
+        }
+        for (size_t j = 1; j < leg.size(); ++j)
+            totalDistance += _repo->getMetricDistance(leg[j - 1], leg[j]);
+    }
 
     // --- Determine algorithm type for specialised rendering ---
     auto* nn = dynamic_cast<NearestNeighborAlgorithm*>(tspSolver);
@@ -505,19 +851,17 @@ void MapView::drawTSPState()
     if (ga) {
         infoLines.push_back({"Algorithm", "Genetic Algorithm"});
         infoLines.push_back({"Generation", std::to_string(ga->getGeneration()) + " / " + std::to_string(ga->getMaxGenerations())});
-        infoLines.push_back({"Best cost", fmtCost(bestLength)});
-        infoLines.push_back({"Current cost", fmtCost(currentLength)});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
     } else if (sa) {
         infoLines.push_back({"Algorithm", "Simulated Annealing"});
         infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
         std::ostringstream ts; ts << std::fixed << std::setprecision(2) << sa->getTemperature();
         infoLines.push_back({"Temperature", ts.str()});
-        infoLines.push_back({"Best cost", fmtCost(bestLength)});
-        infoLines.push_back({"Current cost", fmtCost(currentLength)});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
     } else if (nn) {
         infoLines.push_back({"Algorithm", "Nearest Neighbor"});
         infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
-        infoLines.push_back({"Tour cost", fmtCost(currentLength)});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
         if (nn->is2OptEnabled()) {
             if (nn->isIn2OptPhase()) {
                 infoLines.push_back({"2-opt", "improving (" + std::to_string(nn->getRemaining2OptCycles()) + " left)"});
@@ -526,10 +870,20 @@ void MapView::drawTSPState()
             }
         }
     } else {
-        infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
-        infoLines.push_back({"Cost", fmtCost(currentLength)});
+        infoLines.push_back({"Algorithm", tspSolver->getName()});
+        infoLines.push_back({"Status", tspSolver->isComplete() ? "Optimal" : "Searching"});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
     }
 
+    const double solutionCost = tspSolver->getBestTour().empty()
+        ? tspSolver->getTourLength() : tspSolver->getBestLength();
+    infoLines.push_back({"Total cost", fmtCost(solutionCost)});
+    infoLines.push_back({"Benchmark", !_hasExactMinimum ? "Pending"
+        : (_benchmarkExact ? "Exact TSP (proven)" : "NN + 2-opt (heuristic)")});
+    infoLines.push_back({_benchmarkExact ? "True minimum cost" : "Benchmark cost", _hasExactMinimum
+        ? fmtCost(_exactMinimum) : "Computing"});
+    infoLines.push_back({"Delta cost", _hasExactMinimum && tspSolver->isComplete()
+        ? fmtCost(solutionCost - _exactMinimum) : "--"});
     drawInfoPanel(infoLines, PanelSide::Right);
 }
 
@@ -538,20 +892,88 @@ void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string
 {
     if (lines.empty()) return;
 
-    float margin = 8.0f;
+    const float mapLeft = _offsetX;
+    const float mapRight = _offsetX + ORIGINAL_MAP_WIDTH * _scaleX;
+    const float mapTop = _offsetY;
+    const float mapBottom = _offsetY + ORIGINAL_MAP_HEIGHT * _scaleY;
+    const float mapWidth = std::max(1.0f, mapRight - mapLeft);
+    const float mapHeight = std::max(1.0f, mapBottom - mapTop);
+
+    gui::Font::ID infoFont = gui::Font::ID::SystemNormal;
     float lineH = 18.0f;
-    float panelW = 260.0f;
-    float panelH = lineH * static_cast<float>(lines.size()) + 12.0f;
+    if (mapWidth < 650.0f) {
+        infoFont = gui::Font::ID::SystemSmallest;
+        lineH = 13.0f;
+    } else if (mapWidth < 900.0f) {
+        infoFont = gui::Font::ID::SystemSmaller;
+        lineH = 15.0f;
+    }
 
-    float mapLeft = _offsetX;
-    float mapRight = _offsetX + ORIGINAL_MAP_WIDTH * _scaleX;
+    float panelX = 0.0f;
+    float panelY = 0.0f;
+    float panelW = 0.0f;
+    float panelH = 0.0f;
+    float paddingX = 0.0f;
+    float paddingY = 0.0f;
 
-    float panelX = (side == PanelSide::Left)
-        ? (mapLeft + margin)
-        : (mapRight - panelW - margin);
+    const bool useFullWidthHeader =
+        side == PanelSide::Right && _useCompactMapBands && _topInfoBandHeight >= 50.0f;
 
-    float panelY = _offsetY + margin;
+    if (useFullWidthHeader) {
+        // In a narrow splitter cell the map is width-limited, leaving useful
+        // vertical space. Put the main algorithm card in that top band and
+        // use the full cell width instead of covering the map.
+        const float canvasLeft = static_cast<float>(_lastCanvasRect.left);
+        const float canvasRight = static_cast<float>(_lastCanvasRect.right);
+        const float canvasTop = static_cast<float>(_lastCanvasRect.top);
+        const float canvasWidth = std::max(1.0f, canvasRight - canvasLeft);
+        const float margin = std::clamp(canvasWidth * 0.015f, 4.0f, 8.0f);
 
+        panelX = canvasLeft + margin;
+        panelY = canvasTop + margin;
+        panelW = std::max(1.0f, canvasWidth - 2.0f * margin);
+        paddingX = std::clamp(panelW * 0.025f, 5.0f, 10.0f);
+        paddingY = 5.0f;
+        const float wantedPanelH =
+            lineH * static_cast<float>(lines.size()) + 2.0f * paddingY;
+        panelH = std::min(wantedPanelH,
+                          std::max(1.0f, _topInfoBandHeight - 2.0f * margin));
+    } else {
+        // Normal/wide mode keeps the compact overlay inside the map.
+        const float margin = std::clamp(mapWidth * 0.012f, 4.0f, 12.0f);
+        const float maxPanelW = std::max(1.0f, mapWidth - 2.0f * margin);
+        panelW = std::min(
+            std::clamp(mapWidth * 0.27f, 150.0f, 280.0f), maxPanelW);
+        paddingX = std::clamp(panelW * 0.03f, 4.0f, 8.0f);
+        paddingY = std::clamp(panelW * 0.02f, 3.0f, 6.0f);
+        const float wantedPanelH =
+            lineH * static_cast<float>(lines.size()) + 2.0f * paddingY;
+        panelH = std::min(
+            wantedPanelH, std::max(1.0f, mapHeight - 2.0f * margin));
+
+        panelX = (side == PanelSide::Left)
+            ? (mapLeft + margin)
+            : (mapRight - panelW - margin);
+        panelX = std::clamp(panelX, mapLeft,
+                            std::max(mapLeft, mapRight - panelW));
+        panelY = std::clamp(
+            mapTop + margin, mapTop, std::max(mapTop, mapBottom - panelH));
+    }
+
+    // Fit rows to the available header using additional columns when useful.
+    // Rectangle-based text rendering also ellipsizes unusually long values.
+    const int maxColumns = std::max(1, static_cast<int>((panelW - 2 * paddingX) / 220.0f));
+    int columns = 1;
+    int rows = static_cast<int>(lines.size());
+    while (columns < maxColumns && rows * lineH + 2 * paddingY > panelH) {
+        ++columns;
+        rows = (static_cast<int>(lines.size()) + columns - 1) / columns;
+    }
+    const float canvasBottom = static_cast<float>(_lastCanvasRect.bottom);
+    panelH = std::min(rows * lineH + 2 * paddingY,
+        std::max(1.0f, canvasBottom - panelY - 4.0f));
+    lineH = std::min(lineH, std::max(1.0f, (panelH - 2 * paddingY) / rows));
+    const float columnW = std::max(1.0f, (panelW - 2 * paddingX) / columns);
     gui::Rect bgRect(
         (gui::CoordType)panelX,
         (gui::CoordType)panelY,
@@ -563,14 +985,16 @@ void MapView::drawInfoPanel(const std::vector<std::pair<std::string, std::string
     bgShape.createRect(bgRect);
     bgShape.drawFillAndWire(td::ColorID::WhiteSmoke, td::ColorID::Silver, 1.0f);
 
-    float textX = panelX + 8.0f;
-    float textY = panelY + 6.0f;
+    int item = 0;
     for (const auto& kv : lines) {
-        std::string txt = kv.first + ":  " + kv.second;
+        float textX = panelX + paddingX + (item / rows) * columnW;
+        float textY = panelY + paddingY + (item % rows) * lineH;
+        std::string txt = std::string(tr(kv.first.c_str()).c_str()) + ":  " + tr(kv.second.c_str()).c_str();
         gui::DrawableString ds(txt.c_str());
-        gui::Point pos((gui::CoordType)textX, (gui::CoordType)textY);
-        ds.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::DarkSlateGray);
-        textY += lineH;
+        gui::Rect textRect(textX, textY, textX + std::max(1.0f, columnW - 4.0f),
+            std::min(textY + lineH, panelY + panelH));
+        ds.draw(textRect, infoFont, td::ColorID::DarkSlateGray);
+        ++item;
     }
 }
 void MapView::drawTourWithVisitOrder(const std::vector<int>& tour, td::ColorID color, float lineWidth, td::ColorID orderColor)
@@ -656,7 +1080,7 @@ bool MapView::onTimer(gui::Timer* pTimer)
             _solutionTimer.stop();
         }
 
-        reDraw();
+        if (!_isResizing) reDraw();
         if (_solutionAnimating) _solutionTimer.start(); // one-shot timer -> restart
         return true;
     }
@@ -827,7 +1251,7 @@ void MapView::drawAnimatedSolution()
     // --- Progress label ---
     {
         int pct = static_cast<int>((100.0 * edgeCount) / maxEdges);
-        std::string progress = "Solution: " + std::to_string(pct) + "%";
+        std::string progress = std::string(tr("Solution").c_str()) + ": " + std::to_string(pct) + "%";
         gui::DrawableString ds(progress.c_str());
         gui::Point pos(static_cast<gui::CoordType>(_offsetX + 10.0f), static_cast<gui::CoordType>(_offsetY + 20.0f));
         ds.draw(pos, gui::Font::ID::SystemNormal, td::ColorID::ForestGreen);

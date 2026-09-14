@@ -7,8 +7,12 @@
 #include <queue>
 #include <utility>
 
-DataRepository::DataRepository()
+void DataRepository::init(const std::filesystem::path& sourceJsonPath)
 {
+    // Always load from the original source.
+    // Edits live only in memory for the current session;
+    // restarting the app reloads the pristine source data.
+    _jsonPath = sourceJsonPath;
     load();
     recomputeMetricClosure();
 }
@@ -17,14 +21,14 @@ DataRepository::DataRepository()
 
 void DataRepository::load()
 {
-    _jsonPath = JsonService::findJsonFile();
     JsonService::loadFromJson(_jsonPath, _cities, _roads, _roadsFull);
 }
 
 bool DataRepository::save()
 {
-    auto path = _jsonPath.empty() ? JsonService::findJsonFile() : _jsonPath;
-    return JsonService::saveToJson(path, _cities, _roadsFull);
+    // No-op: edits are session-only (in-memory).
+    // The source JSON is never overwritten.
+    return true;
 }
 
 int DataRepository::nextCityId() const

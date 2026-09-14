@@ -119,5 +119,34 @@
 		<Res id="Cooling rate - alpha" tr="Cooling rate - alpha"/>
 		<Res id="Simulated Annealing" tr="Simulated Annealing"/>
 		<Res id="Genetic Algorithm" tr="Genetic Algorithm"/>
+		<Res id="Simulation Setup" tr="Simulation Setup"/>
+		<Res id="Resolve" tr="Resolve"/>
+		<Res id="City" tr="City"/>
+		<Res id="Total distance" tr="Total distance"/>
+        <Res id="Replay" tr="Replay"/>
+        <Res id="Status: Unsolved" tr="Status: Unsolved"/>
+        <Res id="Status: Solved" tr="Status: Solved"/>
+        <Res id="Algorithm" tr="Algorithm"/>
+        <Res id="Generation" tr="Generation"/>
+        <Res id="Step" tr="Step"/>
+        <Res id="Temperature" tr="Temperature"/>
+        <Res id="Total cost" tr="Total cost"/>
+        <Res id="True minimum cost" tr="True minimum cost"/>
+        <Res id="Delta cost" tr="Delta cost"/>
+        <Res id="Benchmark" tr="Benchmark"/>
+        <Res id="Benchmark cost" tr="Benchmark cost"/>
+        <Res id="Pending" tr="Pending"/>
+        <Res id="Computing" tr="Computing"/>
+        <Res id="Optimal" tr="Optimal"/>
+        <Res id="Searching" tr="Searching"/>
+        <Res id="Exact TSP (proven)" tr="Exact TSP (proven)"/>
+        <Res id="NN + 2-opt (heuristic)" tr="NN + 2-opt (heuristic)"/>
+        <Res id="Exact TSP - weighted cost" tr="Exact TSP - weighted cost"/>
+        <Res id="Benchmark (Exact &lt;=10, NN + 2-opt &gt;10)" tr="Benchmark (Exact &lt;=10, NN + 2-opt &gt;10)"/>
+        <Res id="Exact TSP (unlimited; Reset to cancel)" tr="Exact TSP (unlimited; Reset to cancel)"/>
+        <Res id="enabled" tr="enabled"/>
+        <Res id="City names" tr="City names"/>
+        <Res id="Map" tr="Map"/>
+        <Res id="Solution" tr="Solution"/>
 	</Translations>
 </DevRes>

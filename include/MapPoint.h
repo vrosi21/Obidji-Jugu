@@ -27,5 +27,6 @@ struct MapPointRenderer {
     static void draw(const CityPoint& mapPoint);
     
     // Draw a map point with scaling and offset applied for window resize
-    static void drawScaled(const CityPoint& mapPoint, float scale, float offsetX, float offsetY);
+    static void drawScaled(const CityPoint& mapPoint, float scale, float offsetX, float offsetY,
+                           bool drawLabel = true);
 };

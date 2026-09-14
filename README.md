@@ -12,7 +12,7 @@ An interactive desktop application for visualising and solving the **Travelling 
 
 | Category | Details |
 |---|---|
-| **Map canvas** | Background image of ex-Yugoslavia; cities and roads rendered with colour-coded status markers; responsive scaling on window resize |
+| **Map canvas** | Lightweight offline vector map generated from simplified OpenStreetMap boundaries and coastline; only the 50 editable graph cities are drawn; aspect-preserving responsive scaling |
 | **City management** | Add, edit, delete cities; set coordinates, weight and visitation status (Start, Goal, Open, Blocked) |
 | **Road connections** | Toggle connections between cities via side panel or right-click on the map; randomise planar-ish connections |
 | **Randomisation** | One-click randomise positions, connections, weights, statuses or all at once; randomise GA parameters |
@@ -60,7 +60,7 @@ Population-based evolutionary optimisation. Maintains a pool of candidate tours 
 
 ## Screenshots
 
-*The application window with the side panel on the right and the map canvas on the left, showing cities on the ex-Yugoslavia background with algorithm visualisation.*
+*The application window with the side panel on the right and the vector map canvas on the left, showing cities, roads and algorithm visualisation.*
 
 ---
 
@@ -72,6 +72,7 @@ Population-based evolutionary optimisation. Maintains a pool of candidate tours 
 | **CMake** ≥ 3.18 | Used for project generation |
 | **natID** | GUI framework; ensure headers/libs are available at `$HOME/Work/DevEnv/` |
 | **Git** | For cloning |
+| **Python** ≥ 3.10 | Optional; only needed to refresh the bundled OSM map resources |
 
 ---
 
@@ -139,6 +140,7 @@ DSAI_AI-Project-Obidji-Jugu/
 │   ├── DataRepository.h        # Data layer (cities, roads, metric closure)
 │   ├── DataTypes.h             # CityPoint, RoadEdge, VisitationStatus
 │   ├── JsonService.h           # Static JSON I/O service
+│   ├── MapGeometry.h           # Offline vector-map geometry model/loader
 │   ├── MapPoint.h              # City rendering helpers (colours, shapes)
 │   ├── SearchAlgorithm.h       # Base class for BFS/DFS graph search
 │   ├── TSPAlgorithm.h          # Base class for TSP solvers (NN, SA, GA)
@@ -152,24 +154,82 @@ DSAI_AI-Project-Obidji-Jugu/
 │   ├── main.cpp                # Entry point, language config
 │   ├── DataRepository.cpp      # CRUD, metric closure (Floyd-Warshall)
 │   ├── JsonService.cpp         # JSON parsing / serialisation
+│   ├── MapGeometry.cpp         # Compact generated-map parser
 │   ├── MapPoint.cpp            # City marker rendering
 │   ├── MapView.cpp             # Canvas drawing, animation logic
 │   └── SidePanelView.cpp       # Side panel event handlers
 │
 ├── res/                        # Resources
 │   ├── exYu.json               # Default city/road dataset
-│   ├── main.xml                # Image resource declarations
+│   ├── main.xml                # Image and file-resource declarations
+│   ├── ex_yu_boundaries.map    # Projected boundaries and coastlines
+│   ├── osm/                    # Lon/lat boundaries, coastlines + city catalogue
 │   ├── DevRes.xml              # Development resource config
 │   ├── flag-us.png             # English flag icon
 │   ├── flag-bhs.png            # Bosnian flag icon
-│   ├── assets/
-│   │   └── yugoslavia.png      # Map background image
 │   └── tr/                     # Translations
 │       ├── EN/main.xml         # English strings
 │       └── BA/main.xml         # Bosnian strings
 │
 └── build/                      # CMake build output (git-ignored)
 ```
+
+## Refreshing OpenStreetMap data
+
+The application is deliberately offline at runtime. Ready-to-run Overpass QL
+queries and a standard-library Python importer are in [`tools/overpass`](tools/overpass/README.md).
+The importer reconstructs `outer` and `inner` relation members, stitches the
+actual `natural=coastline` ways (including Adriatic islands), simplifies the
+geometry, drops islands smaller than three units on the logical 1000 × 866
+canvas, retains the 10 largest visible island rings and enforces a hard point
+budget. The resulting runtime coastline contains 11 chains and 240 points.
+Together with the simplified borders, the complete runtime vector layer has
+1,918 vertices, down from 6,252 in the preceding version.
+
+It also produces a catalogue of the OSM `city`/`town` objects that currently
+have `population > 15000`. The original 30 editable cities are preserved and a
+curated, geographically balanced set of 20 places is added, giving 50 editable
+colour-coded square nodes in total. The added set includes Umag (not the Istria
+region as a synthetic city). Every added city is connected to at least two nearby
+graph cities. The 135-place OSM catalogue remains available as GeoJSON for data
+refreshes, but non-editable settlements are no longer written to the runtime map
+or drawn as blue reference points.
+
+Map and place data: © OpenStreetMap contributors, [ODbL 1.0](https://www.openstreetmap.org/copyright).
+
+## Resize performance
+
+`MapView` compiles the static land, border, sea-mask, island and coastline
+geometry into persistent natID `gui::Shape` objects once at startup. During a
+resize it applies only a `gui::Transformation` for translation and uniform
+scaling; the approximately 1,900 vector vertices are no longer copied into new
+paths for every repaint.
+
+The generated country rings contain 1,665 border segments because each country
+must keep a closed polygon for filling. The cached wire layer canonicalises the
+segment direction and draws only 1,050 unique borders, eliminating 615 shared
+border duplicates. The same cache reduces 121 road records to 92 unique drawn
+segments and rebuilds only after repository data changes. City label resources
+are cached as well, and marker rectangles use natID's direct primitive draw
+calls instead of temporary shapes.
+
+Canvas rendering intentionally stays on the UI thread because the natID graphics
+context is thread-affine. Parallelising individual draw calls would introduce
+context races and synchronisation overhead; one-time shape compilation plus
+framework transformations is the safe runtime optimisation. OSM reconstruction
+and geometric simplification remain offline preprocessing work.
+
+Active window resizing has a separate lightweight path:
+
+- resize-triggered redraw requests are coalesced to at most approximately 30 FPS;
+- a 140 ms quiet-period timer detects when resizing has ended;
+- the expensive land and shared-border layer is shown from a 1000 × 866
+  off-screen `gui::Image` bitmap while the window is moving;
+- the small sea-mask, island and coastline overlay stays on the display canvas,
+  avoiding off-screen colour-mapping differences;
+- city labels, solver overlays and warning text are temporarily skipped, while
+  roads and editable markers stay visible;
+- after resizing stops, the bitmap is replaced by the final vector render.
 
 ---
 

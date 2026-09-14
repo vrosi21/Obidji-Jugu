@@ -1,19 +1,24 @@
 #pragma once
+#include "NatIdCompatibility.h"
 #include <gui/View.h>
-#include <gui/HorizontalLayout.h>
 #include <gui/SplitterLayout.h>
 #include <gui/Timer.h>
 #include <memory>
 #include <cmath>
+#include <chrono>
+#include <thread>
+#include <atomic>
 #include "DataRepository.h"
 #include "MapView.h"
-#include "SidePanelView.h"
+#include "MapSplitterLayout.h"
+#include "SidePanelScroller.h"
 #include "SearchAlgorithm.h"
 #include "BFSAlgorithm.h"
 #include "DFSAlgorithm.h"
 #include "NearestNeighborAlgorithm.h"
 #include "SimulatedAnnealingAlgorithm.h"
 #include "GeneticAlgorithmTSP.h"
+#include "ExactTSPAlgorithm.h"
 
 // Timer interval for auto-stepping (in seconds)
 constexpr float SOLVER_STEP_INTERVAL = 0.001f;
@@ -23,10 +28,23 @@ constexpr float SOLUTION_ANIM_INTERVAL = 0.05f;
 class MainView : public gui::View
 {
 private:
-    gui::SplitterLayout _splitter{gui::SplitterLayout::Orientation::Horizontal, gui::SplitterLayout::AuxiliaryCell::Second};
+    struct SolveJob {
+        DataRepository repo;
+        std::unique_ptr<SearchAlgorithm> solver;
+        std::atomic<bool> cancel{false}, done{false};
+        bool failed = false;
+        bool exact = false;
+        bool benchmarkSelected = false;
+        double benchmark = 0;
+    };
+    std::shared_ptr<SolveJob> _job;
+    // Keeps the repository referenced by the completed solver alive.
+    std::shared_ptr<SolveJob> _completedJob;
+    MapSplitterLayout _splitter;
     DataRepository _repo;       // Single data source (owns the data)
-    MapView _mapView;           // Rendering only
-    SidePanelView _sidePanel;   // UI controls
+    SplitterMapView _mapView;      // Right auxiliary map with bounded divider
+    SidePanelScroller _sidePanelScroller; // Scrollable wrapper
+    SidePanelView& _sidePanel = _sidePanelScroller.panel; // convenient alias
     gui::Timer _timer;          // Timer for auto-stepping
     std::unique_ptr<SearchAlgorithm> _solver;
     bool _running = false;
@@ -40,22 +58,36 @@ private:
 
 
 public:
+    ~MainView() { if (_job) _job->cancel = true; }
     MainView()
-        : _splitter(gui::SplitterLayout::Orientation::Horizontal, gui::SplitterLayout::AuxiliaryCell::Second)
+        : _mapView(_splitter)
         , _timer(this, SOLVER_STEP_INTERVAL, false)
         , _solutionTimer(this, SOLUTION_ANIM_INTERVAL, false)
     {
         setMargins(0, 0, 0, 0);
-        
-        // Size limits - allow resizing with reasonable minimums
-        // Side panel has a minimum width to keep controls usable
-        _sidePanel.setSizeLimits(300, gui::Control::Limit::UseAsMin,
-                                 200, gui::Control::Limit::UseAsMin);
-        // Map view can scale down but has minimum to stay readable
-        _mapView.setSizeLimits(400, gui::Control::Limit::UseAsMin,
-                               350, gui::Control::Limit::UseAsMin);
 
-        _splitter.setContent(_mapView, _sidePanel);
+        // Resolve JSON data file path via framework resource system
+        // (build-location-independent: -devResPath resolves ':' prefix)
+        td::String jsonResPath = getResFileName(":exYu");
+        _repo.init(jsonResPath.c_str());
+        
+        // Keep the application usable at small sizes. The splitter remains
+        // freely draggable; MapView adapts narrow cells with top/bottom bands.
+        setSizeLimits(700, gui::Control::Limit::UseAsMin,
+                      minimumApplicationContentHeight(), gui::Control::Limit::UseAsMin);
+
+        // Side panel scroller has a minimum width to keep controls usable
+        _sidePanelScroller.setSizeLimits(300, gui::Control::Limit::UseAsMin,
+                                        200, gui::Control::Limit::UseAsMin);
+        // Absolute fallback only. The vector map itself always keeps its
+        // 1000:866 aspect ratio inside the available cell.
+        _mapView.setSizeLimits(700, gui::Control::Limit::UseAsMin);
+
+        // Preserve the draggable divider. Narrow map cells switch to a compact
+        // presentation rather than attempting to mutate layout limits while
+        // natID is in the middle of a splitter operation.
+        _splitter.setSpaceBetweenCells(4);
+        _splitter.setContent(_sidePanelScroller, _mapView);
         setLayout(&_splitter);
 
         // Wire up: repository -> mapView & sidePanel
@@ -104,13 +136,15 @@ public:
         // When data changes (city added/deleted/status changed), reset the solver
         _repo.setOnDataChanged([this]() {
             stopAllExecution();
+            _mapView.clearExactMinimum();
+            _sidePanel.clearResult();
             if (_solver) {
                 _solver->reset(&_repo);
             }
 
             // Clear canvas slate until an explicit execute action (start/step/show).
             _mapView.setSolver(nullptr);
-            _mapView.refresh();
+            _mapView.refreshData();
             refreshStepButtons();
         });
 
@@ -183,66 +217,31 @@ protected:
     // Timer callback for auto-stepping
     bool onTimer(gui::Timer* pTimer) override
     {
-        if (pTimer == &_timer && _running && _solver) {
-            // ---  Step-tour animation in progress: drive it instead of stepping solver ---
-            if (_stepAnimRunning && _mapView.isStepTourAnimating()) {
-                _stepAnimTickCounter++;
-                int ticksNeeded = getTicksPerAdvanceFromSpeed();
-                if (_stepAnimTickCounter < ticksNeeded) {
-                    _timer.start();
-                    return true;
-                }
-                _stepAnimTickCounter = 0;
-
-                size_t edges = getStepAnimEdgesPerTick();
-                if (!_mapView.advanceStepTourAnimation(edges)) {
-                    // Animation finished for this step; proceed to next solver step
-                    _stepAnimRunning = false;
-                    _mapView.stopStepTourAnimation();
-                }
-                _mapView.refresh();
-                if (_running) _timer.start();
+        if (pTimer == &_timer && _running && _job) {
+            if (!_job->done.load()) {
+                _timer.start();
                 return true;
             }
-
-            // --- Normal solver stepping ---
-            int ticksPerAdvance = getTicksPerAdvanceFromSpeed();
-            _solveTickCounter++;
-
-            if (_solveTickCounter < ticksPerAdvance) {
-                if (_running) _timer.start();
-                return true;
-            }
-
-            _solveTickCounter = 0;
-            bool finishedThisTick = false;
-            if (!_solver->step()) {
-                stopSolver();
-                finishedThisTick = true;
-            }
-
-            // When auto-solving is finished, clear current step-path visualization,
-            // then run Show Solution flow automatically.
-            if (finishedThisTick && _solver) {
-                _mapView.stopStepTourAnimation();
-                _stepAnimRunning = false;
-                _mapView.setSolver(nullptr);
-                _mapView.refresh();
-                _mapView.setSolver(_solver.get());
-                handleSolverAction(3, _currentAlgorithmIdx);
-                return true;
-            }
-
-            // For SA / GA: start step-tour animation before next step
-            if (!finishedThisTick && beginStepTourAnimationForCurrentAlgo()) {
-                _mapView.refresh();
-                if (_running) _timer.start();
+            if (_job->failed) {
+                stopAllExecution();
+                _sidePanel.clearResult();
                 refreshStepButtons();
                 return true;
             }
-
+            _solver = std::move(_job->solver);
+            _completedJob = _job;
+            _mapView.setBenchmark(_job->benchmark, _job->exact);
+            _job.reset();
+            stopSolver();
+            ensureMapSolverAttached();
+            if (auto* tsp = dynamic_cast<TSPAlgorithm*>(_solver.get())) {
+                const auto& tour = tsp->getBestTour().empty() ? tsp->getTour() : tsp->getBestTour();
+                _sidePanel.showResult(tour);
+            }
+            _mapView.startSolutionAnimation();
+            _solutionRunning = _mapView.isSolutionAnimating();
+            if (_solutionRunning) _solutionTimer.start();
             _mapView.refresh();
-            if (_running) _timer.start();
             refreshStepButtons();
             return true;
         }
@@ -329,6 +328,7 @@ private:
     // Stop both solve execution and final-solution animation
     void stopAllExecution()
     {
+        if (_job) { _job->cancel = true; _job.reset(); }
         _running = false;
         _timer.stop();
         _solveTickCounter = 0;
@@ -353,12 +353,8 @@ private:
     void handleSolverAction(int action, int algorithmIdx)
     {
         switch (action) {
-            case 0:  // Start/Pause
-                if (_running) {
-                    stopSolver();
-                } else {
-                    startSolver();
-                }
+            case 0:  // Solve / Resolve: always use the latest parameters
+                startSolver();
                 break;
             case 1:  // Step forward
                 stepForward();
@@ -369,40 +365,21 @@ private:
             case 2:  // Algorithm changed
                 selectAlgorithm(algorithmIdx);
                 break;
-            case 3: // Show Solution (animated)
-                if (_running) stopSolver();
-
-                if (!canExecuteAlgorithms()) {
+            case 3: // Legacy action: same unified solve flow
+                startSolver();
+                break;
+            case 5: // Replay the completed route without restarting the solver.
+                // SidePanelView only dispatches Replay for a valid result.
+                if (!_running && _solver && _solver->isComplete()) {
+                    stopAllExecution();
+                    ensureMapSolverAttached();
+                    _mapView.startSolutionAnimation();
+                    _solutionTickCounter = 0;
+                    _solutionRunning = _mapView.isSolutionAnimating();
+                    if (_solutionRunning) _solutionTimer.start();
                     _mapView.refresh();
                     refreshStepButtons();
-                    break;
                 }
-
-                // Re-create solver with latest side-panel parameters
-                // if it hasn't been stepped yet, so parameter edits take effect.
-                if (_solver && !_solver->canStepBack() && !_solver->isComplete()) {
-                    selectAlgorithm(_currentAlgorithmIdx);
-                }
-
-                // Build final solution first (run remaining iterations immediately)
-                if (_solver) {
-                    ensureMapSolverAttached();
-                    while (!_solver->isComplete()) {
-                        if (!_solver->step()) break;
-                    }
-                }
-
-                _solutionRunning = false;
-                _solutionTimer.stop();
-                _solutionTickCounter = 0;
-
-                _mapView.startSolutionAnimation();  
-                if (_mapView.isSolutionAnimating()) {
-                    _solutionRunning = true;
-                    _solutionTimer.start();
-                }
-                _mapView.refresh();
-                refreshStepButtons();
                 break;
             case 4: // Reset solver state + clear drawn algorithm paths/animation
                 stopAllExecution();
@@ -423,6 +400,7 @@ private:
     {
         // Side-panel change: stop all execution and clear any active animation.
         stopAllExecution();
+        _sidePanel.clearResult();
 
         _currentAlgorithmIdx = algorithmIdx;
 
@@ -453,6 +431,8 @@ private:
                     static_cast<GeneticAlgorithmTSP::MutationOperator>(_sidePanel.getGAMutationOperatorIndex()),
                     _sidePanel.getGAElitismPercentage());
                 break;
+            case 3: _solver = std::make_unique<ExactTSPAlgorithm>(); break;
+            case 4: _solver = std::make_unique<ExactTSPAlgorithm>(); break;
             default: _solver = std::make_unique<NearestNeighborAlgorithm>(); break;
         }
 
@@ -485,37 +465,54 @@ private:
     {
         if (!canExecuteAlgorithms()) {
             stopAllExecution();
+            _sidePanel.clearResult();
+            _mapView.setSolver(nullptr);
             _mapView.refresh();
             refreshStepButtons();
             return;
         }
-
-        // Re-create solver only if it hasn't started yet
-        bool hasProgress = false;
-
-        if (_solver) {
-            if (_solver->canStepBack()) {
-                hasProgress = true;
-            }
-            else if (auto* tsp = dynamic_cast<TSPAlgorithm*>(_solver.get())) {
-                hasProgress = (tsp->getCurrentStep() > 0);
-            }
-        }
-
-        if (!_solver || (!hasProgress && !_solver->isComplete())) {
-            selectAlgorithm(_currentAlgorithmIdx);   // fresh start (or pick up new params)
-        }
-
-        ensureMapSolverAttached();
-
-        _solutionRunning = false;
-        _solutionTimer.stop();
-        _solutionTickCounter = 0;
-        _stepAnimRunning = false;
-        _stepAnimTickCounter = 0;
-        _mapView.stopSolutionAnimation();
-        _mapView.stopStepTourAnimation();
-
+        // Resolve is a fresh run, not a replay of the previous best tour.
+        selectAlgorithm(_currentAlgorithmIdx);
+        _mapView.setSolver(nullptr);
+        _mapView.refresh();
+        _sidePanel.btnSolve.setTitle(tr("Resolve"));
+        _mapView.clearExactMinimum();
+        auto job = std::make_shared<SolveJob>();
+        job->repo = _repo;
+        job->repo.setOnDataChanged({});
+        size_t required = 0;
+        for (const auto& city : job->repo.cities())
+            if (city.visitation_status == VisitationStatus::Start ||
+                city.visitation_status == VisitationStatus::Goal) ++required;
+        job->exact = required <= 10 || _currentAlgorithmIdx == 4;
+        job->benchmarkSelected = _currentAlgorithmIdx == 3 || _currentAlgorithmIdx == 4;
+        job->solver = std::move(_solver);
+        // The explicit benchmark selection follows the same size policy.
+        if (_currentAlgorithmIdx == 3 && !job->exact)
+            job->solver = std::make_unique<NearestNeighborAlgorithm>(true, 100);
+        _job = job;
+        std::thread([job]() {
+            // No GUI access and no reference to MainView: cancelling/closing
+            // discards this job safely without blocking on a thread join.
+            try {
+                job->solver->reset(&job->repo);
+                while (!job->cancel && !job->solver->isComplete()) job->solver->step();
+                if (job->cancel) return;
+                if (job->benchmarkSelected) {
+                    job->benchmark = static_cast<TSPAlgorithm*>(job->solver.get())->getBestLength();
+                    job->done = true;
+                    return;
+                }
+                std::unique_ptr<TSPAlgorithm> benchmark;
+                if (job->exact) benchmark = std::make_unique<ExactTSPAlgorithm>();
+                else benchmark = std::make_unique<NearestNeighborAlgorithm>(true, 100);
+                benchmark->reset(&job->repo);
+                while (!job->cancel && !benchmark->isComplete()) benchmark->step();
+                if (job->cancel) return;
+                job->benchmark = benchmark->getBestLength();
+            } catch (...) { job->failed = true; }
+            job->done = true;
+        }).detach();
         _running = true;
         _solveTickCounter = 0;
         _timer.start();
@@ -576,6 +573,7 @@ private:
 
         ensureMapSolverAttached();
 
+        _sidePanel.clearResult();
         _solver->step();
 
         // Match Start/Pause one-step behavior for SA/GA
@@ -618,6 +616,7 @@ private:
 
         ensureMapSolverAttached();
 
+        _sidePanel.clearResult();
         _solver->stepBack();
 
         // Match Start/Pause one-step behavior for SA/GA on step-back snapshots too

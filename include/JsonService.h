@@ -22,9 +22,6 @@ public:
         const std::vector<RoadInfo>& roadsFull
     );
 
-    // Find JSON file in search paths
-    static std::filesystem::path findJsonFile();
-
 private:
     JsonService() = delete; // Static-only class
     

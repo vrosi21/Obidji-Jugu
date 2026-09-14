@@ -1,4 +1,5 @@
 #pragma once
+#include "NatIdCompatibility.h"
 #include <gui/View.h>
 #include <gui/Label.h>
 #include <gui/TextEdit.h>
@@ -11,6 +12,8 @@
 #include <gui/CheckBox.h>
 #include <gui/VerticalLayout.h>
 #include <gui/Slider.h>
+#include <gui/StandardTabView.h>
+#include "RouteTable.h"
 
 
 #include <vector>
@@ -20,13 +23,32 @@
 class DataRepository;
 enum class VisitationStatus : int;
 
-// Solver action codes: 0=start/pause, 1=step forward, -1=step back, 2=algorithm changed, 3=show solution, 4=reset solver view/state
+// Solver action codes: 0=solve/resolve, 1=step forward, -1=step back, 2=algorithm changed, 3=show solution, 4=reset solver view/state
 using SolverCallback = std::function<void(int action, int algorithmIdx)>;
 
 // Side panel for city/road CRUD operations and algorithm control
 class SidePanelView : public gui::View
 {
+    // Controls keep their existing owner/callbacks even though their native
+    // parent is now a tab page. In particular, algorithm selection must still
+    // update parameter visibility and notify MainView.
+    class Page : public gui::View
+    {
+        SidePanelView& _owner;
+    public:
+        explicit Page(SidePanelView& owner) : _owner(owner) {}
+    protected:
+        void measure(gui::CellInfo& cell) override
+        { gui::View::measure(cell); cell.nResVer = 0; }
+        void reMeasure(gui::CellInfo& cell) override
+        { gui::View::reMeasure(cell); cell.nResVer = 0; }
+        bool onClick(gui::Button* button) override { return _owner.onClick(button); }
+        bool onChangedSelection(gui::ComboBox* combo) override
+        { return _owner.onChangedSelection(combo); }
+    };
+
 public:
+    gui::StandardTabView tabs;
     // --- Section Headers ---
     gui::Label lblAddSection;
     gui::Label lblEditSection;
@@ -83,12 +105,29 @@ public:
     gui::Label lblAlgorithm;
     gui::ComboBox cmbSolvingAlgorithm;
     
-    gui::Button btnStartPause;
+    gui::Button btnSolve;
     gui::Button btnStepFwd;
     gui::Button btnStepBwd;
     gui::Button btnResetSolution;
     
     gui::GridLayout gl;
+
+private:
+    gui::GridLayout _setupLayout;
+    gui::HorizontalLayout _editActions;
+    gui::GridLayout _solveLayout;
+    gui::HorizontalLayout _solveActions;
+    gui::GridLayout _setupHostLayout;
+    gui::GridLayout _solveHostLayout;
+    Page _setupPage;
+    Page _solvePage;
+    gui::View _setupHost;
+    gui::View _solveHost;
+    RouteTable _routeTable;
+    RouteTable _cityTable{true};
+    bool _hasSolution = false;
+
+public:
 
     
 
@@ -138,9 +177,10 @@ public:
 
 
 
-    gui::Button showSolution;
     gui::Label lblAnimationSpeed;
     gui::Slider sliderAnimationSpeed;
+    gui::Label lblResultStatus;
+    gui::Button btnReplay;
 
 
 
@@ -161,6 +201,24 @@ public:
     // Set callback for solver control actions
     void setSolverCallback(SolverCallback callback);
     void handleSetAllToVisit();
+    bool hasSolution() const { return _hasSolution; }
+    void clearResult() {
+        _hasSolution = false;
+        _routeTable.clear();
+        btnSolve.setTitle(tr("Solve"));
+        lblResultStatus.setTitle(tr("Status: Unsolved"));
+        lblResultStatus.setTextColor(td::Accent::Error);
+        btnReplay.disable(true);
+    }
+    void showResult(const std::vector<int>& tour)
+    {
+        if (!_repo || !_routeTable.setRoute(*_repo, tour)) { clearResult(); return; }
+        _hasSolution = true;
+        lblResultStatus.setTitle(tr("Status: Solved"));
+        lblResultStatus.setTextColor(td::Accent::Success);
+        btnReplay.disable(false);
+        btnSolve.setTitle(tr("Resolve"));
+    }
 
     // Get currently selected algorithm index
     int getSelectedAlgorithmIndex() const;
@@ -209,7 +267,7 @@ protected:
 
 private:
     std::vector<std::string> _pointNames;
-    std::vector<std::string> _algorithmNames = {"Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm"}; // "BFS" and "DFS" exist but are not rendered in the combobox
+    std::vector<std::string> _algorithmNames = {"Nearest Neighbor", "Simulated Annealing", "Genetic Algorithm", "Benchmark (Exact <=10, NN + 2-opt >10)", "Exact TSP (unlimited; Reset to cancel)"};
     DataRepository* _repo = nullptr;
     SolverCallback _solverCallback;
 
@@ -229,6 +287,7 @@ private:
     void updateConnectionsLabel();
     void populateConnectToCombo();
     void populateStatusCombo();
+    void updateAlgorithmFieldsVisibility();
     void updateStatusFromSelection();
     void handleStatusChange();
 };

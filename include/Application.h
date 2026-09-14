@@ -14,7 +14,7 @@ protected:
     
 public:
     Application(int argc, const char** argv)
-    : gui::Application(argc, argv)
+    : gui::Application(argc, argv, "ba.unsa.etf.obidjijugu")
     {
     }
 };

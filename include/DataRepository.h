@@ -11,8 +11,12 @@ class DataRepository
 public:
     using ChangeCallback = std::function<void()>;
 
-    DataRepository();
+    DataRepository() = default;
     ~DataRepository() = default;
+
+    // Load city/road data from the given source JSON.
+    // Edits are session-only (kept in memory); the source file is never modified.
+    void init(const std::filesystem::path& sourceJsonPath);
 
     // --- City CRUD Operations ---
     bool addCity(const std::string& name, double x, double y);
