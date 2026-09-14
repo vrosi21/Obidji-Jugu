@@ -1,6 +1,6 @@
 # Obidji Jugu installers
 
-Display name: **Obidji Jugu**. Authors: **Hadzic, Rodin i Sivro**.
+Display name: **Obidji Jugu**. Authors: **Hadzic, Rodin, Sivro**.
 Executable/package ID: `obidji-jugu` (valid Debian name, no underscores).
 
 Uses natID SetupCollector, as in the natidqp solver project. Use matching SDK
@@ -43,14 +43,14 @@ natID's `%s` translation config. They are packaged resources, not registry-only
 translations. The language toolbar saves the language preference and restarts.
 The package script resolves development SDK resource paths in its staging copy.
 
-## GitHub Actions (Windows)
+## GitHub Actions (Windows, macOS, Linux)
 
 Commit and push `.github/workflows/build-installer.yml` to the repository's default
-branch. In Actions, select **Build Obidji Jugu Windows installer**, then **Run
+branch. In Actions, select **Build Obidji Jugu installers**, then **Run
 workflow**. Leave the license path empty to omit the application license, or supply
 the path to a committed license file. The workflow installs the matching natID v4.2.1
 headers and Windows binaries (20260710), compiles Release, packages the installer,
 and uploads **Obidji-Jugu-Windows** as an artifact. Download and extract the entire
 artifact so bootstrapper and MSI files stay together. It does not publish a release.
 
-macOS and Linux packaging still use the native commands above.
+The same workflow also builds macOS Apple Silicon and Intel app ZIPs (ad-hoc signed), and a Linux Ubuntu 24.04 DEB ZIP. Artifacts: Obidji-Jugu-macOS-Silicon, Obidji-Jugu-macOS-Intel, Obidji-Jugu-Linux. Application name: Obidji Jugu. Authors: Hadzic, Rodin, Sivro.
