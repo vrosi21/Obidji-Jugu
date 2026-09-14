@@ -347,7 +347,8 @@ private:
                 startSolver();
                 break;
             case 5: // Replay the completed route without restarting the solver.
-                if (!_running && _solver && _sidePanel.hasSolution()) {
+                // SidePanelView only dispatches Replay for a valid result.
+                if (!_running && _solver && _solver->isComplete()) {
                     stopAllExecution();
                     ensureMapSolverAttached();
                     _mapView.startSolutionAnimation();

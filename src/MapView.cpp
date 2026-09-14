@@ -751,8 +751,20 @@ void MapView::drawTSPState()
 
     const auto& currentTour = tspSolver->getTour();
     const auto& bestTour = tspSolver->getBestTour();
-    double currentLength = tspSolver->getTourLength();
-    double bestLength = tspSolver->getBestLength();
+    // Match the route table: unweighted distance along the expanded road route,
+    // including the return leg, rather than the solver's weighted objective.
+    const auto& distanceTour = bestTour.empty() ? currentTour : bestTour;
+    double totalDistance = 0.0;
+    for (size_t i = 0; i < distanceTour.size(); ++i) {
+        std::vector<int> leg;
+        if (!_repo->getShortestRoadPath(distanceTour[i],
+                distanceTour[(i + 1) % distanceTour.size()], leg)) {
+            totalDistance = std::numeric_limits<double>::infinity();
+            break;
+        }
+        for (size_t j = 1; j < leg.size(); ++j)
+            totalDistance += _repo->getMetricDistance(leg[j - 1], leg[j]);
+    }
 
     // --- Determine algorithm type for specialised rendering ---
     auto* nn = dynamic_cast<NearestNeighborAlgorithm*>(tspSolver);
@@ -839,19 +851,17 @@ void MapView::drawTSPState()
     if (ga) {
         infoLines.push_back({"Algorithm", "Genetic Algorithm"});
         infoLines.push_back({"Generation", std::to_string(ga->getGeneration()) + " / " + std::to_string(ga->getMaxGenerations())});
-        infoLines.push_back({"Best cost", fmtCost(bestLength)});
-        infoLines.push_back({"Current cost", fmtCost(currentLength)});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
     } else if (sa) {
         infoLines.push_back({"Algorithm", "Simulated Annealing"});
         infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
         std::ostringstream ts; ts << std::fixed << std::setprecision(2) << sa->getTemperature();
         infoLines.push_back({"Temperature", ts.str()});
-        infoLines.push_back({"Best cost", fmtCost(bestLength)});
-        infoLines.push_back({"Current cost", fmtCost(currentLength)});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
     } else if (nn) {
         infoLines.push_back({"Algorithm", "Nearest Neighbor"});
         infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
-        infoLines.push_back({"Tour cost", fmtCost(currentLength)});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
         if (nn->is2OptEnabled()) {
             if (nn->isIn2OptPhase()) {
                 infoLines.push_back({"2-opt", "improving (" + std::to_string(nn->getRemaining2OptCycles()) + " left)"});
@@ -861,7 +871,7 @@ void MapView::drawTSPState()
         }
     } else {
         infoLines.push_back({"Step", std::to_string(tspSolver->getCurrentStep())});
-        infoLines.push_back({"Cost", fmtCost(currentLength)});
+        infoLines.push_back({"Total distance", fmtCost(totalDistance)});
     }
 
     drawInfoPanel(infoLines, PanelSide::Right);
