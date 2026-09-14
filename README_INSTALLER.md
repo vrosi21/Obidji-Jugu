@@ -29,8 +29,8 @@ python tools/package_installer.py --sdk /absolute/path/to/natID.SDK --collector 
 ```
 
 Windows collector is `natID.Utils/windows/SetupCollector.exe`; use the native
-macOS/Linux utility on those systems. Supply a distribution license approved by
-the authors: the SDK's license is not automatically the application's license.
+macOS/Linux utility on those systems. The `--license` argument is optional; omit
+it to generate the configuration without an application license file.
 The collector stages natGUIALL and Windows GTK4, regional resources and both XML
 translation catalogs. Keep all generated Windows bootstrapper/MSI files together.
 Unsigned installers may require platform trust approval; macOS distribution
@@ -47,8 +47,8 @@ The package script resolves development SDK resource paths in its staging copy.
 
 Commit and push `.github/workflows/build-installer.yml` to the repository's default
 branch. In Actions, select **Build Obidji Jugu Windows installer**, then **Run
-workflow**. Supply the repository path to an approved application license file
-that has also been committed. The workflow installs the matching natID v4.2.1
+workflow**. Leave the license path empty to omit the application license, or supply
+the path to a committed license file. The workflow installs the matching natID v4.2.1
 headers and Windows binaries (20260710), compiles Release, packages the installer,
 and uploads **Obidji-Jugu-Windows** as an artifact. Download and extract the entire
 artifact so bootstrapper and MSI files stay together. It does not publish a release.

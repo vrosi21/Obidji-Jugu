@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       license_path:
-        description: Path to the approved application license in this repository
-        required: true
+        description: Optional application license path (leave empty to omit)
+        required: false
         type: string
 
 permissions:
@@ -31,7 +31,7 @@ jobs:
         env:
           LICENSE_PATH: ${{ inputs.license_path }}
         run: |
-          if (-not (Test-Path -LiteralPath $env:LICENSE_PATH -PathType Leaf)) {
+          if ($env:LICENSE_PATH -and -not (Test-Path -LiteralPath $env:LICENSE_PATH -PathType Leaf)) {
             throw "Commit the approved application license and supply its repository path."
           }
 
@@ -65,7 +65,9 @@ jobs:
         env:
           LICENSE_PATH: ${{ inputs.license_path }}
         run: |
-          python tools/package_installer.py --sdk "$env:USERPROFILE\natID.SDK" --collector "$env:USERPROFILE\natID.Utils\windows\SetupCollector.exe" --executable-dir "$env:USERPROFILE\natID.RAMDisk\Out\The_Travelling_Salesman\Release" --license "$env:LICENSE_PATH" --output installer-output
+          $licenseArgs = @()
+          if ($env:LICENSE_PATH) { $licenseArgs = @('--license', $env:LICENSE_PATH) }
+          python tools/package_installer.py --sdk "$env:USERPROFILE\natID.SDK" --collector "$env:USERPROFILE\natID.Utils\windows\SetupCollector.exe" --executable-dir "$env:USERPROFILE\natID.RAMDisk\Out\The_Travelling_Salesman\Release" @licenseArgs --output installer-output
           if ($LASTEXITCODE -ne 0) { throw 'Installer packaging failed.' }
 
       - name: Upload installer files

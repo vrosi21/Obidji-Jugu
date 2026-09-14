@@ -11,12 +11,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--sdk', type=Path, required=True, help='Matching natID.SDK root')
 parser.add_argument('--collector', type=Path, required=True, help='Native SetupCollector executable')
 parser.add_argument('--executable-dir', type=Path, required=True, help='Release output directory containing obidji-jugu executable/app')
-parser.add_argument('--license', type=Path, required=True, help='Project distribution license approved by the authors')
+parser.add_argument('--license', type=Path, help='Optional application license file')
 parser.add_argument('--output', type=Path, default=Path('installer-output'))
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 for path in (args.sdk, args.collector, args.executable_dir, args.license):
-    if not path.exists():
+    if path is not None and not path.exists():
         parser.error(f'Missing: {path}')
 if not any(args.executable_dir.glob('obidji-jugu*')):
     parser.error('Release output must contain obidji-jugu, obidji-jugu.exe or obidji-jugu.app')
@@ -38,8 +38,12 @@ for xml in (source / 'res').rglob('*.xml'):
     content = content.replace('Work/Common/', args.sdk.resolve().as_posix() + '/Common/')
     xml.write_text(content, encoding='utf-8')
 template = (root / 'packaging/ObidjiJugu.xml').read_text(encoding='utf-8')
+if args.license is None:
+    template = template.replace(' licenseFileName="@LICENSE@"', '')
+else:
+    template = template.replace('@LICENSE@', escape(args.license.resolve().as_posix(), {'"':'&quot;'}))
 for token, path in {'SOURCE':source, 'EXECUTABLE_DIR':args.executable_dir.resolve(),
-                    'OUTPUT':args.output / 'obidji-jugu', 'LICENSE':args.license.resolve()}.items():
+                    'OUTPUT':args.output / 'obidji-jugu'}.items():
     template = template.replace('@' + token + '@', escape(path.as_posix(), {'"':'&quot;'}))
 config = configs / 'ObidjiJugu.xml'
 config.write_text(template, encoding='utf-8')
