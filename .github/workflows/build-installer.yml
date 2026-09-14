@@ -211,10 +211,11 @@ jobs:
           set -euo pipefail
           sudo mkdir -p /Volumes
           if [ ! -e /Volumes/RAMDisk ]; then sudo ln -s "$HOME/natID.RAMDisk" /Volumes/RAMDisk; fi
-          license_args=()
-          if [ -n "$LICENSE_PATH" ]; then license_args=(--license "$LICENSE_PATH"); fi
           chmod +x "$HOME/natID.Utils/macOS/${{ matrix.collector_arch }}/SetupCollector"
-          python tools/package_installer.py --sdk "$HOME/natID.SDK" --collector "$HOME/natID.Utils/macOS/${{ matrix.collector_arch }}/SetupCollector" --executable-dir "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release" --output "$HOME/natID.RAMDisk/Setup" "${license_args[@]}"
+          # Keep the argument array nonempty for macOS Bash with set -u.
+          package_args=(--sdk "$HOME/natID.SDK" --collector "$HOME/natID.Utils/macOS/${{ matrix.collector_arch }}/SetupCollector" --executable-dir "$HOME/natID.RAMDisk/Out/The_Travelling_Salesman/Release" --output "$HOME/natID.RAMDisk/Setup")
+          if [ -n "$LICENSE_PATH" ]; then package_args+=(--license "$LICENSE_PATH"); fi
+          python tools/package_installer.py "${package_args[@]}"
 
       - name: Sign and archive macOS application
         run: |
