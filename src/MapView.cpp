@@ -482,17 +482,26 @@ void MapView::buildStaticMapBitmap()
     _staticMapBitmap.reset();
     if (!_mapLoaded || _mapGeometry.empty() || _landShapes.empty()) return;
 
-    auto bitmap = std::make_unique<gui::Image>(
-        gui::Size(static_cast<gui::CoordType>(ORIGINAL_MAP_WIDTH),
-                  static_cast<gui::CoordType>(ORIGINAL_MAP_HEIGHT)));
-    if (!bitmap->isOK()) return;
+    class BitmapCanvas : public gui::Canvas
+    {
+        std::function<void()> _drawLand;
+    public:
+        explicit BitmapCanvas(std::function<void()> drawLand)
+            : _drawLand(std::move(drawLand)) {}
+    protected:
+        void onDraw(const gui::Rect& rect) override
+        {
+            gui::Shape::drawRect(rect, td::ColorID::LightBlue);
+            _drawLand();
+        }
+    } canvas([this]() { drawPreparedLandShapes(1.15f); });
 
-    bitmap->startDrawingContext(true, td::ColorID::LightBlue);
+    auto bitmap = std::make_unique<gui::Image>();
     // natID's off-screen backend resolves a large LightBlue polygon differently
     // from the display backend. Cache only the expensive land/border layer;
     // the small coastline overlay is drawn live with the correct display color.
-    drawPreparedLandShapes(1.15f);
-    bitmap->releaseDrawingContext();
+    const gui::Rect bounds(0.0, 0.0, ORIGINAL_MAP_WIDTH, ORIGINAL_MAP_HEIGHT);
+    if (!canvas.drawToImage(*bitmap, bounds) || !bitmap->isOK()) return;
     _staticMapBitmap = std::move(bitmap);
 }
 
