@@ -102,7 +102,7 @@ SidePanelView::SidePanelView()
 
     // Randomize Section
     lblRandomize(tr("Randomize")),
-    hlRandomizeBtns(4),
+    hlRandomizeBtns(6),
     btnRandomizePosition(tr("Positions")),
     btnRandomizeConnections(tr("Connections")),
     btnRandomizeWeight(tr("Weights")),
@@ -145,9 +145,12 @@ SidePanelView::SidePanelView()
     // Layout (24 rows, 4 columns)
     lblAnimationSpeed(tr("Animation speed")),
     sliderAnimationSpeed(),
+    lblResultStatus(tr("Status: Unsolved")),
+    btnReplay(tr("Replay")),
     gl(1, 1),
-    _setupLayout(14, 5),
-    _solveLayout(18, 2),
+    _setupLayout(16, 2),
+    _editActions(3),
+    _solveLayout(19, 2),
     _solveActions(4),
     _setupHostLayout(2, 1),
     _solveHostLayout(2, 1),
@@ -155,7 +158,11 @@ SidePanelView::SidePanelView()
     _solvePage(*this)
 {
     setMargins(0, 0, 0, 0);
-    _setupLayout.setSpaceBetweenCells(4, 5);
+    _setupLayout.setSpaceBetweenCells(6, 8);
+    _editActions.setMargins(0, 0);
+    _editActions.setSpaceBetweenCells(6);
+    hlRandomizeBtns.setMargins(0, 0);
+    hlRandomizeBtns.setSpaceBetweenCells(6);
     _solveLayout.setSpaceBetweenCells(3, 5);
     {
     gui::GridComposer gc(_setupLayout);
@@ -164,15 +171,15 @@ SidePanelView::SidePanelView()
     // SECTION 1: Add New Point
     // ========================================
     lblAddSection.setFont(gui::Font::ID::SystemLargerBold);
-    gc.appendRow(lblAddSection, 4);
+    gc.appendRow(lblAddSection, 2);
 
     gc.appendRow(lblName);
-    gc.appendCol(lnEditName, 4);
+    gc.appendCol(lnEditName);
 
     gc.appendRow(lblXCoord);
     gc.appendCol(txtEditXCoord);
-    gc.appendCol(lblYCoord);
-    gc.appendCol(txtEditYCoord, 2);
+    gc.appendRow(lblYCoord);
+    gc.appendCol(txtEditYCoord);
 
     btnAddPt.setType(gui::Button::Type::Default);
     gc.appendRow(btnAddPt, 2);
@@ -181,30 +188,31 @@ SidePanelView::SidePanelView()
     // SECTION 2: Edit Selected Point
     // ========================================
     lblEditSection.setFont(gui::Font::ID::SystemLargerBold);
-    gc.appendRow(lblEditSection, 5);
+    gc.appendRow(lblEditSection, 2);
 
     gc.appendRow(lblChoosePoint);
-    gc.appendCol(cmbPoints, 4);
+    gc.appendCol(cmbPoints);
 
     gc.appendRow(lblCurrentCityName);
-    gc.appendCol(lnEditCurrentCityName, 4);
+    gc.appendCol(lnEditCurrentCityName);
 
     gc.appendRow(lblCurrentX);
     gc.appendCol(neCurrentX);
-    gc.appendCol(lblCurrentY);
-    gc.appendCol(neCurrentY, 2);
+    gc.appendRow(lblCurrentY);
+    gc.appendCol(neCurrentY);
 
     gc.appendRow(lblCurrentWeight);
-    gc.appendCol(neCurrentWeight, 4);
+    gc.appendCol(neCurrentWeight);
 
     gc.appendRow(lblStatus);
-    gc.appendCol(cmbStatus, 4);
+    gc.appendCol(cmbStatus);
 
     btnUpdatePoint.setType(gui::Button::Type::Default);
     //btnUpdatePoint.hide(true, false);
     btnDeletePoint.setType(gui::Button::Type::Default);
-    gc.appendRow(btnUpdatePoint, 2);
-    gc.appendCol(btnDeletePoint, 2);
+    _editActions << btnUpdatePoint << btnDeletePoint;
+    _editActions.appendSpacer();
+    gc.appendRow(_editActions, 2);
 
     // ========================================
     // SECTION 3: Connections
@@ -225,15 +233,14 @@ SidePanelView::SidePanelView()
     // SECTION 4: Randomize
     // ========================================
     lblRandomize.setFont(gui::Font::ID::SystemLargerBold);
-    gc.appendRow(lblRandomize, 1);
-    gc.appendRow(btnRandomizePosition, 1, td::HAlignment::Left);
-    gc.appendCol(btnRandomizeConnections, 1, td::HAlignment::Center);
-    gc.appendCol(btnRandomizeWeight, 1, td::HAlignment::Center);
-    gc.appendCol(btnRandomizeStatus, 1, td::HAlignment::Center);
-    gc.appendCol(btnRandomizeAll, 1, td::HAlignment::Center);
+    gc.appendRow(lblRandomize, 2);
+    hlRandomizeBtns << btnRandomizePosition << btnRandomizeConnections
+                    << btnRandomizeWeight << btnRandomizeStatus << btnRandomizeAll;
+    hlRandomizeBtns.appendSpacer();
+    gc.appendRow(hlRandomizeBtns, 2);
 
     btnSetAllToVisit.setType(gui::Button::Type::Default);
-    gc.appendRow(btnSetAllToVisit, 5);
+    gc.appendRow(btnSetAllToVisit, 2);
     }
 
     // ========================================
@@ -299,6 +306,10 @@ SidePanelView::SidePanelView()
     gc.appendRow(lblAnimationSpeed);
     sliderAnimationSpeed.setRange(1.0, 10.0);
     gc.appendCol(sliderAnimationSpeed);
+    gc.appendRow(lblResultStatus);
+    gc.appendCol(btnReplay);
+    lblResultStatus.setTextColor(td::Accent::Error);
+    btnReplay.disable(true);
     }
 
     _setupPage.setLayout(&_setupLayout);
@@ -527,6 +538,11 @@ bool SidePanelView::onClick(gui::Button* pBtn)
         if (_solverCallback) {
             _solverCallback(0, cmbSolvingAlgorithm.getSelectedIndex());
         }
+        return true;
+    }
+    if (pBtn == &btnReplay) {
+        if (_hasSolution && _solverCallback)
+            _solverCallback(5, cmbSolvingAlgorithm.getSelectedIndex());
         return true;
     }
     if (pBtn == &btnStepFwd) {
@@ -1282,6 +1298,7 @@ void SidePanelView::updateExecutionState(bool running)
 
     // Keep solution/reset disabled while running to avoid conflicting states
     btnSolve.disable(running);
+    btnReplay.disable(running || !_hasSolution);
     btnResetSolution.disable(running);
 
     // Lock NN controls while running

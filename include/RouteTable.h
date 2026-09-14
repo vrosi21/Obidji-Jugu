@@ -121,24 +121,25 @@ public:
         _rows.selected = index >= 0 && index < static_cast<int>(_rows.rows.size()) ? index : -1;
         _rows.redrawSelection();
     }
-    void setRoute(const DataRepository& repo, const std::vector<int>& tour)
+    bool setRoute(const DataRepository& repo, const std::vector<int>& tour)
     {
         _rows.rows.clear();
         double total = 0;
         std::vector<int> expanded;
         for (size_t i = 0; i < tour.size(); ++i) {
             std::vector<int> leg;
-            if (!repo.getShortestRoadPath(tour[i], tour[(i + 1) % tour.size()], leg)) { clear(); return; }
+            if (!repo.getShortestRoadPath(tour[i], tour[(i + 1) % tour.size()], leg)) { clear(); return false; }
             if (expanded.empty()) expanded = leg;
             else if (!leg.empty()) expanded.insert(expanded.end(), leg.begin() + 1, leg.end());
         }
         for (size_t i = 0; i < expanded.size(); ++i) {
             CityPoint city;
-            if (!repo.getCity(expanded[i], city)) { clear(); return; }
+            if (!repo.getCity(expanded[i], city)) { clear(); return false; }
             if (i) total += repo.getMetricDistance(expanded[i - 1], expanded[i]);
-            _rows.rows.push_back({city.name, total});
+              _rows.rows.push_back({city.name, total});
         }
         _rows.changed();
         _scroller.scrollVisibleOriginTo(gui::Point(0, 0));
+        return !expanded.empty();
     }
 };

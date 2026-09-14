@@ -346,6 +346,18 @@ private:
             case 3: // Legacy action: same unified solve flow
                 startSolver();
                 break;
+            case 5: // Replay the completed route without restarting the solver.
+                if (!_running && _solver && _sidePanel.hasSolution()) {
+                    stopAllExecution();
+                    ensureMapSolverAttached();
+                    _mapView.startSolutionAnimation();
+                    _solutionTickCounter = 0;
+                    _solutionRunning = _mapView.isSolutionAnimating();
+                    if (_solutionRunning) _solutionTimer.start();
+                    _mapView.refresh();
+                    refreshStepButtons();
+                }
+                break;
             case 4: // Reset solver state + clear drawn algorithm paths/animation
                 stopAllExecution();
 
@@ -499,6 +511,7 @@ private:
 
         ensureMapSolverAttached();
 
+        _sidePanel.clearResult();
         _solver->step();
 
         // Match Start/Pause one-step behavior for SA/GA
@@ -541,6 +554,7 @@ private:
 
         ensureMapSolverAttached();
 
+        _sidePanel.clearResult();
         _solver->stepBack();
 
         // Match Start/Pause one-step behavior for SA/GA on step-back snapshots too

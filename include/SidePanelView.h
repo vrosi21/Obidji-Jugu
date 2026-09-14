@@ -113,6 +113,7 @@ public:
 
 private:
     gui::GridLayout _setupLayout;
+    gui::HorizontalLayout _editActions;
     gui::GridLayout _solveLayout;
     gui::HorizontalLayout _solveActions;
     gui::GridLayout _setupHostLayout;
@@ -123,6 +124,7 @@ private:
     gui::View _solveHost;
     RouteTable _routeTable;
     RouteTable _cityTable{true};
+    bool _hasSolution = false;
 
 public:
 
@@ -176,6 +178,8 @@ public:
 
     gui::Label lblAnimationSpeed;
     gui::Slider sliderAnimationSpeed;
+    gui::Label lblResultStatus;
+    gui::Button btnReplay;
 
 
 
@@ -196,10 +200,22 @@ public:
     // Set callback for solver control actions
     void setSolverCallback(SolverCallback callback);
     void handleSetAllToVisit();
-    void clearResult() { _routeTable.clear(); btnSolve.setTitle(tr("Solve")); }
+    bool hasSolution() const { return _hasSolution; }
+    void clearResult() {
+        _hasSolution = false;
+        _routeTable.clear();
+        btnSolve.setTitle(tr("Solve"));
+        lblResultStatus.setTitle(tr("Status: Unsolved"));
+        lblResultStatus.setTextColor(td::Accent::Error);
+        btnReplay.disable(true);
+    }
     void showResult(const std::vector<int>& tour)
     {
-        if (_repo) _routeTable.setRoute(*_repo, tour);
+        if (!_repo || !_routeTable.setRoute(*_repo, tour)) { clearResult(); return; }
+        _hasSolution = true;
+        lblResultStatus.setTitle(tr("Status: Solved"));
+        lblResultStatus.setTextColor(td::Accent::Success);
+        btnReplay.disable(false);
         btnSolve.setTitle(tr("Resolve"));
     }
 
