@@ -5,8 +5,8 @@
         <Res id="flagEN" path=":flag-us.png"/>
         <Res id="flagBA" path=":flag-bhs.png"/>
         <!-- Keep example icons if needed elsewhere -->
-        <Res id="zoomIn" path="Work/Common/Icons/zoomIn64.png"/>
-        <Res id="zoomOut" path="Work/Common/Icons/zoomOut64.png"/>
+        <Res id="zoomIn" path="Common/Icons/zoomIn64.png"/>
+	<Res id="zoomOut" path="Common/Icons/zoomOut64.png"/>
     </Images>
     <FileNames>
         <Res id="exYu" path=":exYu.json"/>
