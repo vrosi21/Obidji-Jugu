@@ -71,7 +71,7 @@
 		<Res id="Algorithm:" tr="Algoritam:"/>
 		<Res id="Start/Pause" tr="Pokreni/Pauziraj"/>
 		<Res id="Step >" tr="Korak >"/>
-		<Res id="< Step" tr="< Korak"/>
+		<Res id="&lt; Step" tr="&lt; Korak"/>
 		<Res id="Show Solution" tr="Prikaži rješenje"/>
 		<!-- NN / SA / GA extra controls -->
 		<Res id="Improvement cycles:" tr="Ciklusi poboljšanja:"/>

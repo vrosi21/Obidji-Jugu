@@ -71,7 +71,7 @@
 		<Res id="Algorithm:" tr="Algorithm:"/>
 		<Res id="Start/Pause" tr="Start/Pause"/>
 		<Res id="Step >" tr="Step >"/>
-		<Res id="< Step" tr="< Step"/>
+		<Res id="&lt; Step" tr="&lt; Step"/>
 		<Res id="Show Solution" tr="Show Solution"/>
 		<!-- NN / SA / GA extra controls -->
 		<Res id="Improvement cycles:" tr="Improvement cycles:"/>
